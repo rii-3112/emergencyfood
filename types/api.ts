@@ -47,7 +47,7 @@ export interface UserDocument extends FirebaseDocument {
   isAdmin?: boolean;
 }
 
-export type ApiOperation = 'create' | 'read' | 'update' | 'delete' | 'list';
+export type ApiOperation = "create" | "read" | "update" | "delete" | "list";
 
 export interface CreateRequest<T> {
   data: Omit<T, keyof FirebaseDocument>;
@@ -63,7 +63,7 @@ export interface ListRequest {
   offset?: number;
   filters?: Record<string, any>;
   orderBy?: string;
-  orderDirection?: 'asc' | 'desc';
+  orderDirection?: "asc" | "desc";
 }
 
 export interface ListResponse<T> {

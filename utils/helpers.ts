@@ -1,4 +1,4 @@
-import { DATE_FORMATS, EXPIRY_WARNING_DAYS } from './constants';
+import { DATE_FORMATS, EXPIRY_WARNING_DAYS } from "./constants";
 
 export const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -49,7 +49,7 @@ export const isValidTeamName = (teamName: string): boolean => {
 
 export const truncateString = (str: string, maxLength: number): string => {
   if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength) + '...';
+  return str.slice(0, maxLength) + "...";
 };
 
 export const capitalizeFirst = (str: string): string => {
@@ -70,29 +70,29 @@ export const filterSupplysByCategory = <T extends { category: string }>(
   supplies: T[],
   category: string
 ): T[] => {
-  return supplies.filter(supply => supply.category === category);
+  return supplies.filter((supply) => supply.category === category);
 };
 
 export const getFirebaseErrorMessage = (error: any): string => {
-  if (typeof error === 'string') return error;
+  if (typeof error === "string") return error;
 
   const errorCode = error?.code || error?.message;
 
   switch (errorCode) {
-    case 'auth/user-not-found':
-      return 'ユーザーが見つかりません。';
-    case 'auth/wrong-password':
-      return 'パスワードが間違っています。';
-    case 'auth/email-already-in-use':
-      return 'このメールアドレスは既に使用されています。';
-    case 'auth/weak-password':
-      return 'パスワードが弱すぎます。';
-    case 'auth/invalid-email':
-      return '無効なメールアドレスです。';
-    case 'auth/too-many-requests':
-      return 'リクエストが多すぎます。しばらく待ってから再試行してください。';
+    case "auth/user-not-found":
+      return "ユーザーが見つかりません。";
+    case "auth/wrong-password":
+      return "パスワードが間違っています。";
+    case "auth/email-already-in-use":
+      return "このメールアドレスは既に使用されています。";
+    case "auth/weak-password":
+      return "パスワードが弱すぎます。";
+    case "auth/invalid-email":
+      return "無効なメールアドレスです。";
+    case "auth/too-many-requests":
+      return "リクエストが多すぎます。しばらく待ってから再試行してください。";
     default:
-      return 'エラーが発生しました。しばらく待ってから再試行してください。';
+      return "エラーが発生しました。しばらく待ってから再試行してください。";
   }
 };
 

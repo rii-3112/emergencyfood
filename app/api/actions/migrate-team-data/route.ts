@@ -1,15 +1,15 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from "next/server";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const userId = decodedToken.uid;
 
@@ -17,15 +17,15 @@ export async function POST(request: NextRequest) {
 
     if (!teamId) {
       return NextResponse.json(
-        { error: 'チームIDが必要です' },
+        { error: "チームIDが必要です" },
         { status: 400 }
       );
     }
 
-    const teamDoc = await adminDb.collection('teams').doc(teamId).get();
+    const teamDoc = await adminDb.collection("teams").doc(teamId).get();
     if (!teamDoc.exists) {
       return NextResponse.json(
-        { error: 'チームが見つかりません' },
+        { error: "チームが見つかりません" },
         { status: 404 }
       );
     }
@@ -33,14 +33,14 @@ export async function POST(request: NextRequest) {
     const teamData = teamDoc.data();
     if (!teamData) {
       return NextResponse.json(
-        { error: 'チームデータが見つかりません' },
+        { error: "チームデータが見つかりません" },
         { status: 404 }
       );
     }
 
     if (!teamData.members.includes(userId)) {
       return NextResponse.json(
-        { error: 'このチームのメンバーではありません' },
+        { error: "このチームのメンバーではありません" },
         { status: 403 }
       );
     }
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     if (!needsMigration) {
       return NextResponse.json({
         success: true,
-        message: 'チームデータは既に最新の形式です',
+        message: "チームデータは既に最新の形式です",
         migrated: false,
       });
     }
@@ -58,14 +58,14 @@ export async function POST(request: NextRequest) {
     const ownerId = teamData.ownerId || teamData.createdBy;
     const admins = teamData.admins || [ownerId];
 
-    await adminDb.collection('teams').doc(teamId).update({
+    await adminDb.collection("teams").doc(teamId).update({
       ownerId: ownerId,
       admins: admins,
     });
 
     return NextResponse.json({
       success: true,
-      message: 'チームデータを最新の形式に移行しました',
+      message: "チームデータを最新の形式に移行しました",
       migrated: true,
       data: {
         ownerId,
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (_error) {
     return NextResponse.json(
-      { error: 'チームデータの移行に失敗しました' },
+      { error: "チームデータの移行に失敗しました" },
       { status: 500 }
     );
   }

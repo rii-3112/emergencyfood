@@ -1,8 +1,8 @@
-import React from 'react';
+import React from "react";
 
-import { Select } from '@/components/ui';
-import type { SupplyFormData } from '@/types/forms';
-import { FOOD_CATEGORIES } from '@/utils/constants';
+import { Select } from "@/components/ui";
+import type { SupplyFormData } from "@/types/forms";
+import { FOOD_CATEGORIES } from "@/utils/constants";
 
 interface SupplyCategoryFieldsProps {
   formData: SupplyFormData;
@@ -15,7 +15,7 @@ export function SupplyCategoryFields({
   formData,
   onChange,
 }: SupplyCategoryFieldsProps) {
-  const categoryOptions = FOOD_CATEGORIES.map(category => ({
+  const categoryOptions = FOOD_CATEGORIES.map((category) => ({
     value: category,
     label: category,
   }));

@@ -1,12 +1,12 @@
-import { getApp, getApps, initializeApp } from 'firebase/app';
+import { getApp, getApps, initializeApp } from "firebase/app";
 import {
   browserLocalPersistence,
   getAuth,
   onAuthStateChanged,
   setPersistence,
-} from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+} from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -23,9 +23,9 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-if (typeof window !== 'undefined') {
-  setPersistence(auth, browserLocalPersistence).catch(error => {
-    console.error('認証の永続化設定に失敗しました:', error);
+if (typeof window !== "undefined") {
+  setPersistence(auth, browserLocalPersistence).catch((error) => {
+    console.error("認証の永続化設定に失敗しました:", error);
   });
 }
 

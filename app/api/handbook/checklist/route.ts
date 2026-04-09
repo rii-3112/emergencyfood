@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from "next/server";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
 interface HandbookChecklistData {
   checkedItemIds: string[];
@@ -13,24 +13,24 @@ interface HandbookChecklistData {
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const teamId = decodedToken.teamId as string;
 
     if (!teamId) {
       return NextResponse.json(
-        { error: 'チームIDが必要です' },
+        { error: "チームIDが必要です" },
         { status: 400 }
       );
     }
 
     const checklistDoc = await adminDb
-      .collection('handbook-checklists')
+      .collection("handbook-checklists")
       .doc(teamId)
       .get();
 
@@ -41,9 +41,9 @@ export async function GET(request: NextRequest) {
     const data = checklistDoc.data();
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Handbook checklist fetch error:', error);
+    console.error("Handbook checklist fetch error:", error);
     return NextResponse.json(
-      { error: 'チェックリストの取得に失敗しました' },
+      { error: "チェックリストの取得に失敗しました" },
       { status: 500 }
     );
   }
@@ -51,18 +51,18 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const teamId = decodedToken.teamId as string;
 
     if (!teamId) {
       return NextResponse.json(
-        { error: 'チームIDが必要です' },
+        { error: "チームIDが必要です" },
         { status: 400 }
       );
     }
@@ -74,17 +74,17 @@ export async function POST(request: NextRequest) {
         checkedItemIds: body.checkedItemIds || [],
         checkedPetItems: body.checkedPetItems || {},
         lastUpdated: new Date(),
-        lastUpdatedBy: decodedToken.name || decodedToken.email || 'ユーザー',
+        lastUpdatedBy: decodedToken.name || decodedToken.email || "ユーザー",
       };
 
       await adminDb
-        .collection('handbook-checklists')
+        .collection("handbook-checklists")
         .doc(teamId)
         .set(checklistData, { merge: true });
 
       return NextResponse.json({
         success: true,
-        message: 'チェックリストを保存しました',
+        message: "チェックリストを保存しました",
       });
     }
 
@@ -106,22 +106,22 @@ export async function POST(request: NextRequest) {
       checkedItemIds: Array.from(checkedItemIds),
       checkedPetItems,
       lastUpdated: new Date(),
-      lastUpdatedBy: decodedToken.name || decodedToken.email || 'ユーザー',
+      lastUpdatedBy: decodedToken.name || decodedToken.email || "ユーザー",
     };
 
     await adminDb
-      .collection('handbook-checklists')
+      .collection("handbook-checklists")
       .doc(teamId)
       .set(checklistData, { merge: true });
 
     return NextResponse.json({
       success: true,
-      message: 'チェックリストを保存しました',
+      message: "チェックリストを保存しました",
     });
   } catch (error) {
-    console.error('Handbook checklist save error:', error);
+    console.error("Handbook checklist save error:", error);
     return NextResponse.json(
-      { error: 'チェックリストの保存に失敗しました' },
+      { error: "チェックリストの保存に失敗しました" },
       { status: 500 }
     );
   }

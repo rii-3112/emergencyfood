@@ -1,6 +1,6 @@
-import type { AppUser, Team, TeamMember } from '@/types';
-import { API_ENDPOINTS, ERROR_MESSAGES } from '@/utils/constants';
-import { useEffect, useState } from 'react';
+import type { AppUser, Team, TeamMember } from "@/types";
+import { API_ENDPOINTS, ERROR_MESSAGES } from "@/utils/constants";
+import { useEffect, useState } from "react";
 
 interface UseTeamReturn {
   teamId: string | null;
@@ -46,7 +46,7 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
         setTeamId(teamIdFromClaims);
         setCurrentTeamId(teamIdFromClaims);
       } catch (e) {
-        setError('チームIDの取得に失敗しました');
+        setError("チームIDの取得に失敗しました");
         setTeamId(null);
         setCurrentTeamId(null);
       } finally {
@@ -86,9 +86,9 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
     try {
       const idToken = await user.getIdToken();
       const response = await fetch(API_ENDPOINTS.MIGRATE_TEAM_DATA, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
@@ -116,14 +116,14 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
 
   const createTeam = async (teamName: string, teamPassword: string) => {
     if (!user) {
-      throw new Error('ユーザーが認証されていません');
+      throw new Error("ユーザーが認証されていません");
     }
 
     const idToken = await user.getIdToken(true);
     const response = await fetch(API_ENDPOINTS.CREATE_TEAM, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
@@ -135,7 +135,7 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.error || 'チームの作成に失敗しました。');
+      throw new Error(result.error || "チームの作成に失敗しました。");
     }
 
     if (result.teamId) {
@@ -148,14 +148,14 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
 
   const joinTeam = async (teamName: string, teamPassword: string) => {
     if (!user) {
-      throw new Error('ユーザーが認証されていません');
+      throw new Error("ユーザーが認証されていません");
     }
 
     const idToken = await user.getIdToken();
     const response = await fetch(API_ENDPOINTS.JOIN_TEAM, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
@@ -167,7 +167,7 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
     const result = await response.json();
 
     if (!response.ok) {
-      throw new Error(result.error || 'チームへの参加に失敗しました。');
+      throw new Error(result.error || "チームへの参加に失敗しました。");
     }
 
     return result;
@@ -175,14 +175,14 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
 
   const addAdmin = async (userId: string) => {
     if (!currentTeamId || !user) {
-      throw new Error('チームIDまたはユーザーが設定されていません');
+      throw new Error("チームIDまたはユーザーが設定されていません");
     }
 
     const idToken = await user.getIdToken();
     const response = await fetch(API_ENDPOINTS.ADD_ADMIN, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
@@ -201,14 +201,14 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
 
   const removeAdmin = async (userId: string) => {
     if (!currentTeamId || !user) {
-      throw new Error('チームIDまたはユーザーが設定されていません');
+      throw new Error("チームIDまたはユーザーが設定されていません");
     }
 
     const idToken = await user.getIdToken();
     const response = await fetch(API_ENDPOINTS.REMOVE_ADMIN, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({

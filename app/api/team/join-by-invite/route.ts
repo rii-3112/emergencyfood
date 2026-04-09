@@ -1,24 +1,24 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { error: 'Authorization header missing or malformed' },
+        { error: "Authorization header missing or malformed" },
         { status: 401 }
       );
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     let decodedToken;
     try {
       decodedToken = await adminAuth.verifyIdToken(idToken);
     } catch (_error) {
       return NextResponse.json(
-        { error: 'Invalid or expired ID token' },
+        { error: "Invalid or expired ID token" },
         { status: 403 }
       );
     }
@@ -28,16 +28,16 @@ export async function POST(req: Request) {
 
     if (!inviteCode) {
       return NextResponse.json(
-        { error: 'Invite code is required' },
+        { error: "Invite code is required" },
         { status: 400 }
       );
     }
 
-    const inviteDoc = await adminDb.collection('invites').doc(inviteCode).get();
+    const inviteDoc = await adminDb.collection("invites").doc(inviteCode).get();
 
     if (!inviteDoc.exists) {
       return NextResponse.json(
-        { error: 'Invalid or expired invite code' },
+        { error: "Invalid or expired invite code" },
         { status: 404 }
       );
     }
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
 
     if (inviteData?.expiresAt && inviteData.expiresAt.toDate() < new Date()) {
       return NextResponse.json(
-        { error: 'Invite code has expired' },
+        { error: "Invite code has expired" },
         { status: 410 }
       );
     }
@@ -56,23 +56,23 @@ export async function POST(req: Request) {
 
     if (!teamId) {
       return NextResponse.json(
-        { error: 'Invalid invite data' },
+        { error: "Invalid invite data" },
         { status: 400 }
       );
     }
 
-    await adminDb.runTransaction(async transaction => {
-      const userDocRef = adminDb.collection('users').doc(uid);
-      const teamDocRef = adminDb.collection('teams').doc(teamId);
+    await adminDb.runTransaction(async (transaction) => {
+      const userDocRef = adminDb.collection("users").doc(uid);
+      const teamDocRef = adminDb.collection("teams").doc(teamId);
 
       const userDoc = await transaction.get(userDocRef);
       const teamDoc = await transaction.get(teamDocRef);
 
       if (!userDoc.exists) {
-        throw new Error('User document not found.');
+        throw new Error("User document not found.");
       }
       if (!teamDoc.exists) {
-        throw new Error('Team document not found.');
+        throw new Error("Team document not found.");
       }
 
       const userData = userDoc.data();
@@ -110,7 +110,7 @@ export async function POST(req: Request) {
     });
   } catch (_error: unknown) {
     const errorMessage =
-      _error instanceof Error ? _error.message : 'Internal Server Error';
+      _error instanceof Error ? _error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

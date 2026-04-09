@@ -1,7 +1,7 @@
-import { FieldValue } from 'firebase-admin/firestore';
-import { NextResponse, type NextRequest } from 'next/server';
+import { FieldValue } from "firebase-admin/firestore";
+import { NextResponse, type NextRequest } from "next/server";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
 interface RouteParams {
   params: Promise<{
@@ -25,29 +25,29 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { supplyId } = await params;
 
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const teamId = decodedToken.teamId as string;
 
     if (!teamId) {
       return NextResponse.json(
-        { error: 'チームIDが必要です' },
+        { error: "チームIDが必要です" },
         { status: 400 }
       );
     }
 
     const reviewsSnapshot = await adminDb
-      .collection('supplyReviews')
-      .where('supplyId', '==', supplyId)
-      .where('teamId', '==', teamId)
+      .collection("supplyReviews")
+      .where("supplyId", "==", supplyId)
+      .where("teamId", "==", teamId)
       .get();
 
-    const reviews: Review[] = reviewsSnapshot.docs.map(doc => ({
+    const reviews: Review[] = reviewsSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     })) as Review[];
@@ -61,7 +61,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ reviews });
   } catch (_error) {
     return NextResponse.json(
-      { error: 'レビューの取得に失敗しました' },
+      { error: "レビューの取得に失敗しました" },
       { status: 500 }
     );
   }
@@ -73,35 +73,35 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     const { content } = body;
 
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const uid = decodedToken.uid;
     const teamId = decodedToken.teamId as string;
 
     if (!teamId) {
       return NextResponse.json(
-        { error: 'チームIDが必要です' },
+        { error: "チームIDが必要です" },
         { status: 400 }
       );
     }
 
     if (!content) {
       return NextResponse.json(
-        { error: 'レビュー内容が必要です' },
+        { error: "レビュー内容が必要です" },
         { status: 400 }
       );
     }
 
-    const supplyDoc = await adminDb.collection('supplies').doc(supplyId).get();
+    const supplyDoc = await adminDb.collection("supplies").doc(supplyId).get();
 
     if (!supplyDoc.exists) {
       return NextResponse.json(
-        { error: '備蓄品が見つかりません' },
+        { error: "備蓄品が見つかりません" },
         { status: 404 }
       );
     }
@@ -109,30 +109,30 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const suppliesData = supplyDoc.data();
     if (suppliesData?.teamId !== teamId) {
       return NextResponse.json(
-        { error: 'アクセス権限がありません' },
+        { error: "アクセス権限がありません" },
         { status: 403 }
       );
     }
 
-    let userName = 'ユーザー';
+    let userName = "ユーザー";
     try {
-      const userDoc = await adminDb.collection('users').doc(uid).get();
+      const userDoc = await adminDb.collection("users").doc(uid).get();
       if (userDoc.exists) {
         const userData = userDoc.data();
         userName =
           userData?.displayName ||
           decodedToken.name ||
           decodedToken.email ||
-          'ユーザー';
+          "ユーザー";
       } else {
-        userName = decodedToken.name || decodedToken.email || 'ユーザー';
+        userName = decodedToken.name || decodedToken.email || "ユーザー";
       }
     } catch (error) {
-      console.error('Failed to get user info:', error);
-      userName = decodedToken.email || 'ユーザー';
+      console.error("Failed to get user info:", error);
+      userName = decodedToken.email || "ユーザー";
     }
 
-    const reviewRef = await adminDb.collection('supplyReviews').add({
+    const reviewRef = await adminDb.collection("supplyReviews").add({
       supplyId,
       teamId,
       content,
@@ -144,11 +144,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({
       success: true,
       reviewId: reviewRef.id,
-      message: 'レビューを投稿しました',
+      message: "レビューを投稿しました",
     });
   } catch (_error) {
     return NextResponse.json(
-      { error: 'レビューの投稿に失敗しました' },
+      { error: "レビューの投稿に失敗しました" },
       { status: 500 }
     );
   }
@@ -158,32 +158,32 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { supplyId: _supplyId } = await params;
     const { searchParams } = new URL(request.url);
-    const reviewId = searchParams.get('reviewId');
+    const reviewId = searchParams.get("reviewId");
 
-    const authHeader = request.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
+    const authHeader = request.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const uid = decodedToken.uid;
 
     if (!reviewId) {
       return NextResponse.json(
-        { error: 'レビューIDが必要です' },
+        { error: "レビューIDが必要です" },
         { status: 400 }
       );
     }
 
     const reviewDoc = await adminDb
-      .collection('supplyReviews')
+      .collection("supplyReviews")
       .doc(reviewId)
       .get();
 
     if (!reviewDoc.exists) {
       return NextResponse.json(
-        { error: 'レビューが見つかりません' },
+        { error: "レビューが見つかりません" },
         { status: 404 }
       );
     }
@@ -192,20 +192,20 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
     if (reviewData?.userId !== uid) {
       return NextResponse.json(
-        { error: '削除権限がありません' },
+        { error: "削除権限がありません" },
         { status: 403 }
       );
     }
 
-    await adminDb.collection('supplyReviews').doc(reviewId).delete();
+    await adminDb.collection("supplyReviews").doc(reviewId).delete();
 
     return NextResponse.json({
       success: true,
-      message: 'レビューを削除しました',
+      message: "レビューを削除しました",
     });
   } catch (_error) {
     return NextResponse.json(
-      { error: 'レビューの削除に失敗しました' },
+      { error: "レビューの削除に失敗しました" },
       { status: 500 }
     );
   }

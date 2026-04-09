@@ -5,7 +5,7 @@ export interface SuccessMessageProps {
 
 export function SuccessMessage({
   message,
-  className = '',
+  className = "",
 }: SuccessMessageProps) {
   return (
     <div

@@ -1,13 +1,13 @@
-'use client';
-import { MissingCategoriesAlert } from '@/components/supplies/MissingCategoriesAlert';
-import SupplyItem from '@/components/supplies/SupplyItem';
-import type { SortOption, SortOrder } from '@/components/supplies/SupplySort';
-import { Button, Card } from '@/components/ui';
-import type { Supply, Team } from '@/types';
-import { FOOD_CATEGORIES, FOOD_UNITS } from '@/utils/constants';
-import { sortSupplies } from '@/utils/sortSupplies';
-import Link from 'next/link';
-import { useState } from 'react';
+"use client";
+import { MissingCategoriesAlert } from "@/components/supplies/MissingCategoriesAlert";
+import SupplyItem from "@/components/supplies/SupplyItem";
+import type { SortOption, SortOrder } from "@/components/supplies/SupplySort";
+import { Button, Card } from "@/components/ui";
+import type { Supply, Team } from "@/types";
+import { FOOD_CATEGORIES, FOOD_UNITS } from "@/utils/constants";
+import { sortSupplies } from "@/utils/sortSupplies";
+import Link from "next/link";
+import { useState } from "react";
 
 interface ServerUser {
   uid: string;
@@ -27,12 +27,12 @@ export default function SupplyListView({
   initialTeam,
   user,
 }: SupplyListViewProps) {
-  const [sortBy, setSortBy] = useState<SortOption>('registeredAt');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [sortBy, setSortBy] = useState<SortOption>("registeredAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [supplies, setSupplies] = useState<Supply[]>(initialSupplies);
   const [team] = useState<Team | null>(initialTeam);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedSupply, setSelectedSupply] = useState<Supply | null>(null);
 
@@ -45,12 +45,12 @@ export default function SupplyListView({
     setSortOrder(order);
   };
 
-  const filteredSupplies = supplies.filter(supply => {
-    if (selectedCategory !== 'all' && supply.category !== selectedCategory) {
+  const filteredSupplies = supplies.filter((supply) => {
+    if (selectedCategory !== "all" && supply.category !== selectedCategory) {
       return false;
     }
 
-    if (searchQuery.trim() !== '') {
+    if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
       const nameMatch = supply.name.toLowerCase().includes(query);
       const categoryMatch = supply.category.toLowerCase().includes(query);
@@ -65,10 +65,12 @@ export default function SupplyListView({
 
   const sortedSupplies = sortSupplies(filteredSupplies, sortBy, sortOrder);
 
-  const categories = Array.from(new Set(supplies.map(s => s.category))).sort();
+  const categories = Array.from(
+    new Set(supplies.map((s) => s.category))
+  ).sort();
 
   const handleUpdateSupply = (supplyIdToUpdate: string) => {
-    const supplyToEdit = supplies.find(s => s.id === supplyIdToUpdate);
+    const supplyToEdit = supplies.find((s) => s.id === supplyIdToUpdate);
     if (supplyToEdit) {
       setSelectedSupply(supplyToEdit);
       setShowEditModal(true);
@@ -81,24 +83,24 @@ export default function SupplyListView({
 
     const formData = new FormData(e.currentTarget);
     const updatedData = {
-      name: formData.get('name') as string,
-      quantity: parseInt(formData.get('quantity') as string),
-      unit: formData.get('unit') as string,
-      category: formData.get('category') as string,
-      expiryDate: formData.get('expiryDate') as string,
-      amount: formData.get('amount')
-        ? parseFloat(formData.get('amount') as string)
+      name: formData.get("name") as string,
+      quantity: parseInt(formData.get("quantity") as string),
+      unit: formData.get("unit") as string,
+      category: formData.get("category") as string,
+      expiryDate: formData.get("expiryDate") as string,
+      amount: formData.get("amount")
+        ? parseFloat(formData.get("amount") as string)
         : null,
-      purchaseLocation: formData.get('purchaseLocation') as string,
-      label: formData.get('label') as string,
-      storageLocation: formData.get('storageLocation') as string,
+      purchaseLocation: formData.get("purchaseLocation") as string,
+      label: formData.get("label") as string,
+      storageLocation: formData.get("storageLocation") as string,
     };
 
     try {
-      const response = await fetch('/api/actions/update-supply', {
-        method: 'POST',
+      const response = await fetch("/api/actions/update-supply", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           supplyId: selectedSupply.id,
@@ -107,40 +109,40 @@ export default function SupplyListView({
       });
 
       if (response.ok) {
-        setSupplies(prev =>
-          prev.map(s =>
+        setSupplies((prev) =>
+          prev.map((s) =>
             s.id === selectedSupply.id ? { ...s, ...updatedData } : s
           )
         );
         setShowEditModal(false);
       } else {
         const result = await response.json();
-        alert(result.error || '更新に失敗しました');
+        alert(result.error || "更新に失敗しました");
       }
     } catch (error) {
-      console.error('Update error:', error);
-      alert('更新に失敗しました');
+      console.error("Update error:", error);
+      alert("更新に失敗しました");
     }
   };
 
   const handleDeleteSupply = async (supplyId: string) => {
     try {
-      const response = await fetch('/api/actions/delete-supply', {
-        method: 'POST',
+      const response = await fetch("/api/actions/delete-supply", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ supplyId }),
       });
 
       if (response.ok) {
-        setSupplies(prev => prev.filter(supply => supply.id !== supplyId));
+        setSupplies((prev) => prev.filter((supply) => supply.id !== supplyId));
       } else {
-        console.error('削除に失敗しました。');
+        console.error("削除に失敗しました。");
       }
     } catch (error) {
-      console.error('Delete error:', error);
-      console.error('削除に失敗しました。');
+      console.error("Delete error:", error);
+      console.error("削除に失敗しました。");
     }
   };
 
@@ -154,7 +156,7 @@ export default function SupplyListView({
         setSupplies(data.supplies || []);
       }
     } catch (error) {
-      console.error('Refetch error:', error);
+      console.error("Refetch error:", error);
     }
   };
 
@@ -200,18 +202,18 @@ export default function SupplyListView({
               type='text'
               placeholder='商品名、カテゴリ、購入場所で検索...'
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
             />
           </div>
 
           <select
             className='px-3 py-2 border border-gray-300 rounded-md text-sm'
-            onChange={e => setSelectedCategory(e.target.value)}
+            onChange={(e) => setSelectedCategory(e.target.value)}
             value={selectedCategory}
           >
             <option value='all'>全カテゴリ</option>
-            {categories.map(category => (
+            {categories.map((category) => (
               <option key={category} value={category}>
                 {category}
               </option>
@@ -220,7 +222,7 @@ export default function SupplyListView({
 
           <select
             className='px-3 py-2 border border-gray-300 rounded-md text-sm'
-            onChange={e => {
+            onChange={(e) => {
               const selectedOption = e.target.value as SortOption;
               handleSortChange(selectedOption, sortOrder);
             }}
@@ -266,7 +268,7 @@ export default function SupplyListView({
             supply={supply}
             teamStockSettings={team?.stockSettings}
             onArchiveSupply={() => {
-              setSupplies(prev => prev.filter(s => s.id !== supply.id));
+              setSupplies((prev) => prev.filter((s) => s.id !== supply.id));
             }}
             onDeleteSupply={() => handleDeleteSupply(supply.id)}
             onRefetch={handleRefetch}
@@ -283,7 +285,7 @@ export default function SupplyListView({
         >
           <div
             className='bg-white rounded-lg p-6 max-w-md w-full relative border border-gray-200'
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <h2 className='text-xl font-bold mb-4'>
               {selectedSupply.name} を編集
@@ -334,7 +336,7 @@ export default function SupplyListView({
                     id='unit'
                     defaultValue={selectedSupply.unit}
                   >
-                    {FOOD_UNITS.map(unit => (
+                    {FOOD_UNITS.map((unit) => (
                       <option key={unit} value={unit}>
                         {unit}
                       </option>
@@ -356,7 +358,7 @@ export default function SupplyListView({
                   name='category'
                   defaultValue={selectedSupply.category}
                 >
-                  {FOOD_CATEGORIES.map(category => (
+                  {FOOD_CATEGORIES.map((category) => (
                     <option key={category} value={category}>
                       {category}
                     </option>
@@ -389,7 +391,7 @@ export default function SupplyListView({
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                   id='amount'
                   type='number'
-                  defaultValue={selectedSupply.amount || ''}
+                  defaultValue={selectedSupply.amount || ""}
                 />
               </div>
               <div>
@@ -403,7 +405,7 @@ export default function SupplyListView({
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                   id='purchaseLocation'
                   type='text'
-                  defaultValue={selectedSupply.purchaseLocation || ''}
+                  defaultValue={selectedSupply.purchaseLocation || ""}
                 />
               </div>
               <div>
@@ -417,7 +419,7 @@ export default function SupplyListView({
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                   id='label'
                   type='text'
-                  defaultValue={selectedSupply.label || ''}
+                  defaultValue={selectedSupply.label || ""}
                 />
               </div>
               <div>
@@ -431,13 +433,13 @@ export default function SupplyListView({
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                   id='storageLocation'
                   type='text'
-                  defaultValue={selectedSupply.storageLocation || ''}
+                  defaultValue={selectedSupply.storageLocation || ""}
                 />
               </div>
               <div className='flex justify-end gap-3 pt-4'>
                 <button
                   className='px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors'
-                  onClick={e => {
+                  onClick={(e) => {
                     e.preventDefault();
                     setShowEditModal(false);
                   }}

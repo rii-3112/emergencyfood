@@ -1,6 +1,6 @@
-'use client';
-import SupplyForm from '@/components/supplies/SupplyForm';
-import { useRouter } from 'next/navigation';
+"use client";
+import SupplyForm from "@/components/supplies/SupplyForm";
+import { useRouter } from "next/navigation";
 
 interface ServerUser {
   uid: string;
@@ -20,7 +20,7 @@ export default function SupplyAddForm({ user }: SupplyAddFormProps) {
     <SupplyForm
       teamId={user.teamId!}
       uid={user.uid}
-      onCancel={() => router.push('/supplies/list')}
+      onCancel={() => router.push("/supplies/list")}
     />
   );
 }

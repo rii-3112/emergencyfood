@@ -1,4 +1,4 @@
-import type { ExpiryInfo, Supply } from '@/types';
+import type { ExpiryInfo, Supply } from "@/types";
 
 export function migrateSupplyToExpiryDates(supply: Supply): Supply {
   if (supply.expiryDates && supply.expiryDates.length > 0) {
@@ -26,7 +26,7 @@ export function getNearestExpiryDate(supply: Supply): string {
     return supply.expiryDate;
   }
 
-  const dates = supply.expiryDates.map(e => e.date).sort();
+  const dates = supply.expiryDates.map((e) => e.date).sort();
   return dates[0];
 }
 
@@ -70,7 +70,7 @@ export function consumeFromOldestLot(
     remainingToConsume -= consumeFromThis;
   }
 
-  const updatedExpiryDates = expiryDates.filter(e => e.quantity > 0);
+  const updatedExpiryDates = expiryDates.filter((e) => e.quantity > 0);
 
   const newTotalQuantity = updatedExpiryDates.reduce(
     (sum, e) => sum + e.quantity,
@@ -105,7 +105,7 @@ export function addNewLot(
   const migrated = migrateSupplyToExpiryDates(supply);
   const expiryDates = migrated.expiryDates || [];
 
-  const existingIndex = expiryDates.findIndex(e => e.date === newExpiryDate);
+  const existingIndex = expiryDates.findIndex((e) => e.date === newExpiryDate);
 
   if (existingIndex >= 0) {
     expiryDates[existingIndex].quantity += newQuantity;

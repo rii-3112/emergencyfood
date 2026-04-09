@@ -1,9 +1,9 @@
-'use client';
-import DisasterBoardCheckpoint from '@/components/handbook/DisasterBoardCheckpoint';
-import HazardMapCheckpoint from '@/components/handbook/HazardMapCheckpoint';
-import SuppliesChecklist from '@/components/handbook/disaster-board/SuppliesChecklist';
-import type { DisasterBoardData, Team } from '@/types';
-import { useState } from 'react';
+"use client";
+import DisasterBoardCheckpoint from "@/components/handbook/DisasterBoardCheckpoint";
+import HazardMapCheckpoint from "@/components/handbook/HazardMapCheckpoint";
+import SuppliesChecklist from "@/components/handbook/disaster-board/SuppliesChecklist";
+import type { DisasterBoardData, Team } from "@/types";
+import { useState } from "react";
 
 interface ServerUser {
   uid: string;
@@ -29,27 +29,27 @@ export default function HandbookClient({
   user,
 }: HandbookClientProps) {
   const [activeCheckpoint, setActiveCheckpoint] = useState<
-    'supplies' | 'hazardmap' | 'disasterboard'
-  >('supplies');
+    "supplies" | "hazardmap" | "disasterboard"
+  >("supplies");
 
   const checkpoints = [
-    { id: 'supplies' as const, label: '備蓄品チェック' },
-    { id: 'hazardmap' as const, label: 'ハザードマップ' },
-    { id: 'disasterboard' as const, label: '災害用伝言板' },
+    { id: "supplies" as const, label: "備蓄品チェック" },
+    { id: "hazardmap" as const, label: "ハザードマップ" },
+    { id: "disasterboard" as const, label: "災害用伝言板" },
   ];
 
   const renderCheckpoint = () => {
     switch (activeCheckpoint) {
-      case 'supplies':
+      case "supplies":
         return (
           <SuppliesChecklist
             initialTeamData={initialTeamData}
             initialChecklistData={initialChecklistData}
           />
         );
-      case 'hazardmap':
+      case "hazardmap":
         return <HazardMapCheckpoint />;
-      case 'disasterboard':
+      case "disasterboard":
         return (
           <DisasterBoardCheckpoint
             initialData={initialDisasterBoardData}
@@ -70,14 +70,14 @@ export default function HandbookClient({
   return (
     <div className='space-y-6'>
       <div className='flex flex-wrap gap-2 justify-center'>
-        {checkpoints.map(checkpoint => (
+        {checkpoints.map((checkpoint) => (
           <button
             key={checkpoint.id}
             onClick={() => setActiveCheckpoint(checkpoint.id)}
             className={`px-3 py-2 rounded-lg font-medium transition-colors ${
               activeCheckpoint === checkpoint.id
-                ? 'bg-gray-800 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                ? "bg-gray-800 text-white"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >
             {checkpoint.label}

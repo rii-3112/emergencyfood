@@ -2,20 +2,20 @@
 // This file is kept for backward compatibility
 // New modular version is at ./SupplyForm/index.tsx
 
-'use client';
-import { Card, ErrorMessage, SuccessMessage } from '@/components/ui';
-import { useSupplyForm } from '@/hooks/forms/useSupplyForm';
-import type { SupplyFormProps } from '@/types/forms';
+"use client";
+import { Card, ErrorMessage, SuccessMessage } from "@/components/ui";
+import { useSupplyForm } from "@/hooks/forms/useSupplyForm";
+import type { SupplyFormProps } from "@/types/forms";
 
-import { SupplyBasicFields } from './SupplyForm/SupplyBasicFields';
-import { SupplyCategoryFields } from './SupplyForm/SupplyCategoryFields';
-import { SupplyFormActions } from './SupplyForm/SupplyFormActions';
-import { SupplyOptionalFields } from './SupplyForm/SupplyOptionalFields';
+import { SupplyBasicFields } from "./SupplyForm/SupplyBasicFields";
+import { SupplyCategoryFields } from "./SupplyForm/SupplyCategoryFields";
+import { SupplyFormActions } from "./SupplyForm/SupplyFormActions";
+import { SupplyOptionalFields } from "./SupplyForm/SupplyOptionalFields";
 
 export default function SupplyForm({
   uid,
   teamId,
-  mode = 'add',
+  mode = "add",
   supplyId,
   initialData,
   onCancel,

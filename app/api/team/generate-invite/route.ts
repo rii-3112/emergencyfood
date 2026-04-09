@@ -1,25 +1,25 @@
-import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
+import { NextResponse } from "next/server";
+import { v4 as uuidv4 } from "uuid";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { error: 'Authorization header missing or malformed' },
+        { error: "Authorization header missing or malformed" },
         { status: 401 }
       );
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     let decodedToken;
     try {
       decodedToken = await adminAuth.verifyIdToken(idToken);
     } catch (_error) {
       return NextResponse.json(
-        { error: 'Invalid or expired ID token' },
+        { error: "Invalid or expired ID token" },
         { status: 403 }
       );
     }
@@ -29,15 +29,15 @@ export async function POST(req: Request) {
 
     if (!teamId) {
       return NextResponse.json(
-        { error: 'Team ID is required' },
+        { error: "Team ID is required" },
         { status: 400 }
       );
     }
 
-    const teamDoc = await adminDb.collection('teams').doc(teamId).get();
+    const teamDoc = await adminDb.collection("teams").doc(teamId).get();
 
     if (!teamDoc.exists) {
-      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+      return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
 
     const teamData = teamDoc.data();
@@ -45,23 +45,23 @@ export async function POST(req: Request) {
 
     if (!members.includes(uid)) {
       return NextResponse.json(
-        { error: 'You are not a member of this team' },
+        { error: "You are not a member of this team" },
         { status: 403 }
       );
     }
 
-    const inviteCode = uuidv4().split('-')[0].toUpperCase();
+    const inviteCode = uuidv4().split("-")[0].toUpperCase();
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
 
     await adminDb
-      .collection('invites')
+      .collection("invites")
       .doc(inviteCode)
       .set({
         teamId: teamId,
-        teamName: teamName || teamData?.name || '',
-        teamPassword: teamData?.password || '',
+        teamName: teamName || teamData?.name || "",
+        teamPassword: teamData?.password || "",
         createdBy: uid,
         createdAt: new Date(),
         expiresAt: expiresAt,
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     });
   } catch (_error: unknown) {
     const errorMessage =
-      _error instanceof Error ? _error.message : 'Internal Server Error';
+      _error instanceof Error ? _error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

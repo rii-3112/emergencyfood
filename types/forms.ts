@@ -33,9 +33,9 @@ export interface FormState<T> {
   isValid: boolean;
 }
 
-export type FormMode = 'add' | 'edit' | 'view';
+export type FormMode = "add" | "edit" | "view";
 
-export type DisasterType = 'earthquake' | 'tsunami' | 'flood' | 'typhoon';
+export type DisasterType = "earthquake" | "tsunami" | "flood" | "typhoon";
 
 export interface EvacuationSite {
   id?: string;

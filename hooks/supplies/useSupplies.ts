@@ -1,7 +1,7 @@
-import type { AppUser, Supply } from '@/types';
-import { ERROR_MESSAGES } from '@/utils/constants';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import type { AppUser, Supply } from "@/types";
+import { ERROR_MESSAGES } from "@/utils/constants";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface UseSuppliesReturn {
   supplies: Supply[];
@@ -45,7 +45,7 @@ export const useSupplies = (
 
       if (!response.ok) {
         const result = await response.json();
-        throw new Error(result.error || '備蓄品リストの取得に失敗しました');
+        throw new Error(result.error || "備蓄品リストの取得に失敗しました");
       }
 
       const result = await response.json();
@@ -70,7 +70,7 @@ export const useSupplies = (
   const archiveSupply = async (supplyIdToArchive: string) => {
     // SupplyItem で直接履歴APIを呼ぶため、ここでは何もしない
     console.warn(
-      'archiveSupply is deprecated. Use archive-to-history API directly.'
+      "archiveSupply is deprecated. Use archive-to-history API directly."
     );
   };
 

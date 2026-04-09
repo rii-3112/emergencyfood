@@ -1,12 +1,12 @@
-'use client';
-import { useEffect } from 'react';
+"use client";
+import { useEffect } from "react";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: "sm" | "md" | "lg" | "xl";
 }
 
 export default function Modal({
@@ -14,33 +14,33 @@ export default function Modal({
   onClose,
   title,
   children,
-  size = 'md',
+  size = "md",
 }: ModalProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === "Escape") {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "unset";
     };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
   const sizeClasses = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
-    xl: 'max-w-xl',
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    xl: "max-w-xl",
   };
 
   return (
@@ -50,15 +50,15 @@ export default function Modal({
         role='button'
         tabIndex={0}
         onClick={onClose}
-        onKeyDown={e => e.key === 'Escape' && onClose()}
+        onKeyDown={(e) => e.key === "Escape" && onClose()}
       />
 
       <div
         className={`relative bg-white rounded-lg shadow-xl w-full mx-4 ${sizeClasses[size]} max-h-[90vh] overflow-y-auto`}
         role='button'
         tabIndex={0}
-        onClick={e => e.stopPropagation()}
-        onKeyDown={e => e.key === 'Escape' && onClose()}
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => e.key === "Escape" && onClose()}
       >
         {title && (
           <div className='flex items-center justify-between p-6 border-b border-gray-200'>

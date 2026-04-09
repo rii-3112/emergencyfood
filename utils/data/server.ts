@@ -1,6 +1,6 @@
-import type { Supply, SupplyHistory, Team } from '@/types';
-import type { DisasterBoardData } from '@/types/forms';
-import { adminDb } from '@/utils/firebase/admin';
+import type { Supply, SupplyHistory, Team } from "@/types";
+import type { DisasterBoardData } from "@/types/forms";
+import { adminDb } from "@/utils/firebase/admin";
 
 /**
  * FirestoreのTimestampをDateに変換するヘルパー関数
@@ -18,7 +18,7 @@ function convertTimestampsToDates(obj: any): any {
     return obj.map(convertTimestampsToDates);
   }
 
-  if (typeof obj === 'object') {
+  if (typeof obj === "object") {
     const converted: any = {};
     for (const [key, value] of Object.entries(obj)) {
       converted[key] = convertTimestampsToDates(value);
@@ -38,12 +38,12 @@ export async function fetchSuppliesFromDB(
 ): Promise<Supply[]> {
   try {
     const suppliesSnapshot = await adminDb
-      .collection('supplies')
-      .where('teamId', '==', teamId)
-      .where('isArchived', '==', isArchived)
+      .collection("supplies")
+      .where("teamId", "==", teamId)
+      .where("isArchived", "==", isArchived)
       .get();
 
-    const supplies: Supply[] = suppliesSnapshot.docs.map(doc => {
+    const supplies: Supply[] = suppliesSnapshot.docs.map((doc) => {
       const data = doc.data();
       return convertTimestampsToDates({
         id: doc.id,
@@ -52,11 +52,11 @@ export async function fetchSuppliesFromDB(
     }) as Supply[];
 
     const suppliesWithReviews = await Promise.all(
-      supplies.map(async supply => {
+      supplies.map(async (supply) => {
         const reviewsSnapshot = await adminDb
-          .collection('supplyReviews')
-          .where('supplyId', '==', supply.id)
-          .where('teamId', '==', teamId)
+          .collection("supplyReviews")
+          .where("supplyId", "==", supply.id)
+          .where("teamId", "==", teamId)
           .get();
 
         return {
@@ -68,7 +68,7 @@ export async function fetchSuppliesFromDB(
 
     return suppliesWithReviews;
   } catch (error) {
-    console.error('Error fetching supplies:', error);
+    console.error("Error fetching supplies:", error);
     return [];
   }
 }
@@ -78,7 +78,7 @@ export async function fetchSuppliesFromDB(
  */
 export async function fetchTeamFromDB(teamId: string): Promise<Team | null> {
   try {
-    const teamDoc = await adminDb.collection('teams').doc(teamId).get();
+    const teamDoc = await adminDb.collection("teams").doc(teamId).get();
 
     if (!teamDoc.exists) {
       return null;
@@ -90,7 +90,7 @@ export async function fetchTeamFromDB(teamId: string): Promise<Team | null> {
       ...data,
     }) as Team;
   } catch (error) {
-    console.error('Error fetching team:', error);
+    console.error("Error fetching team:", error);
     return null;
   }
 }
@@ -103,7 +103,7 @@ export async function fetchSupplyByIdFromDB(
   supplyId: string
 ): Promise<Supply | null> {
   try {
-    const supplyDoc = await adminDb.collection('supplies').doc(supplyId).get();
+    const supplyDoc = await adminDb.collection("supplies").doc(supplyId).get();
 
     if (!supplyDoc.exists) {
       return null;
@@ -120,7 +120,7 @@ export async function fetchSupplyByIdFromDB(
       ...data,
     }) as Supply;
   } catch (error) {
-    console.error('Error fetching supply by ID:', error);
+    console.error("Error fetching supply by ID:", error);
     return null;
   }
 }
@@ -133,7 +133,7 @@ export async function fetchDisasterBoardFromDB(
 ): Promise<DisasterBoardData | null> {
   try {
     const disasterBoardDoc = await adminDb
-      .collection('disaster-boards')
+      .collection("disaster-boards")
       .doc(teamId)
       .get();
 
@@ -153,7 +153,7 @@ export async function fetchDisasterBoardFromDB(
 
     return convertTimestampsToDates(data);
   } catch (error) {
-    console.error('Error fetching disaster board:', error);
+    console.error("Error fetching disaster board:", error);
     return null;
   }
 }
@@ -166,12 +166,12 @@ export async function fetchHistoriesFromDB(
 ): Promise<SupplyHistory[]> {
   try {
     const historySnapshot = await adminDb
-      .collection('supply_history')
-      .where('teamId', '==', teamId)
+      .collection("supply_history")
+      .where("teamId", "==", teamId)
       .get();
 
     const histories = historySnapshot.docs
-      .map(doc => ({
+      .map((doc) => ({
         id: doc.id,
         ...doc.data(),
       }))
@@ -183,7 +183,7 @@ export async function fetchHistoriesFromDB(
 
     return convertTimestampsToDates(histories) as SupplyHistory[];
   } catch (error) {
-    console.error('Error fetching histories:', error);
+    console.error("Error fetching histories:", error);
     return [];
   }
 }
@@ -197,7 +197,7 @@ export async function fetchHandbookChecklistFromDB(teamId: string): Promise<{
 } | null> {
   try {
     const checklistDoc = await adminDb
-      .collection('handbook-checklists')
+      .collection("handbook-checklists")
       .doc(teamId)
       .get();
 
@@ -242,7 +242,7 @@ export async function fetchHandbookChecklistFromDB(teamId: string): Promise<{
       checkedPetItems: {},
     });
   } catch (error) {
-    console.error('Error fetching handbook checklist:', error);
+    console.error("Error fetching handbook checklist:", error);
     return null;
   }
 }

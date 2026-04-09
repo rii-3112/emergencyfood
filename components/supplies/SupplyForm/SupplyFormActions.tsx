@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui';
-import type { FormMode } from '@/types/forms';
+import { Button } from "@/components/ui";
+import type { FormMode } from "@/types/forms";
 
 interface SupplyFormActionsProps {
   mode: FormMode;
@@ -14,9 +14,9 @@ export function SupplyFormActions({
 }: SupplyFormActionsProps) {
   const getButtonText = () => {
     if (submitting) {
-      return mode === 'add' ? '登録中...' : '更新中...';
+      return mode === "add" ? "登録中..." : "更新中...";
     }
-    return mode === 'add' ? '登録' : '更新';
+    return mode === "add" ? "登録" : "更新";
   };
 
   return (

@@ -1,13 +1,13 @@
-'use client';
-import { useAuth } from '@/hooks';
-import type { AgeGroupChecklist, PetChecklist, Team } from '@/types';
+"use client";
+import { useAuth } from "@/hooks";
+import type { AgeGroupChecklist, PetChecklist, Team } from "@/types";
 import {
   type SupplyItem,
   PET_TYPE_EMOJIS,
   PET_TYPE_LABELS,
-} from '@/types/handbook';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+} from "@/types/handbook";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface SuppliesChecklistProps {
   initialTeamData: Team | null;
@@ -85,7 +85,7 @@ export default function SuppliesChecklist({
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
 
   const [message, setMessage] = useState<{
-    type: 'success' | 'error';
+    type: "success" | "error";
     text: string;
   } | null>(null);
 
@@ -95,23 +95,23 @@ export default function SuppliesChecklist({
       setChecklists({
         ageGroups: [
           {
-            id: 'adult',
-            ageGroup: 'adult',
+            id: "adult",
+            ageGroup: "adult",
             count: 1,
             items: [
               {
-                id: 'adult-water',
-                name: '水（1人1日3L）',
+                id: "adult-water",
+                name: "水（1人1日3L）",
                 isEssential: true,
               },
               {
-                id: 'adult-food',
-                name: '非常食（3日分）',
+                id: "adult-food",
+                name: "非常食（3日分）",
                 isEssential: true,
               },
-              { id: 'adult-medicine', name: '常備薬', isEssential: true },
-              { id: 'adult-clothes', name: '着替え', isEssential: false },
-              { id: 'adult-hygiene', name: '衛生用品', isEssential: true },
+              { id: "adult-medicine", name: "常備薬", isEssential: true },
+              { id: "adult-clothes", name: "着替え", isEssential: false },
+              { id: "adult-hygiene", name: "衛生用品", isEssential: true },
             ],
             checkedItems: [],
           },
@@ -155,28 +155,28 @@ export default function SuppliesChecklist({
         const adultCount = currentComposition.adult;
         allItems.push(
           {
-            id: 'adult-water',
-            name: `大人：水（1人1日3L${adultCount > 1 ? ` × ${adultCount}人分 = ${adultCount * 3}L/日` : ''}）`,
+            id: "adult-water",
+            name: `大人：水（1人1日3L${adultCount > 1 ? ` × ${adultCount}人分 = ${adultCount * 3}L/日` : ""}）`,
             isEssential: true,
           },
           {
-            id: 'adult-food',
-            name: `大人：非常食（3日分${adultCount > 1 ? ` × ${adultCount}人` : ''}）`,
+            id: "adult-food",
+            name: `大人：非常食（3日分${adultCount > 1 ? ` × ${adultCount}人` : ""}）`,
             isEssential: true,
           },
           {
-            id: 'adult-medicine',
-            name: `大人：常備薬${adultCount > 1 ? `（${adultCount}人分）` : ''}`,
+            id: "adult-medicine",
+            name: `大人：常備薬${adultCount > 1 ? `（${adultCount}人分）` : ""}`,
             isEssential: true,
           },
           {
-            id: 'adult-clothes',
-            name: `大人：着替え${adultCount > 1 ? `（${adultCount}人分）` : ''}`,
+            id: "adult-clothes",
+            name: `大人：着替え${adultCount > 1 ? `（${adultCount}人分）` : ""}`,
             isEssential: false,
           },
           {
-            id: 'adult-hygiene',
-            name: `大人：衛生用品${adultCount > 1 ? `（${adultCount}人分）` : ''}`,
+            id: "adult-hygiene",
+            name: `大人：衛生用品${adultCount > 1 ? `（${adultCount}人分）` : ""}`,
             isEssential: true,
           }
         );
@@ -187,28 +187,28 @@ export default function SuppliesChecklist({
         const childCount = currentComposition.child;
         allItems.push(
           {
-            id: 'child-water',
-            name: `子供：水（1人1日2L${childCount > 1 ? ` × ${childCount}人分 = ${childCount * 2}L/日` : ''}）`,
+            id: "child-water",
+            name: `子供：水（1人1日2L${childCount > 1 ? ` × ${childCount}人分 = ${childCount * 2}L/日` : ""}）`,
             isEssential: true,
           },
           {
-            id: 'child-food',
-            name: `子供：子供用非常食${childCount > 1 ? `（${childCount}人分）` : ''}`,
+            id: "child-food",
+            name: `子供：子供用非常食${childCount > 1 ? `（${childCount}人分）` : ""}`,
             isEssential: true,
           },
           {
-            id: 'child-toy',
-            name: `子供：おもちゃ・絵本${childCount > 1 ? `（${childCount}人分）` : ''}`,
+            id: "child-toy",
+            name: `子供：おもちゃ・絵本${childCount > 1 ? `（${childCount}人分）` : ""}`,
             isEssential: false,
           },
           {
-            id: 'child-clothes',
-            name: `子供：着替え${childCount > 1 ? `（${childCount}人分）` : ''}`,
+            id: "child-clothes",
+            name: `子供：着替え${childCount > 1 ? `（${childCount}人分）` : ""}`,
             isEssential: true,
           },
           {
-            id: 'child-diaper',
-            name: `子供：おむつ（必要に応じて）${childCount > 1 ? `（${childCount}人分）` : ''}`,
+            id: "child-diaper",
+            name: `子供：おむつ（必要に応じて）${childCount > 1 ? `（${childCount}人分）` : ""}`,
             isEssential: false,
           }
         );
@@ -219,28 +219,28 @@ export default function SuppliesChecklist({
         const infantCount = currentComposition.infant;
         allItems.push(
           {
-            id: 'infant-milk',
-            name: `乳幼児：粉ミルク${infantCount > 1 ? `（${infantCount}人分）` : ''}`,
+            id: "infant-milk",
+            name: `乳幼児：粉ミルク${infantCount > 1 ? `（${infantCount}人分）` : ""}`,
             isEssential: true,
           },
           {
-            id: 'infant-water',
-            name: `乳幼児：水（調乳用）${infantCount > 1 ? `（${infantCount}人分）` : ''}`,
+            id: "infant-water",
+            name: `乳幼児：水（調乳用）${infantCount > 1 ? `（${infantCount}人分）` : ""}`,
             isEssential: true,
           },
           {
-            id: 'infant-diaper',
-            name: `乳幼児：おむつ${infantCount > 1 ? `（${infantCount}人分）` : ''}`,
+            id: "infant-diaper",
+            name: `乳幼児：おむつ${infantCount > 1 ? `（${infantCount}人分）` : ""}`,
             isEssential: true,
           },
           {
-            id: 'infant-clothes',
-            name: `乳幼児：ベビー服${infantCount > 1 ? `（${infantCount}人分）` : ''}`,
+            id: "infant-clothes",
+            name: `乳幼児：ベビー服${infantCount > 1 ? `（${infantCount}人分）` : ""}`,
             isEssential: true,
           },
           {
-            id: 'infant-toy',
-            name: `乳幼児：ベビー用品${infantCount > 1 ? `（${infantCount}人分）` : ''}`,
+            id: "infant-toy",
+            name: `乳幼児：ベビー用品${infantCount > 1 ? `（${infantCount}人分）` : ""}`,
             isEssential: false,
           }
         );
@@ -251,28 +251,28 @@ export default function SuppliesChecklist({
         const elderlyCount = currentComposition.elderly;
         allItems.push(
           {
-            id: 'elderly-water',
-            name: `高齢者：水（1人1日3L${elderlyCount > 1 ? ` × ${elderlyCount}人分 = ${elderlyCount * 3}L/日` : ''}）`,
+            id: "elderly-water",
+            name: `高齢者：水（1人1日3L${elderlyCount > 1 ? ` × ${elderlyCount}人分 = ${elderlyCount * 3}L/日` : ""}）`,
             isEssential: true,
           },
           {
-            id: 'elderly-food',
-            name: `高齢者：介護食・やわらかい食品${elderlyCount > 1 ? `（${elderlyCount}人分）` : ''}`,
+            id: "elderly-food",
+            name: `高齢者：介護食・やわらかい食品${elderlyCount > 1 ? `（${elderlyCount}人分）` : ""}`,
             isEssential: true,
           },
           {
-            id: 'elderly-medicine',
-            name: `高齢者：薬・医療用品${elderlyCount > 1 ? `（${elderlyCount}人分）` : ''}`,
+            id: "elderly-medicine",
+            name: `高齢者：薬・医療用品${elderlyCount > 1 ? `（${elderlyCount}人分）` : ""}`,
             isEssential: true,
           },
           {
-            id: 'elderly-glasses',
-            name: `高齢者：眼鏡・補聴器${elderlyCount > 1 ? `（${elderlyCount}人分）` : ''}`,
+            id: "elderly-glasses",
+            name: `高齢者：眼鏡・補聴器${elderlyCount > 1 ? `（${elderlyCount}人分）` : ""}`,
             isEssential: true,
           },
           {
-            id: 'elderly-clothes',
-            name: `高齢者：着替え${elderlyCount > 1 ? `（${elderlyCount}人分）` : ''}`,
+            id: "elderly-clothes",
+            name: `高齢者：着替え${elderlyCount > 1 ? `（${elderlyCount}人分）` : ""}`,
             isEssential: true,
           }
         );
@@ -283,28 +283,28 @@ export default function SuppliesChecklist({
       if (totalPeople > 0) {
         allItems.push(
           {
-            id: 'adult-water',
-            name: `水（1人1日3L${totalPeople > 1 ? ` × ${totalPeople}人分 = ${totalPeople * 3}L/日` : ''}）`,
+            id: "adult-water",
+            name: `水（1人1日3L${totalPeople > 1 ? ` × ${totalPeople}人分 = ${totalPeople * 3}L/日` : ""}）`,
             isEssential: true,
           },
           {
-            id: 'adult-food',
-            name: `非常食（3日分${totalPeople > 1 ? ` × ${totalPeople}人` : ''}）`,
+            id: "adult-food",
+            name: `非常食（3日分${totalPeople > 1 ? ` × ${totalPeople}人` : ""}）`,
             isEssential: true,
           },
           {
-            id: 'adult-medicine',
-            name: `常備薬${totalPeople > 1 ? `（${totalPeople}人分）` : ''}`,
+            id: "adult-medicine",
+            name: `常備薬${totalPeople > 1 ? `（${totalPeople}人分）` : ""}`,
             isEssential: true,
           },
           {
-            id: 'adult-clothes',
-            name: `着替え${totalPeople > 1 ? `（${totalPeople}人分）` : ''}`,
+            id: "adult-clothes",
+            name: `着替え${totalPeople > 1 ? `（${totalPeople}人分）` : ""}`,
             isEssential: false,
           },
           {
-            id: 'adult-hygiene',
-            name: `衛生用品${totalPeople > 1 ? `（${totalPeople}人分）` : ''}`,
+            id: "adult-hygiene",
+            name: `衛生用品${totalPeople > 1 ? `（${totalPeople}人分）` : ""}`,
             isEssential: true,
           }
         );
@@ -314,8 +314,8 @@ export default function SuppliesChecklist({
     // 1つのチェックリストグループとして作成
     if (allItems.length > 0) {
       ageGroups.push({
-        id: 'all',
-        ageGroup: 'adult', // 型互換性のため（実際には表示で使用しない）
+        id: "all",
+        ageGroup: "adult", // 型互換性のため（実際には表示で使用しない）
         count: currentHouseholdSize,
         items: allItems,
         checkedItems: [],
@@ -327,18 +327,18 @@ export default function SuppliesChecklist({
     if (currentHasPets) {
       if (currentDogCount > 0) {
         pets.push({
-          petType: 'dog',
+          petType: "dog",
           count: currentDogCount,
           items: [
             {
-              id: 'dog-food',
-              name: 'ドッグフード（7日分）',
+              id: "dog-food",
+              name: "ドッグフード（7日分）",
               isEssential: true,
             },
-            { id: 'dog-water', name: '水', isEssential: true },
-            { id: 'dog-medicine', name: 'ペット用薬', isEssential: true },
-            { id: 'dog-leash', name: 'リード・首輪', isEssential: true },
-            { id: 'dog-toy', name: 'おもちゃ', isEssential: false },
+            { id: "dog-water", name: "水", isEssential: true },
+            { id: "dog-medicine", name: "ペット用薬", isEssential: true },
+            { id: "dog-leash", name: "リード・首輪", isEssential: true },
+            { id: "dog-toy", name: "おもちゃ", isEssential: false },
           ],
           checkedItems: [],
         });
@@ -346,18 +346,18 @@ export default function SuppliesChecklist({
 
       if (currentCatCount > 0) {
         pets.push({
-          petType: 'cat',
+          petType: "cat",
           count: currentCatCount,
           items: [
             {
-              id: 'cat-food',
-              name: 'キャットフード（7日分）',
+              id: "cat-food",
+              name: "キャットフード（7日分）",
               isEssential: true,
             },
-            { id: 'cat-water', name: '水', isEssential: true },
-            { id: 'cat-litter', name: '猫砂', isEssential: true },
-            { id: 'cat-carrier', name: 'キャリーケース', isEssential: true },
-            { id: 'cat-toy', name: 'おもちゃ', isEssential: false },
+            { id: "cat-water", name: "水", isEssential: true },
+            { id: "cat-litter", name: "猫砂", isEssential: true },
+            { id: "cat-carrier", name: "キャリーケース", isEssential: true },
+            { id: "cat-toy", name: "おもちゃ", isEssential: false },
           ],
           checkedItems: [],
         });
@@ -372,19 +372,19 @@ export default function SuppliesChecklist({
       );
 
       // 年齢層のチェック状態を復元（アイテムIDが一致するものを復元）
-      ageGroups.forEach(group => {
+      ageGroups.forEach((group) => {
         group.checkedItems = group.items
-          .map(item => item.id)
-          .filter(itemId => checkedItemIdsSet.has(itemId));
+          .map((item) => item.id)
+          .filter((itemId) => checkedItemIdsSet.has(itemId));
       });
 
       // ペットのチェック状態を復元
-      pets.forEach(pet => {
+      pets.forEach((pet) => {
         const savedCheckedItems =
           initialChecklistData.checkedPetItems?.[pet.petType];
         if (savedCheckedItems) {
-          pet.checkedItems = savedCheckedItems.filter(itemId =>
-            pet.items.some(item => item.id === itemId)
+          pet.checkedItems = savedCheckedItems.filter((itemId) =>
+            pet.items.some((item) => item.id === itemId)
           );
         }
       });
@@ -405,17 +405,17 @@ export default function SuppliesChecklist({
     elderlyCount,
   ]);
 
-  const toggleItem = (type: 'age' | 'pet', groupId: string, itemId: string) => {
-    setChecklists(prev => {
-      if (type === 'age') {
+  const toggleItem = (type: "age" | "pet", groupId: string, itemId: string) => {
+    setChecklists((prev) => {
+      if (type === "age") {
         return {
           ...prev,
-          ageGroups: prev.ageGroups.map(group =>
+          ageGroups: prev.ageGroups.map((group) =>
             group.id === groupId
               ? {
                   ...group,
                   checkedItems: group.checkedItems.includes(itemId)
-                    ? group.checkedItems.filter(id => id !== itemId)
+                    ? group.checkedItems.filter((id) => id !== itemId)
                     : [...group.checkedItems, itemId],
                 }
               : group
@@ -424,12 +424,12 @@ export default function SuppliesChecklist({
       } else {
         return {
           ...prev,
-          pets: prev.pets.map(pet =>
+          pets: prev.pets.map((pet) =>
             pet.petType === groupId
               ? {
                   ...pet,
                   checkedItems: pet.checkedItems.includes(itemId)
-                    ? pet.checkedItems.filter(id => id !== itemId)
+                    ? pet.checkedItems.filter((id) => id !== itemId)
                     : [...pet.checkedItems, itemId],
                 }
               : pet
@@ -452,29 +452,29 @@ export default function SuppliesChecklist({
     try {
       const idToken = await user.getIdToken();
       if (!idToken) {
-        throw new Error('認証トークンを取得できませんでした');
+        throw new Error("認証トークンを取得できませんでした");
       }
 
       // チェック済みアイテムIDを収集（重複除去）
       const checkedItemIds = new Set<string>();
-      checklists.ageGroups.forEach(group => {
-        group.checkedItems.forEach(itemId => {
+      checklists.ageGroups.forEach((group) => {
+        group.checkedItems.forEach((itemId) => {
           checkedItemIds.add(itemId);
         });
       });
 
       // ペットのチェック済みアイテム
       const checkedPetItems: { [key: string]: string[] } = {};
-      checklists.pets.forEach(pet => {
+      checklists.pets.forEach((pet) => {
         if (pet.checkedItems.length > 0) {
           checkedPetItems[pet.petType] = pet.checkedItems;
         }
       });
 
-      const response = await fetch('/api/handbook/checklist', {
-        method: 'POST',
+      const response = await fetch("/api/handbook/checklist", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
@@ -486,18 +486,18 @@ export default function SuppliesChecklist({
       const result = await response.json();
 
       if (response.ok) {
-        setMessage({ type: 'success', text: 'チェックリストを保存しました' });
+        setMessage({ type: "success", text: "チェックリストを保存しました" });
         router.refresh();
       } else {
-        throw new Error(result.error || 'チェックリストの保存に失敗しました');
+        throw new Error(result.error || "チェックリストの保存に失敗しました");
       }
     } catch (error) {
       setMessage({
-        type: 'error',
+        type: "error",
         text:
           error instanceof Error
             ? error.message
-            : 'チェックリストの保存に失敗しました',
+            : "チェックリストの保存に失敗しました",
       });
     } finally {
       setSavingChecklist(false);
@@ -511,13 +511,13 @@ export default function SuppliesChecklist({
     try {
       const idToken = await user?.getIdToken();
       if (!idToken) {
-        throw new Error('認証トークンを取得できませんでした');
+        throw new Error("認証トークンを取得できませんでした");
       }
 
-      const response = await fetch('/api/team/update-stock-settings', {
-        method: 'POST',
+      const response = await fetch("/api/team/update-stock-settings", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
@@ -551,16 +551,16 @@ export default function SuppliesChecklist({
       const result = await response.json();
 
       if (response.ok) {
-        setMessage({ type: 'success', text: '備蓄管理設定を保存しました' });
+        setMessage({ type: "success", text: "備蓄管理設定を保存しました" });
         router.refresh();
       } else {
-        throw new Error(result.error || '設定の保存に失敗しました');
+        throw new Error(result.error || "設定の保存に失敗しました");
       }
     } catch (error) {
       setMessage({
-        type: 'error',
+        type: "error",
         text:
-          error instanceof Error ? error.message : '設定の保存に失敗しました',
+          error instanceof Error ? error.message : "設定の保存に失敗しました",
       });
     } finally {
       setUpdatingStockSettings(false);
@@ -568,7 +568,7 @@ export default function SuppliesChecklist({
   };
 
   const _handleGoToSettings = () => {
-    router.push('/settings');
+    router.push("/settings");
   };
 
   return (
@@ -596,7 +596,7 @@ export default function SuppliesChecklist({
             {initialTeamData.stockSettings.useDetailedComposition &&
               initialTeamData.stockSettings.composition && (
                 <span>
-                  {' '}
+                  {" "}
                   (大人: {initialTeamData.stockSettings.composition.adult}人,
                   子供: {initialTeamData.stockSettings.composition.child}人,
                   乳幼児: {initialTeamData.stockSettings.composition.infant}人,
@@ -605,14 +605,14 @@ export default function SuppliesChecklist({
               )}
             {initialTeamData.stockSettings.hasPets && (
               <span>
-                {' '}
+                {" "}
                 | ペット: 犬{initialTeamData.stockSettings.dogCount}匹, 猫
                 {initialTeamData.stockSettings.catCount}匹
               </span>
             )}
           </p>
         </div>
-      )}{' '}
+      )}{" "}
       {/* 備蓄管理設定 */}
       <div className='mt-4 sm:mt-6 bg-gray-50 rounded-lg overflow-hidden border border-gray-200'>
         <button
@@ -622,7 +622,7 @@ export default function SuppliesChecklist({
           <h4 className='text-sm font-medium text-gray-900'>備蓄管理の設定</h4>
           <svg
             className={`w-5 h-5 text-gray-600 transition-transform ${
-              isSettingsExpanded ? 'transform rotate-180' : ''
+              isSettingsExpanded ? "transform rotate-180" : ""
             }`}
             fill='none'
             stroke='currentColor'
@@ -653,7 +653,7 @@ export default function SuppliesChecklist({
                   min='1'
                   max='50'
                   value={householdSize}
-                  onChange={e =>
+                  onChange={(e) =>
                     setHouseholdSize(parseInt(e.target.value) || 1)
                   }
                   className='w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
@@ -668,7 +668,7 @@ export default function SuppliesChecklist({
               </label>
               <select
                 value={stockDays}
-                onChange={e => setStockDays(parseInt(e.target.value))}
+                onChange={(e) => setStockDays(parseInt(e.target.value))}
                 className='px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
               >
                 <option value='3'>3日分</option>
@@ -686,7 +686,7 @@ export default function SuppliesChecklist({
                 <input
                   type='checkbox'
                   checked={hasPets}
-                  onChange={e => setHasPets(e.target.checked)}
+                  onChange={(e) => setHasPets(e.target.checked)}
                   className='rounded'
                 />
                 <span className='text-sm font-medium text-gray-700'>
@@ -706,7 +706,7 @@ export default function SuppliesChecklist({
                         min='0'
                         max='10'
                         value={dogCount}
-                        onChange={e =>
+                        onChange={(e) =>
                           setDogCount(parseInt(e.target.value) || 0)
                         }
                         className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500'
@@ -725,7 +725,7 @@ export default function SuppliesChecklist({
                         min='0'
                         max='10'
                         value={catCount}
-                        onChange={e =>
+                        onChange={(e) =>
                           setCatCount(parseInt(e.target.value) || 0)
                         }
                         className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500'
@@ -742,7 +742,7 @@ export default function SuppliesChecklist({
                 <input
                   type='checkbox'
                   checked={useDetailedComposition}
-                  onChange={e => setUseDetailedComposition(e.target.checked)}
+                  onChange={(e) => setUseDetailedComposition(e.target.checked)}
                   className='rounded'
                 />
                 <span className='text-sm font-medium text-gray-700'>
@@ -766,7 +766,7 @@ export default function SuppliesChecklist({
                         min='0'
                         max='20'
                         value={adultCount}
-                        onChange={e =>
+                        onChange={(e) =>
                           setAdultCount(parseInt(e.target.value) || 0)
                         }
                         className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
@@ -785,7 +785,7 @@ export default function SuppliesChecklist({
                         min='0'
                         max='10'
                         value={childCount}
-                        onChange={e =>
+                        onChange={(e) =>
                           setChildCount(parseInt(e.target.value) || 0)
                         }
                         className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
@@ -804,7 +804,7 @@ export default function SuppliesChecklist({
                         min='0'
                         max='5'
                         value={infantCount}
-                        onChange={e =>
+                        onChange={(e) =>
                           setInfantCount(parseInt(e.target.value) || 0)
                         }
                         className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
@@ -823,7 +823,7 @@ export default function SuppliesChecklist({
                         min='0'
                         max='10'
                         value={elderlyCount}
-                        onChange={e =>
+                        onChange={(e) =>
                           setElderlyCount(parseInt(e.target.value) || 0)
                         }
                         className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
@@ -846,7 +846,7 @@ export default function SuppliesChecklist({
                 <input
                   type='checkbox'
                   checked={notificationsEnabled}
-                  onChange={e => setNotificationsEnabled(e.target.checked)}
+                  onChange={(e) => setNotificationsEnabled(e.target.checked)}
                   className='rounded'
                 />
                 <span className='text-sm font-medium text-gray-700'>
@@ -860,7 +860,7 @@ export default function SuppliesChecklist({
                     <input
                       type='checkbox'
                       checked={notifyCriticalStock}
-                      onChange={e => setNotifyCriticalStock(e.target.checked)}
+                      onChange={(e) => setNotifyCriticalStock(e.target.checked)}
                       className='rounded'
                     />
                     <span className='text-sm text-gray-600'>
@@ -872,7 +872,7 @@ export default function SuppliesChecklist({
                     <input
                       type='checkbox'
                       checked={notifyLowStock}
-                      onChange={e => setNotifyLowStock(e.target.checked)}
+                      onChange={(e) => setNotifyLowStock(e.target.checked)}
                       className='rounded'
                     />
                     <span className='text-sm text-gray-600'>
@@ -884,7 +884,7 @@ export default function SuppliesChecklist({
                     <input
                       type='checkbox'
                       checked={notifyExpiryNear}
-                      onChange={e => setNotifyExpiryNear(e.target.checked)}
+                      onChange={(e) => setNotifyExpiryNear(e.target.checked)}
                       className='rounded'
                     />
                     <span className='text-sm text-gray-600'>
@@ -896,7 +896,7 @@ export default function SuppliesChecklist({
                     <input
                       type='checkbox'
                       checked={notifyWeeklyReport}
-                      onChange={e => setNotifyWeeklyReport(e.target.checked)}
+                      onChange={(e) => setNotifyWeeklyReport(e.target.checked)}
                       className='rounded'
                     />
                     <span className='text-sm text-gray-600'>
@@ -911,9 +911,9 @@ export default function SuppliesChecklist({
             {message && (
               <div
                 className={`p-3 rounded-md ${
-                  message.type === 'success'
-                    ? 'bg-green-100 text-green-300'
-                    : 'bg-red-100 text-red-300'
+                  message.type === "success"
+                    ? "bg-green-100 text-green-300"
+                    : "bg-red-100 text-red-300"
                 }`}
               >
                 {message.text}
@@ -925,7 +925,7 @@ export default function SuppliesChecklist({
               disabled={updatingStockSettings}
               className='w-full px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'
             >
-              {updatingStockSettings ? '保存中...' : '設定を保存'}
+              {updatingStockSettings ? "保存中..." : "設定を保存"}
             </button>
           </div>
         )}
@@ -937,16 +937,16 @@ export default function SuppliesChecklist({
           disabled={savingChecklist}
           className='w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm font-medium'
         >
-          {savingChecklist ? '保存中...' : 'チェックリストを保存'}
+          {savingChecklist ? "保存中..." : "チェックリストを保存"}
         </button>
         {message &&
-          message.type === 'success' &&
-          message.text.includes('チェックリスト') && (
+          message.type === "success" &&
+          message.text.includes("チェックリスト") && (
             <p className='text-sm text-green-600 mt-2'>{message.text}</p>
           )}
       </div>
       {/* 備蓄品チェックリスト */}
-      {checklists.ageGroups.map(group => {
+      {checklists.ageGroups.map((group) => {
         return (
           <div key={group.id} className='bg-white border rounded-lg p-4'>
             <div className='flex items-center justify-between mb-3'>
@@ -959,7 +959,7 @@ export default function SuppliesChecklist({
             </div>
 
             <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
-              {group.items.map(item => (
+              {group.items.map((item) => (
                 <label
                   key={item.id}
                   className='flex items-center space-x-2 p-2 hover:bg-gray-50 rounded'
@@ -967,11 +967,11 @@ export default function SuppliesChecklist({
                   <input
                     type='checkbox'
                     checked={group.checkedItems.includes(item.id)}
-                    onChange={() => toggleItem('age', group.id, item.id)}
+                    onChange={() => toggleItem("age", group.id, item.id)}
                     className='rounded'
                   />
                   <span
-                    className={`text-sm ${item.isEssential ? 'font-medium text-gray-900' : 'text-gray-600'}`}
+                    className={`text-sm ${item.isEssential ? "font-medium text-gray-900" : "text-gray-600"}`}
                   >
                     {item.name}
                     {item.isEssential && (
@@ -985,7 +985,7 @@ export default function SuppliesChecklist({
         );
       })}
       {/* ペット別チェックリスト */}
-      {checklists.pets.map(pet => (
+      {checklists.pets.map((pet) => (
         <div key={pet.petType} className='bg-white border rounded-lg p-4'>
           <div className='flex items-center justify-between mb-3'>
             <h4 className='text-lg font-medium text-gray-900'>
@@ -1000,7 +1000,7 @@ export default function SuppliesChecklist({
           </div>
 
           <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
-            {pet.items.map(item => (
+            {pet.items.map((item) => (
               <label
                 key={item.id}
                 className='flex items-center space-x-2 p-2 hover:bg-gray-50 rounded'
@@ -1008,11 +1008,11 @@ export default function SuppliesChecklist({
                 <input
                   type='checkbox'
                   checked={pet.checkedItems.includes(item.id)}
-                  onChange={() => toggleItem('pet', pet.petType, item.id)}
+                  onChange={() => toggleItem("pet", pet.petType, item.id)}
                   className='rounded'
                 />
                 <span
-                  className={`text-sm ${item.isEssential ? 'font-medium text-gray-900' : 'text-gray-600'}`}
+                  className={`text-sm ${item.isEssential ? "font-medium text-gray-900" : "text-gray-600"}`}
                 >
                   {item.name}
                   {item.isEssential && (

@@ -1,7 +1,7 @@
-'use client';
-import { Button, Card, Input } from '@/components/ui';
-import type { SafetyConfirmationMethod } from '@/types/forms';
-import { useState } from 'react';
+"use client";
+import { Button, Card, Input } from "@/components/ui";
+import type { SafetyConfirmationMethod } from "@/types/forms";
+import { useState } from "react";
 
 interface SafetyMethodsFormProps {
   methods: SafetyConfirmationMethod[];
@@ -13,12 +13,12 @@ export function SafetyMethodsForm({
   onUpdate,
 }: SafetyMethodsFormProps) {
   const [newMethod, setNewMethod] = useState<
-    Omit<SafetyConfirmationMethod, 'id'>
+    Omit<SafetyConfirmationMethod, "id">
   >({
-    method: '',
-    contact: '',
+    method: "",
+    contact: "",
     priority: methods.length + 1,
-    notes: '',
+    notes: "",
   });
   const [isAdding, setIsAdding] = useState(false);
 
@@ -32,16 +32,16 @@ export function SafetyMethodsForm({
 
     onUpdate([...methods, method]);
     setNewMethod({
-      method: '',
-      contact: '',
+      method: "",
+      contact: "",
       priority: methods.length + 2,
-      notes: '',
+      notes: "",
     });
     setIsAdding(false);
   };
 
   const handleRemoveMethod = (id: string) => {
-    const updatedMethods = methods.filter(method => method.id !== id);
+    const updatedMethods = methods.filter((method) => method.id !== id);
     const reorderedMethods = updatedMethods.map((method, index) => ({
       ...method,
       priority: index + 1,
@@ -49,18 +49,18 @@ export function SafetyMethodsForm({
     onUpdate(reorderedMethods);
   };
 
-  const handleMovePriority = (id: string, direction: 'up' | 'down') => {
-    const currentIndex = methods.findIndex(method => method.id === id);
+  const handleMovePriority = (id: string, direction: "up" | "down") => {
+    const currentIndex = methods.findIndex((method) => method.id === id);
     if (
-      (direction === 'up' && currentIndex === 0) ||
-      (direction === 'down' && currentIndex === methods.length - 1)
+      (direction === "up" && currentIndex === 0) ||
+      (direction === "down" && currentIndex === methods.length - 1)
     ) {
       return;
     }
 
     const newMethods = [...methods];
     const targetIndex =
-      direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+      direction === "up" ? currentIndex - 1 : currentIndex + 1;
 
     [newMethods[currentIndex], newMethods[targetIndex]] = [
       newMethods[targetIndex],
@@ -122,7 +122,7 @@ export function SafetyMethodsForm({
                 <Button
                   variant='outline'
                   size='sm'
-                  onClick={() => handleMovePriority(method.id!, 'up')}
+                  onClick={() => handleMovePriority(method.id!, "up")}
                   disabled={index === 0}
                   className='px-2'
                 >
@@ -131,7 +131,7 @@ export function SafetyMethodsForm({
                 <Button
                   variant='outline'
                   size='sm'
-                  onClick={() => handleMovePriority(method.id!, 'down')}
+                  onClick={() => handleMovePriority(method.id!, "down")}
                   disabled={index === sortedMethods.length - 1}
                   className='px-2'
                 >
@@ -163,8 +163,8 @@ export function SafetyMethodsForm({
                 label='確認方法'
                 required
                 value={newMethod.method}
-                onChange={e =>
-                  setNewMethod(prev => ({ ...prev, method: e.target.value }))
+                onChange={(e) =>
+                  setNewMethod((prev) => ({ ...prev, method: e.target.value }))
                 }
                 placeholder='例: 災害用伝言ダイヤル, LINE, メール'
               />
@@ -173,17 +173,17 @@ export function SafetyMethodsForm({
                 label='連絡先・詳細'
                 required
                 value={newMethod.contact}
-                onChange={e =>
-                  setNewMethod(prev => ({ ...prev, contact: e.target.value }))
+                onChange={(e) =>
+                  setNewMethod((prev) => ({ ...prev, contact: e.target.value }))
                 }
                 placeholder='例: 171, family-group, xxx@example.com'
               />
 
               <Input
                 label='備考・使い方'
-                value={newMethod.notes || ''}
-                onChange={e =>
-                  setNewMethod(prev => ({ ...prev, notes: e.target.value }))
+                value={newMethod.notes || ""}
+                onChange={(e) =>
+                  setNewMethod((prev) => ({ ...prev, notes: e.target.value }))
                 }
                 placeholder='例: 毎日18時に確認、家族全員で共有'
               />
@@ -202,10 +202,10 @@ export function SafetyMethodsForm({
                   onClick={() => {
                     setIsAdding(false);
                     setNewMethod({
-                      method: '',
-                      contact: '',
+                      method: "",
+                      contact: "",
                       priority: methods.length + 1,
-                      notes: '',
+                      notes: "",
                     });
                   }}
                 >
@@ -219,7 +219,7 @@ export function SafetyMethodsForm({
         {methods.length > 0 && (
           <div className='mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg'>
             <p className='text-sm text-gray-700'>
-              <strong>ヒント:</strong>{' '}
+              <strong>ヒント:</strong>{" "}
               優先度の高い順に並んでいます。↑↓ボタンで順番を変更できます。
             </p>
           </div>

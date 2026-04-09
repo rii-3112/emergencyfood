@@ -1,26 +1,26 @@
 // app/api/actions/restore-from-history/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { error: 'Authorization header missing or malformed' },
+        { error: "Authorization header missing or malformed" },
         { status: 401 }
       );
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     let decodedToken;
     try {
       decodedToken = await adminAuth.verifyIdToken(idToken);
     } catch (_error) {
       return NextResponse.json(
-        { error: 'Invalid or expired ID token' },
+        { error: "Invalid or expired ID token" },
         { status: 403 }
       );
     }
@@ -40,33 +40,33 @@ export async function POST(req: Request) {
 
     if (!historyId || !quantity || !expiryDate) {
       return NextResponse.json(
-        { error: 'History ID, quantity, and expiry date are required' },
+        { error: "History ID, quantity, and expiry date are required" },
         { status: 400 }
       );
     }
 
     if (!teamId) {
       return NextResponse.json(
-        { error: 'Team ID not found in token' },
+        { error: "Team ID not found in token" },
         { status: 400 }
       );
     }
 
-    const historyRef = adminDb.collection('supply_history').doc(historyId);
+    const historyRef = adminDb.collection("supply_history").doc(historyId);
     const historyDoc = await historyRef.get();
 
     if (!historyDoc.exists) {
       const historySnapshot = await adminDb
-        .collection('supply_history')
-        .where('id', '==', historyId)
-        .where('teamId', '==', teamId)
+        .collection("supply_history")
+        .where("id", "==", historyId)
+        .where("teamId", "==", teamId)
         .limit(1)
         .get();
 
       if (historySnapshot.empty) {
-        console.error('History not found:', historyId, 'Team:', teamId);
+        console.error("History not found:", historyId, "Team:", teamId);
         return NextResponse.json(
-          { error: 'History not found' },
+          { error: "History not found" },
           { status: 404 }
         );
       }
@@ -98,21 +98,21 @@ export async function POST(req: Request) {
         consumptionCount: 0,
       };
 
-      const supplyRef = await adminDb.collection('supplies').add(newSupply);
+      const supplyRef = await adminDb.collection("supplies").add(newSupply);
       const newSupplyId = supplyRef.id;
 
       if (history?.hasReviews) {
         const oldReviewsSnapshot = await adminDb
-          .collection('supplyReviews')
-          .where('supplyId', '==', historyId)
-          .where('teamId', '==', teamId)
+          .collection("supplyReviews")
+          .where("supplyId", "==", historyId)
+          .where("teamId", "==", teamId)
           .get();
 
         const batch = adminDb.batch();
 
         for (const reviewDoc of oldReviewsSnapshot.docs) {
           const reviewData = reviewDoc.data();
-          batch.set(adminDb.collection('supplyReviews').doc(), {
+          batch.set(adminDb.collection("supplyReviews").doc(), {
             ...reviewData,
             supplyId: newSupplyId,
             updatedAt: new Date(),
@@ -123,7 +123,7 @@ export async function POST(req: Request) {
       }
 
       return NextResponse.json({
-        message: 'Supply restored from history successfully',
+        message: "Supply restored from history successfully",
         supplyId: newSupplyId,
         supply: { ...newSupply, id: newSupplyId },
       });
@@ -133,7 +133,7 @@ export async function POST(req: Request) {
 
     if (history?.teamId !== teamId) {
       return NextResponse.json(
-        { error: 'History does not belong to your team' },
+        { error: "History does not belong to your team" },
         { status: 403 }
       );
     }
@@ -163,21 +163,21 @@ export async function POST(req: Request) {
       consumptionCount: 0,
     };
 
-    const supplyRef = await adminDb.collection('supplies').add(newSupply);
+    const supplyRef = await adminDb.collection("supplies").add(newSupply);
     const newSupplyId = supplyRef.id;
 
     if (history?.hasReviews) {
       const oldReviewsSnapshot = await adminDb
-        .collection('supplyReviews')
-        .where('supplyId', '==', historyId)
-        .where('teamId', '==', teamId)
+        .collection("supplyReviews")
+        .where("supplyId", "==", historyId)
+        .where("teamId", "==", teamId)
         .get();
 
       const batch = adminDb.batch();
 
       for (const reviewDoc of oldReviewsSnapshot.docs) {
         const reviewData = reviewDoc.data();
-        batch.set(adminDb.collection('supplyReviews').doc(), {
+        batch.set(adminDb.collection("supplyReviews").doc(), {
           ...reviewData,
           supplyId: newSupplyId,
           updatedAt: new Date(),
@@ -188,14 +188,14 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({
-      message: 'Supply restored from history successfully',
+      message: "Supply restored from history successfully",
       supplyId: newSupplyId,
       supply: { ...newSupply, id: newSupplyId },
     });
   } catch (_error: unknown) {
-    console.error('Restore from history error:', _error);
+    console.error("Restore from history error:", _error);
     const errorMessage =
-      _error instanceof Error ? _error.message : 'Internal Server Error';
+      _error instanceof Error ? _error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

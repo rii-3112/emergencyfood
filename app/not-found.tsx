@@ -1,6 +1,6 @@
-'use client';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+"use client";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function NotFound() {
   const router = useRouter();
@@ -8,7 +8,7 @@ export default function NotFound() {
     if (window.history.length > 1) {
       router.back();
     } else {
-      router.push('/');
+      router.push("/");
     }
   };
 

@@ -1,13 +1,13 @@
-import { getServerUser } from '@/utils/auth/server';
-import { fetchTeamFromDB } from '@/utils/data/server';
-import { redirect } from 'next/navigation';
-import SettingsClient from './SettingsClient';
+import { getServerUser } from "@/utils/auth/server";
+import { fetchTeamFromDB } from "@/utils/data/server";
+import { redirect } from "next/navigation";
+import SettingsClient from "./SettingsClient";
 
 export default async function SettingsPage() {
   const user = await getServerUser();
 
   if (!user) {
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
 
   const team = user.teamId ? await fetchTeamFromDB(user.teamId) : null;

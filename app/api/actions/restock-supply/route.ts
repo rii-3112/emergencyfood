@@ -1,24 +1,24 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { error: 'Authorization header missing or malformed' },
+        { error: "Authorization header missing or malformed" },
         { status: 401 }
       );
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     let decodedToken;
     try {
       decodedToken = await adminAuth.verifyIdToken(idToken);
     } catch (_error) {
       return NextResponse.json(
-        { error: 'Invalid or expired ID token' },
+        { error: "Invalid or expired ID token" },
         { status: 403 }
       );
     }
@@ -28,36 +28,36 @@ export async function POST(req: Request) {
 
     if (!supplyId || !quantity || !expiryDate) {
       return NextResponse.json(
-        { error: 'Supply ID, quantity, and expiry date are required' },
+        { error: "Supply ID, quantity, and expiry date are required" },
         { status: 400 }
       );
     }
 
     if (quantity <= 0) {
       return NextResponse.json(
-        { error: 'Quantity must be greater than 0' },
+        { error: "Quantity must be greater than 0" },
         { status: 400 }
       );
     }
 
-    const supplyRef = adminDb.collection('supplies').doc(supplyId);
+    const supplyRef = adminDb.collection("supplies").doc(supplyId);
     const supplyDoc = await supplyRef.get();
 
     if (!supplyDoc.exists) {
-      return NextResponse.json({ error: 'Supply not found' }, { status: 404 });
+      return NextResponse.json({ error: "Supply not found" }, { status: 404 });
     }
 
     const supply = supplyDoc.data();
 
-    const teamDoc = await adminDb.collection('teams').doc(supply?.teamId).get();
+    const teamDoc = await adminDb.collection("teams").doc(supply?.teamId).get();
     if (!teamDoc.exists) {
-      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+      return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
 
     const teamData = teamDoc.data();
     if (!teamData?.members?.includes(uid)) {
       return NextResponse.json(
-        { error: 'You are not a member of this team' },
+        { error: "You are not a member of this team" },
         { status: 403 }
       );
     }
@@ -66,7 +66,7 @@ export async function POST(req: Request) {
     if (expiryDates.length === 0 && supply?.quantity > 0) {
       expiryDates = [
         {
-          date: supply?.expiryDate || new Date().toISOString().split('T')[0],
+          date: supply?.expiryDate || new Date().toISOString().split("T")[0],
           quantity: supply?.quantity || 0,
           addedAt:
             supply?.registeredAt?.toDate?.()?.toISOString?.() ||
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
     await supplyRef.update(updateData);
 
     return NextResponse.json({
-      message: 'Supply restocked successfully',
+      message: "Supply restocked successfully",
       added: {
         quantity,
         expiryDate,
@@ -126,9 +126,9 @@ export async function POST(req: Request) {
       totalQuantity: newTotalQuantity,
     });
   } catch (_error: unknown) {
-    console.error('Restock supply error:', _error);
+    console.error("Restock supply error:", _error);
     const errorMessage =
-      _error instanceof Error ? _error.message : 'Internal Server Error';
+      _error instanceof Error ? _error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

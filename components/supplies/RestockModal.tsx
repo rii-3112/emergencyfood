@@ -1,6 +1,6 @@
-'use client';
-import { getExpiryType } from '@/utils/stockRecommendations';
-import React, { useState } from 'react';
+"use client";
+import { getExpiryType } from "@/utils/stockRecommendations";
+import React, { useState } from "react";
 
 interface RestockModalProps {
   supplyName: string;
@@ -22,18 +22,18 @@ export function RestockModal({
   onConfirm,
 }: RestockModalProps) {
   const [quantity, setQuantity] = useState<number>(1);
-  const [expiryDate, setExpiryDate] = useState<string>('');
-  const [purchasePrice, setPurchasePrice] = useState<string>('');
+  const [expiryDate, setExpiryDate] = useState<string>("");
+  const [purchasePrice, setPurchasePrice] = useState<string>("");
 
   const expiryType = getExpiryType(category);
   const expiryLabel = expiryType.label;
-  const isExpiryRequired = expiryType.type !== 'noExpiry';
+  const isExpiryRequired = expiryType.type !== "noExpiry";
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (quantity <= 0) {
-      alert('数量は1以上を入力してください');
+      alert("数量は1以上を入力してください");
       return;
     }
 
@@ -69,7 +69,7 @@ export function RestockModal({
                 min={1}
                 type='number'
                 value={quantity}
-                onChange={e => setQuantity(parseInt(e.target.value) || 0)}
+                onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
               />
               <span className='text-gray-600'>{unit}</span>
             </div>
@@ -80,7 +80,7 @@ export function RestockModal({
               className='block text-sm font-medium text-gray-700 mb-1'
               htmlFor='expiryDate'
             >
-              {expiryLabel}{' '}
+              {expiryLabel}{" "}
               {isExpiryRequired && <span className='text-red-500'>*</span>}
             </label>
             <input
@@ -89,12 +89,12 @@ export function RestockModal({
               id='expiryDate'
               min={
                 isExpiryRequired
-                  ? new Date().toISOString().split('T')[0]
+                  ? new Date().toISOString().split("T")[0]
                   : undefined
               }
               type='date'
               value={expiryDate}
-              onChange={e => setExpiryDate(e.target.value)}
+              onChange={(e) => setExpiryDate(e.target.value)}
             />
           </div>
 
@@ -113,7 +113,7 @@ export function RestockModal({
                 placeholder='例: 300'
                 type='number'
                 value={purchasePrice}
-                onChange={e => setPurchasePrice(e.target.value)}
+                onChange={(e) => setPurchasePrice(e.target.value)}
               />
               <span className='text-gray-600'>円</span>
             </div>

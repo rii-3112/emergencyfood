@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import type { EvacuationRoute, EvacuationSite } from '@/types/forms';
+import type { EvacuationRoute, EvacuationSite } from "@/types/forms";
 
-import { EvacuationRoutesForm } from './EvacuationRoutesForm';
-import { EvacuationSitesForm } from './EvacuationSitesForm';
+import { EvacuationRoutesForm } from "./EvacuationRoutesForm";
+import { EvacuationSitesForm } from "./EvacuationSitesForm";
 
 interface EvacuationTabProps {
   sites: EvacuationSite[];

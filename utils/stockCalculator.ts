@@ -1,15 +1,15 @@
 // utils/stockCalculator.ts
 
-import type { Supply, TeamStockSettings } from '@/types';
-import { getRecommendation } from './stockRecommendations';
+import type { Supply, TeamStockSettings } from "@/types";
+import { getRecommendation } from "./stockRecommendations";
 
 export interface StockStatus {
   recommended: number; // 推奨在庫量
   current: number; // 現在の在庫
-  status: 'sufficient' | 'below-recommended' | 'low' | 'critical' | 'out';
+  status: "sufficient" | "below-recommended" | "low" | "critical" | "out";
   daysRemaining: number; // 残り日数
   needToBuy: number; // 買い足すべき量
-  priority: 'high' | 'medium' | 'low';
+  priority: "high" | "medium" | "low";
   message: string; // ユーザーへのメッセージ
   dailyConsumption: number; // 1日あたりの消費量
 }
@@ -41,11 +41,11 @@ export function calculateStockStatus(
     return {
       recommended: 0,
       current: supply.quantity,
-      status: supply.quantity === 0 ? 'out' : 'sufficient',
+      status: supply.quantity === 0 ? "out" : "sufficient",
       daysRemaining: 0,
       needToBuy: 0,
-      priority: 'low',
-      message: '',
+      priority: "low",
+      message: "",
       dailyConsumption: 0,
     };
   }
@@ -92,29 +92,29 @@ export function calculateStockStatus(
   const needToBuy = Math.max(0, recommended - supply.quantity);
 
   // ステータスを判定
-  let status: StockStatus['status'];
-  let priority: StockStatus['priority'];
+  let status: StockStatus["status"];
+  let priority: StockStatus["priority"];
   let message: string;
 
   if (supply.quantity === 0) {
-    status = 'out';
-    priority = 'high';
+    status = "out";
+    priority = "high";
     message = `在庫がありません！${recommended}${supply.unit}必要です`;
   } else if (daysRemaining < 1) {
-    status = 'critical';
-    priority = 'high';
+    status = "critical";
+    priority = "high";
     message = `残り1日分以下です！早急に買い足してください`;
   } else if (daysRemaining < 3) {
-    status = 'low';
-    priority = 'high';
+    status = "low";
+    priority = "high";
     message = `残り${Math.floor(daysRemaining)}日分です。買い足しをおすすめします`;
   } else if (supply.quantity < recommended) {
-    status = 'below-recommended';
-    priority = 'medium';
+    status = "below-recommended";
+    priority = "medium";
     message = `目標まであと${needToBuy}${supply.unit}です`;
   } else {
-    status = 'sufficient';
-    priority = 'low';
+    status = "sufficient";
+    priority = "low";
     message = `十分な備蓄があります（約${Math.floor(daysRemaining)}日分）`;
   }
 
@@ -155,25 +155,25 @@ export function aggregateStockStatus(
     sufficient: 0,
   };
 
-  supplies.forEach(supply => {
+  supplies.forEach((supply) => {
     const status = calculateStockStatus(supply, settings);
     totalRecommended += status.recommended;
     totalCurrent += status.current;
 
     switch (status.status) {
-      case 'out':
+      case "out":
         statusCount.out++;
         break;
-      case 'critical':
+      case "critical":
         statusCount.critical++;
         break;
-      case 'low':
+      case "low":
         statusCount.low++;
         break;
-      case 'below-recommended':
+      case "below-recommended":
         statusCount.belowRecommended++;
         break;
-      case 'sufficient':
+      case "sufficient":
         statusCount.sufficient++;
         break;
     }
@@ -204,7 +204,7 @@ export function calculateCategoryProgress(
   const categoryMap: Record<string, { current: number; recommended: number }> =
     {};
 
-  supplies.forEach(supply => {
+  supplies.forEach((supply) => {
     if (!categoryMap[supply.category]) {
       categoryMap[supply.category] = { current: 0, recommended: 0 };
     }
@@ -219,7 +219,7 @@ export function calculateCategoryProgress(
     string,
     { current: number; recommended: number; percentage: number }
   > = {};
-  Object.keys(categoryMap).forEach(category => {
+  Object.keys(categoryMap).forEach((category) => {
     const data = categoryMap[category];
     result[category] = {
       ...data,

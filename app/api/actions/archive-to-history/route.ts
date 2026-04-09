@@ -1,26 +1,26 @@
 // app/api/actions/archive-to-history/route.ts
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
-import { convertSupplyToHistory } from '@/utils/supplyHistoryHelpers';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { convertSupplyToHistory } from "@/utils/supplyHistoryHelpers";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { error: 'Authorization header missing or malformed' },
+        { error: "Authorization header missing or malformed" },
         { status: 401 }
       );
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     let decodedToken;
     try {
       decodedToken = await adminAuth.verifyIdToken(idToken);
     } catch (_error) {
       return NextResponse.json(
-        { error: 'Invalid or expired ID token' },
+        { error: "Invalid or expired ID token" },
         { status: 403 }
       );
     }
@@ -30,39 +30,39 @@ export async function POST(req: Request) {
 
     if (!supplyId) {
       return NextResponse.json(
-        { error: 'Supply ID is required' },
+        { error: "Supply ID is required" },
         { status: 400 }
       );
     }
 
-    const supplyRef = adminDb.collection('supplies').doc(supplyId);
+    const supplyRef = adminDb.collection("supplies").doc(supplyId);
     const supplyDoc = await supplyRef.get();
 
     if (!supplyDoc.exists) {
-      return NextResponse.json({ error: 'Supply not found' }, { status: 404 });
+      return NextResponse.json({ error: "Supply not found" }, { status: 404 });
     }
 
     const supply = supplyDoc.data();
 
-    const teamDoc = await adminDb.collection('teams').doc(supply?.teamId).get();
+    const teamDoc = await adminDb.collection("teams").doc(supply?.teamId).get();
     if (!teamDoc.exists) {
-      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+      return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
 
     const teamData = teamDoc.data();
     if (!teamData?.members?.includes(uid)) {
       return NextResponse.json(
-        { error: 'You are not a member of this team' },
+        { error: "You are not a member of this team" },
         { status: 403 }
       );
     }
 
     const reviewsSnapshot = await adminDb
-      .collection('supplyReviews')
-      .where('supplyId', '==', supplyId)
+      .collection("supplyReviews")
+      .where("supplyId", "==", supplyId)
       .get();
 
-    const reviews = reviewsSnapshot.docs.map(doc => ({
+    const reviews = reviewsSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
@@ -74,10 +74,10 @@ export async function POST(req: Request) {
     );
 
     const existingHistorySnapshot = await adminDb
-      .collection('supply_history')
-      .where('teamId', '==', supply?.teamId)
-      .where('name', '==', supply?.name)
-      .where('category', '==', supply?.category)
+      .collection("supply_history")
+      .where("teamId", "==", supply?.teamId)
+      .where("name", "==", supply?.name)
+      .where("category", "==", supply?.category)
       .limit(1)
       .get();
 
@@ -100,7 +100,7 @@ export async function POST(req: Request) {
         ),
       });
     } else {
-      await adminDb.collection('supply_history').doc(history.id).set(history);
+      await adminDb.collection("supply_history").doc(history.id).set(history);
     }
 
     await supplyRef.update({
@@ -108,13 +108,13 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({
-      message: 'Supply archived to history successfully',
+      message: "Supply archived to history successfully",
       history,
     });
   } catch (_error: unknown) {
-    console.error('Archive to history error:', _error);
+    console.error("Archive to history error:", _error);
     const errorMessage =
-      _error instanceof Error ? _error.message : 'Internal Server Error';
+      _error instanceof Error ? _error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

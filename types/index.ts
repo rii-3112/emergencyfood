@@ -1,6 +1,6 @@
-export * from './api';
-export * from './forms';
-export * from './handbook';
+export * from "./api";
+export * from "./forms";
+export * from "./handbook";
 
 export interface BaseFormData {
   id?: string;
@@ -38,7 +38,7 @@ export interface Team extends BaseFormData {
   stockSettings?: TeamStockSettings;
 }
 
-export type TeamRole = 'owner' | 'admin' | 'member';
+export type TeamRole = "owner" | "admin" | "member";
 
 export interface TeamMember {
   uid: string;
@@ -48,7 +48,7 @@ export interface TeamMember {
 }
 
 // 備蓄管理設定
-export type AgeGroup = 'adult' | 'child' | 'infant' | 'elderly';
+export type AgeGroup = "adult" | "child" | "infant" | "elderly";
 
 export interface HouseholdComposition {
   adult: number; // 大人（18-64歳）
@@ -81,7 +81,7 @@ export interface TeamStockSettings {
   notifications?: NotificationSettings;
 
   // 備蓄レベル設定
-  stockLevel?: 'beginner' | 'standard' | 'advanced'; // 備蓄レベル
+  stockLevel?: "beginner" | "standard" | "advanced"; // 備蓄レベル
 
   updatedAt?: string; // 更新日時
 }

@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import type { SupplyHistory } from '@/types';
-import { ERROR_MESSAGES } from '@/utils/constants';
-import { getExpiryType } from '@/utils/stockRecommendations';
+import type { SupplyHistory } from "@/types";
+import { ERROR_MESSAGES } from "@/utils/constants";
+import { getExpiryType } from "@/utils/stockRecommendations";
 import {
   sortSupplyHistory,
   type HistorySortOption,
-} from '@/utils/supplyHistoryHelpers';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+} from "@/utils/supplyHistoryHelpers";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface ServerUser {
   uid: string;
@@ -29,34 +29,34 @@ export default function SupplyHistoryView({
 }: SupplyHistoryViewProps) {
   const router = useRouter();
   const [histories] = useState<SupplyHistory[]>(initialHistories);
-  const [sortBy, setSortBy] = useState<HistorySortOption>('archivedAt');
-  const sortOrder = 'desc';
+  const [sortBy, setSortBy] = useState<HistorySortOption>("archivedAt");
+  const sortOrder = "desc";
   const [showRestockModal, setShowRestockModal] = useState(false);
   const [selectedHistory, setSelectedHistory] = useState<SupplyHistory | null>(
     null
   );
   const [restockQuantity, setRestockQuantity] = useState(1);
-  const [restockUnit, setRestockUnit] = useState('');
-  const [restockExpiryDate, setRestockExpiryDate] = useState('');
-  const [restockLocation, setRestockLocation] = useState('');
-  const [restockAmount, setRestockAmount] = useState('');
-  const [restockLabel, setRestockLabel] = useState('');
-  const [restockStorageLocation, setRestockStorageLocation] = useState('');
+  const [restockUnit, setRestockUnit] = useState("");
+  const [restockExpiryDate, setRestockExpiryDate] = useState("");
+  const [restockLocation, setRestockLocation] = useState("");
+  const [restockAmount, setRestockAmount] = useState("");
+  const [restockLabel, setRestockLabel] = useState("");
+  const [restockStorageLocation, setRestockStorageLocation] = useState("");
   const [restocking, setRestocking] = useState(false);
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  const filteredHistories = histories.filter(history => {
-    if (selectedCategory !== 'all' && history.category !== selectedCategory) {
+  const filteredHistories = histories.filter((history) => {
+    if (selectedCategory !== "all" && history.category !== selectedCategory) {
       return false;
     }
 
-    if (searchQuery.trim() !== '') {
+    if (searchQuery.trim() !== "") {
       const query = searchQuery.toLowerCase();
       const nameMatch = history.name.toLowerCase().includes(query);
       const categoryMatch = history.category.toLowerCase().includes(query);
-      const locationMatch = history.purchaseLocations.some(loc =>
+      const locationMatch = history.purchaseLocations.some((loc) =>
         loc.toLowerCase().includes(query)
       );
 
@@ -72,19 +72,21 @@ export default function SupplyHistoryView({
     sortOrder
   );
 
-  const categories = Array.from(new Set(histories.map(h => h.category))).sort();
+  const categories = Array.from(
+    new Set(histories.map((h) => h.category))
+  ).sort();
 
   const handleRestockClick = (history: SupplyHistory) => {
     setSelectedHistory(history);
     setRestockQuantity(1);
     setRestockUnit(history.unit);
-    setRestockExpiryDate('');
+    setRestockExpiryDate("");
     setRestockLocation(
-      history.purchaseLocations.length > 0 ? history.purchaseLocations[0] : ''
+      history.purchaseLocations.length > 0 ? history.purchaseLocations[0] : ""
     );
-    setRestockAmount('');
-    setRestockLabel('');
-    setRestockStorageLocation('');
+    setRestockAmount("");
+    setRestockLabel("");
+    setRestockStorageLocation("");
     setShowRestockModal(true);
   };
 
@@ -94,10 +96,10 @@ export default function SupplyHistoryView({
 
     try {
       setRestocking(true);
-      const response = await fetch('/api/actions/restore-from-history', {
-        method: 'POST',
+      const response = await fetch("/api/actions/restore-from-history", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           historyId: selectedHistory.id,
@@ -113,15 +115,15 @@ export default function SupplyHistoryView({
 
       if (!response.ok) {
         const result = await response.json();
-        throw new Error(result.error || '保存に失敗しました');
+        throw new Error(result.error || "保存に失敗しました");
       }
 
-      alert('備蓄品を追加しました！');
+      alert("備蓄品を追加しました！");
       setShowRestockModal(false);
-      router.push('/supplies/list');
+      router.push("/supplies/list");
     } catch (error) {
-      console.error('Restock error:', error);
-      alert('保存に失敗しました');
+      console.error("Restock error:", error);
+      alert("保存に失敗しました");
     } finally {
       setRestocking(false);
     }
@@ -149,18 +151,18 @@ export default function SupplyHistoryView({
                     type='text'
                     placeholder='商品名、カテゴリ、購入場所で検索...'
                     value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-black'
                   />
                 </div>
 
                 <select
                   className='px-3 py-2 border border-gray-300 rounded-md text-sm'
-                  onChange={e => setSelectedCategory(e.target.value)}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
                   value={selectedCategory}
                 >
                   <option value='all'>全カテゴリ</option>
-                  {categories.map(category => (
+                  {categories.map((category) => (
                     <option key={category} value={category}>
                       {category}
                     </option>
@@ -169,7 +171,9 @@ export default function SupplyHistoryView({
 
                 <select
                   className='px-3 py-2 border border-gray-300 rounded-md text-sm'
-                  onChange={e => setSortBy(e.target.value as HistorySortOption)}
+                  onChange={(e) =>
+                    setSortBy(e.target.value as HistorySortOption)
+                  }
                   value={sortBy}
                 >
                   <option value='archivedAt'>アーカイブ日時順</option>
@@ -202,24 +206,24 @@ export default function SupplyHistoryView({
                       </h3>
                       <div className='space-y-1 text-sm text-gray-600'>
                         <p>
-                          <span className='font-medium'>カテゴリ:</span>{' '}
+                          <span className='font-medium'>カテゴリ:</span>{" "}
                           {history.category}
                         </p>
                         <p>
-                          <span className='font-medium'>累計消費:</span>{' '}
+                          <span className='font-medium'>累計消費:</span>{" "}
                           {history.totalConsumed}
                           {history.unit}
                         </p>
                         {history.purchaseLocations.length > 0 && (
                           <p>
-                            <span className='font-medium'>購入場所:</span>{' '}
-                            {history.purchaseLocations.join(', ')}
+                            <span className='font-medium'>購入場所:</span>{" "}
+                            {history.purchaseLocations.join(", ")}
                           </p>
                         )}
                         <p>
-                          <span className='font-medium'>最後に使用:</span>{' '}
+                          <span className='font-medium'>最後に使用:</span>{" "}
                           {new Date(history.lastUsedDate).toLocaleDateString(
-                            'ja-JP'
+                            "ja-JP"
                           )}
                         </p>
                         {history.hasReviews && (
@@ -282,7 +286,7 @@ export default function SupplyHistoryView({
         >
           <div
             className='bg-white rounded-lg p-6 max-w-md w-full relative border border-gray-200'
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <h2 className='text-xl font-bold mb-4'>
               {selectedHistory.name} を備蓄する
@@ -300,7 +304,7 @@ export default function SupplyHistoryView({
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
                   id='quantity'
                   min='1'
-                  onChange={e =>
+                  onChange={(e) =>
                     setRestockQuantity(parseInt(e.target.value) || 0)
                   }
                   type='number'
@@ -318,7 +322,7 @@ export default function SupplyHistoryView({
                   required
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
                   id='unit'
-                  onChange={e => setRestockUnit(e.target.value)}
+                  onChange={(e) => setRestockUnit(e.target.value)}
                   value={restockUnit}
                 >
                   <option value='個'>個</option>
@@ -340,21 +344,21 @@ export default function SupplyHistoryView({
                 >
                   {selectedHistory
                     ? getExpiryType(selectedHistory.category).label
-                    : '期限'}{' '}
+                    : "期限"}{" "}
                   {selectedHistory &&
                     getExpiryType(selectedHistory.category).type !==
-                      'noExpiry' && <span className='text-red-500'>*</span>}
+                      "noExpiry" && <span className='text-red-500'>*</span>}
                 </label>
                 <input
                   required={
                     selectedHistory
                       ? getExpiryType(selectedHistory.category).type !==
-                        'noExpiry'
+                        "noExpiry"
                       : true
                   }
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
                   id='expiryDate'
-                  onChange={e => setRestockExpiryDate(e.target.value)}
+                  onChange={(e) => setRestockExpiryDate(e.target.value)}
                   type='date'
                   value={restockExpiryDate}
                 />
@@ -369,7 +373,7 @@ export default function SupplyHistoryView({
                 <input
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
                   id='amount'
-                  onChange={e => setRestockAmount(e.target.value)}
+                  onChange={(e) => setRestockAmount(e.target.value)}
                   placeholder='例: 500'
                   type='number'
                   value={restockAmount}
@@ -385,7 +389,7 @@ export default function SupplyHistoryView({
                 <input
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
                   id='location'
-                  onChange={e => setRestockLocation(e.target.value)}
+                  onChange={(e) => setRestockLocation(e.target.value)}
                   placeholder='例: スーパーマーケット'
                   type='text'
                   value={restockLocation}
@@ -401,7 +405,7 @@ export default function SupplyHistoryView({
                 <input
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
                   id='label'
-                  onChange={e => setRestockLabel(e.target.value)}
+                  onChange={(e) => setRestockLabel(e.target.value)}
                   placeholder='例: 非常用、日常用'
                   type='text'
                   value={restockLabel}
@@ -417,7 +421,7 @@ export default function SupplyHistoryView({
                 <input
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
                   id='storageLocation'
-                  onChange={e => setRestockStorageLocation(e.target.value)}
+                  onChange={(e) => setRestockStorageLocation(e.target.value)}
                   placeholder='例: キッチン、倉庫'
                   type='text'
                   value={restockStorageLocation}
@@ -436,7 +440,7 @@ export default function SupplyHistoryView({
                   disabled={restocking}
                   type='submit'
                 >
-                  {restocking ? '追加中...' : '追加'}
+                  {restocking ? "追加中..." : "追加"}
                 </button>
               </div>
             </form>

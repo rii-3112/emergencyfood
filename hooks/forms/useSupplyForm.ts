@@ -1,8 +1,8 @@
-import { useAuth } from '@/hooks/auth/useAuth';
-import type { FormMode, SupplyFormData } from '@/types/forms';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/utils/constants';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useAuth } from "@/hooks/auth/useAuth";
+import type { FormMode, SupplyFormData } from "@/types/forms";
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from "@/utils/constants";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface UseSupplyFormProps {
   uid: string | null;
@@ -26,11 +26,11 @@ interface UseSupplyFormReturn {
 }
 
 const initialFormState: SupplyFormData = {
-  name: '',
+  name: "",
   quantity: 1,
-  expiryDate: '',
-  category: '',
-  unit: '',
+  expiryDate: "",
+  category: "",
+  unit: "",
   amount: undefined,
   purchaseLocation: undefined,
   label: undefined,
@@ -40,7 +40,7 @@ const initialFormState: SupplyFormData = {
 export function useSupplyForm({
   uid,
   teamId,
-  mode = 'add',
+  mode = "add",
   supplyId,
   initialData,
 }: UseSupplyFormProps): UseSupplyFormReturn {
@@ -53,7 +53,7 @@ export function useSupplyForm({
 
   // Initialize form data
   useEffect(() => {
-    if (mode === 'edit' && initialData) {
+    if (mode === "edit" && initialData) {
       setFormData(initialData);
     }
   }, [mode, initialData]);
@@ -75,7 +75,7 @@ export function useSupplyForm({
     const { name, quantity, expiryDate, category, unit } = formData;
 
     if (!name || !quantity || !expiryDate || !category || !unit) {
-      setErrorMessage('必須フィールドをすべて入力してください。');
+      setErrorMessage("必須フィールドをすべて入力してください。");
       return false;
     }
 
@@ -114,17 +114,17 @@ export function useSupplyForm({
         storageLocation,
       } = formData;
 
-      if (mode === 'add') {
+      if (mode === "add") {
         if (!user) {
           setErrorMessage(ERROR_MESSAGES.UNAUTHORIZED);
           return;
         }
 
         const idToken = await user.getIdToken();
-        const response = await fetch('/api/supplies', {
-          method: 'POST',
+        const response = await fetch("/api/supplies", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             Authorization: `Bearer ${idToken}`,
           },
           body: JSON.stringify({
@@ -136,25 +136,25 @@ export function useSupplyForm({
             amount: amount !== undefined ? Number(amount) : null,
             purchaseLocation: purchaseLocation || null,
             label: label || null,
-            storageLocation: storageLocation || '未設定',
+            storageLocation: storageLocation || "未設定",
             teamId,
           }),
         });
 
         if (!response.ok) {
           const result = await response.json();
-          throw new Error(result.error || '備蓄品の追加に失敗しました');
+          throw new Error(result.error || "備蓄品の追加に失敗しました");
         }
 
         resetForm();
         setSuccessMessage(SUCCESS_MESSAGES.FOOD_CREATED);
 
         setTimeout(() => {
-          router.push('/supplies/list');
+          router.push("/supplies/list");
         }, 1500);
       } else {
         if (!supplyId) {
-          setErrorMessage('備蓄品IDが見つかりません。');
+          setErrorMessage("備蓄品IDが見つかりません。");
           return;
         }
 
@@ -167,7 +167,7 @@ export function useSupplyForm({
           amount: amount !== undefined ? Number(amount) : null,
           purchaseLocation: purchaseLocation || null,
           label: label || null,
-          storageLocation: storageLocation || '未設定',
+          storageLocation: storageLocation || "未設定",
         };
 
         if (!user) {
@@ -176,12 +176,12 @@ export function useSupplyForm({
         }
 
         const token = await user.getIdToken();
-        console.log('Update request:', { supplyId, updates });
+        console.log("Update request:", { supplyId, updates });
 
-        const response = await fetch('/api/actions/update-supply', {
-          method: 'POST',
+        const response = await fetch("/api/actions/update-supply", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
@@ -190,29 +190,29 @@ export function useSupplyForm({
           }),
         });
 
-        console.log('Response status:', response.status);
+        console.log("Response status:", response.status);
 
         if (!response.ok) {
           const errorData = await response.json();
-          console.error('API Error:', errorData);
-          throw new Error(errorData.error || '更新に失敗しました');
+          console.error("API Error:", errorData);
+          throw new Error(errorData.error || "更新に失敗しました");
         }
 
-        setSuccessMessage('備蓄品情報が正常に更新されました！');
+        setSuccessMessage("備蓄品情報が正常に更新されました！");
 
         setTimeout(() => {
-          router.push('/supplies/list');
+          router.push("/supplies/list");
         }, 1500);
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
         setErrorMessage(
-          mode === 'add'
+          mode === "add"
             ? ERROR_MESSAGES.FOOD_CREATE_FAILED
-            : '備蓄品情報の更新に失敗しました。'
+            : "備蓄品情報の更新に失敗しました。"
         );
       } else {
-        setErrorMessage('不明なエラーが発生しました');
+        setErrorMessage("不明なエラーが発生しました");
       }
     } finally {
       setSubmitting(false);

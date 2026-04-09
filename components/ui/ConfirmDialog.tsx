@@ -1,5 +1,5 @@
-'use client';
-import Modal from './Modal';
+"use client";
+import Modal from "./Modal";
 
 interface ConfirmDialogProps {
   isOpen: boolean;
@@ -9,18 +9,18 @@ interface ConfirmDialogProps {
   message: string;
   confirmText?: string;
   cancelText?: string;
-  confirmVariant?: 'danger' | 'primary' | 'secondary';
+  confirmVariant?: "danger" | "primary" | "secondary";
 }
 
 export default function ConfirmDialog({
   isOpen,
   onClose,
   onConfirm,
-  title = '確認',
+  title = "確認",
   message,
-  confirmText = '確認',
-  cancelText = 'キャンセル',
-  confirmVariant = 'primary',
+  confirmText = "確認",
+  cancelText = "キャンセル",
+  confirmVariant = "primary",
 }: ConfirmDialogProps) {
   const handleConfirm = () => {
     onConfirm();
@@ -28,9 +28,9 @@ export default function ConfirmDialog({
   };
 
   const variantClasses = {
-    danger: 'bg-red-500 hover:bg-red-600 focus:ring-red-400',
-    primary: 'bg-blue-500 hover:bg-blue-600 focus:ring-blue-400',
-    secondary: 'bg-gray-500 hover:bg-gray-600 focus:ring-gray-400',
+    danger: "bg-red-500 hover:bg-red-600 focus:ring-red-400",
+    primary: "bg-blue-500 hover:bg-blue-600 focus:ring-blue-400",
+    secondary: "bg-gray-500 hover:bg-gray-600 focus:ring-gray-400",
   };
 
   return (

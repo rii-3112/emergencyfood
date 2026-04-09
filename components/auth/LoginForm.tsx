@@ -1,20 +1,20 @@
 // components/auth/LoginForm.tsx
-'use client';
-import { saveAuthTokenToCookie } from '@/utils/auth/cookies';
-import { ERROR_MESSAGES } from '@/utils/constants';
-import { auth, db } from '@/utils/firebase';
+"use client";
+import { saveAuthTokenToCookie } from "@/utils/auth/cookies";
+import { ERROR_MESSAGES } from "@/utils/constants";
+import { auth, db } from "@/utils/firebase";
 import {
   GoogleAuthProvider,
   signInWithEmailAndPassword,
   signInWithPopup,
-} from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+} from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 
 export default function LoginForm() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -28,7 +28,7 @@ export default function LoginForm() {
       | null;
 
     if (!claimTeamId) {
-      const userDocRef = doc(db, 'users', user.uid);
+      const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
       const firestoreTeamId: string | null = userDocSnap.exists()
         ? userDocSnap.data().teamId
@@ -36,9 +36,9 @@ export default function LoginForm() {
 
       if (firestoreTeamId) {
         const idToken = await user.getIdToken();
-        const res = await fetch('/api/setCustomClaims', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const res = await fetch("/api/setCustomClaims", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             uid: user.uid,
             teamId: firestoreTeamId,
@@ -57,9 +57,9 @@ export default function LoginForm() {
     }
 
     if (claimTeamId) {
-      router.push('/supplies/list');
+      router.push("/supplies/list");
     } else {
-      router.push('/settings?tab=team');
+      router.push("/settings?tab=team");
     }
   };
 
@@ -71,7 +71,7 @@ export default function LoginForm() {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({
-        prompt: 'select_account',
+        prompt: "select_account",
       });
 
       const result = await signInWithPopup(auth, provider);
@@ -81,31 +81,31 @@ export default function LoginForm() {
         await handlePostLogin(user);
       }
     } catch (_error: unknown) {
-      console.error('Google login error:', _error);
-      if (_error instanceof Error && 'code' in _error) {
+      console.error("Google login error:", _error);
+      if (_error instanceof Error && "code" in _error) {
         switch (_error.code) {
-          case 'auth/popup-closed-by-user':
-            setError('ログインがキャンセルされました');
+          case "auth/popup-closed-by-user":
+            setError("ログインがキャンセルされました");
             break;
-          case 'auth/popup-blocked':
+          case "auth/popup-blocked":
             setError(
-              'ポップアップがブロックされました。ブラウザの設定を確認してください。'
+              "ポップアップがブロックされました。ブラウザの設定を確認してください。"
             );
             break;
-          case 'auth/cancelled-popup-request':
-            setError('ログインがキャンセルされました');
+          case "auth/cancelled-popup-request":
+            setError("ログインがキャンセルされました");
             break;
-          case 'auth/network-request-failed':
+          case "auth/network-request-failed":
             setError(
-              'ネットワークエラーが発生しました。インターネット接続を確認してください。'
+              "ネットワークエラーが発生しました。インターネット接続を確認してください。"
             );
             break;
           default:
-            setError('Googleログインに失敗しました');
+            setError("Googleログインに失敗しました");
             break;
         }
       } else {
-        setError('Googleログインに失敗しました');
+        setError("Googleログインに失敗しました");
       }
     } finally {
       setIsLoading(false);
@@ -130,19 +130,19 @@ export default function LoginForm() {
         await handlePostLogin(user);
       }
     } catch (_error: unknown) {
-      if (_error instanceof Error && 'code' in _error) {
+      if (_error instanceof Error && "code" in _error) {
         switch (_error.code) {
-          case 'auth/invalid-email':
+          case "auth/invalid-email":
             setError(ERROR_MESSAGES.INVALID_EMAIL);
             break;
-          case 'auth/user-disabled':
+          case "auth/user-disabled":
             setError(ERROR_MESSAGES.USER_DISABLED);
             break;
-          case 'auth/user-not-found':
-          case 'auth/wrong-password':
+          case "auth/user-not-found":
+          case "auth/wrong-password":
             setError(ERROR_MESSAGES.INVALID_CREDENTIALS);
             break;
-          case 'auth/too-many-requests':
+          case "auth/too-many-requests":
             setError(ERROR_MESSAGES.TOO_MANY_REQUESTS);
             break;
           default:
@@ -221,7 +221,7 @@ export default function LoginForm() {
             placeholder='example@email.com'
             type='email'
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
@@ -240,7 +240,7 @@ export default function LoginForm() {
             placeholder='パスワードを入力'
             type='password'
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
 
@@ -249,7 +249,7 @@ export default function LoginForm() {
           type='submit'
           disabled={isLoading}
         >
-          {isLoading ? 'ログイン中...' : 'メールアドレスでログイン'}
+          {isLoading ? "ログイン中..." : "メールアドレスでログイン"}
         </button>
       </form>
     </div>

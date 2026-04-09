@@ -1,18 +1,18 @@
-'use client';
-import { Button, Card, Input } from '@/components/ui';
-import type { EvacuationRoute } from '@/types/forms';
-import { useState } from 'react';
+"use client";
+import { Button, Card, Input } from "@/components/ui";
+import type { EvacuationRoute } from "@/types/forms";
+import { useState } from "react";
 
 interface EvacuationRoutesFormProps {
   routes: EvacuationRoute[];
   onUpdate: (routes: EvacuationRoute[]) => void;
 }
 
-const INITIAL_ROUTE: Omit<EvacuationRoute, 'id'> = {
-  name: '',
-  description: '',
-  landmarks: '',
-  notes: '',
+const INITIAL_ROUTE: Omit<EvacuationRoute, "id"> = {
+  name: "",
+  description: "",
+  landmarks: "",
+  notes: "",
 };
 
 export function EvacuationRoutesForm({
@@ -20,7 +20,7 @@ export function EvacuationRoutesForm({
   onUpdate,
 }: EvacuationRoutesFormProps) {
   const [newRoute, setNewRoute] =
-    useState<Omit<EvacuationRoute, 'id'>>(INITIAL_ROUTE);
+    useState<Omit<EvacuationRoute, "id">>(INITIAL_ROUTE);
   const [isAdding, setIsAdding] = useState(false);
 
   const handleAddRoute = () => {
@@ -37,7 +37,7 @@ export function EvacuationRoutesForm({
   };
 
   const handleRemoveRoute = (id: string) => {
-    onUpdate(routes.filter(route => route.id !== id));
+    onUpdate(routes.filter((route) => route.id !== id));
   };
 
   return (
@@ -55,7 +55,7 @@ export function EvacuationRoutesForm({
       </div>
 
       <div className='space-y-4'>
-        {routes.map(route => (
+        {routes.map((route) => (
           <div key={route.id} className='border border-gray-200 rounded-lg p-4'>
             <div className='flex justify-between items-start mb-2'>
               <h3 className='font-medium text-gray-900'>{route.name}</h3>
@@ -98,8 +98,8 @@ export function EvacuationRoutesForm({
                 label='経路の名前'
                 required
                 value={newRoute.name}
-                onChange={e =>
-                  setNewRoute(prev => ({ ...prev, name: e.target.value }))
+                onChange={(e) =>
+                  setNewRoute((prev) => ({ ...prev, name: e.target.value }))
                 }
                 placeholder='例: メインルート, 迂回ルート'
               />
@@ -108,8 +108,8 @@ export function EvacuationRoutesForm({
                 label='経路の説明'
                 required
                 value={newRoute.description}
-                onChange={e =>
-                  setNewRoute(prev => ({
+                onChange={(e) =>
+                  setNewRoute((prev) => ({
                     ...prev,
                     description: e.target.value,
                   }))
@@ -119,18 +119,21 @@ export function EvacuationRoutesForm({
 
               <Input
                 label='目印・ランドマーク'
-                value={newRoute.landmarks || ''}
-                onChange={e =>
-                  setNewRoute(prev => ({ ...prev, landmarks: e.target.value }))
+                value={newRoute.landmarks || ""}
+                onChange={(e) =>
+                  setNewRoute((prev) => ({
+                    ...prev,
+                    landmarks: e.target.value,
+                  }))
                 }
                 placeholder='例: コンビニ、信号機、橋など'
               />
 
               <Input
                 label='備考・注意事項'
-                value={newRoute.notes || ''}
-                onChange={e =>
-                  setNewRoute(prev => ({ ...prev, notes: e.target.value }))
+                value={newRoute.notes || ""}
+                onChange={(e) =>
+                  setNewRoute((prev) => ({ ...prev, notes: e.target.value }))
                 }
                 placeholder='例: 夜間は街灯が少ない、雨天時は滑りやすい'
               />

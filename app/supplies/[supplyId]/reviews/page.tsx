@@ -1,8 +1,8 @@
-import { getServerUser } from '@/utils/auth/server';
-import { fetchSupplyByIdFromDB } from '@/utils/data/server';
-import { notFound, redirect } from 'next/navigation';
+import { getServerUser } from "@/utils/auth/server";
+import { fetchSupplyByIdFromDB } from "@/utils/data/server";
+import { notFound, redirect } from "next/navigation";
 
-import ReviewsClient from './ReviewsClient';
+import ReviewsClient from "./ReviewsClient";
 
 interface SupplyReviewsPageProps {
   params: Promise<{
@@ -16,10 +16,10 @@ export default async function SupplyReviewsPage({
   const { supplyId } = await params;
   const user = await getServerUser();
   if (!user) {
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
   if (!user.teamId) {
-    redirect('/settings?tab=team');
+    redirect("/settings?tab=team");
   }
   const supply = await fetchSupplyByIdFromDB(user.teamId, supplyId);
   if (!supply) {

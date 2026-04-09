@@ -1,10 +1,10 @@
-'use client';
-import Header from '@/components/Header';
+"use client";
+import Header from "@/components/Header";
 import AuthProvider, {
   useAuthContext,
-} from '@/components/providers/AuthProvider';
-import { ErrorBoundary } from '@/components/ui';
-import { usePathname } from 'next/navigation';
+} from "@/components/providers/AuthProvider";
+import { ErrorBoundary } from "@/components/ui";
+import { usePathname } from "next/navigation";
 
 interface ClientLayoutContentProps {
   children: React.ReactNode;
@@ -17,7 +17,7 @@ function ClientLayoutContent({ children }: ClientLayoutContentProps) {
   return (
     <ErrorBoundary>
       <div className='min-h-screen flex flex-col'>
-        {!pathname.startsWith('/event') && (
+        {!pathname.startsWith("/event") && (
           <Header
             isLoggedIn={!!user}
             teamId={teamId}

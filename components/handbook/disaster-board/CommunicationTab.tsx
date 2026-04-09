@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import type { FamilyAgreement, SafetyConfirmationMethod } from '@/types/forms';
+import type { FamilyAgreement, SafetyConfirmationMethod } from "@/types/forms";
 
-import { FamilyAgreementsForm } from './FamilyAgreementsForm';
-import { SafetyMethodsForm } from './SafetyMethodsForm';
+import { FamilyAgreementsForm } from "./FamilyAgreementsForm";
+import { SafetyMethodsForm } from "./SafetyMethodsForm";
 
 interface CommunicationTabProps {
   methods: SafetyConfirmationMethod[];
