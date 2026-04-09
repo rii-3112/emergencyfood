@@ -1,7 +1,7 @@
-import { ERROR_MESSAGES, UI_CONSTANTS } from '@/utils/constants';
-import Link from 'next/link';
-import { Suspense } from 'react';
-import RegisterClient from './RegisterClient';
+import { ERROR_MESSAGES, UI_CONSTANTS } from "@/utils/constants";
+import Link from "next/link";
+import { Suspense } from "react";
+import RegisterClient from "./RegisterClient";
 
 export default function Register() {
   return (

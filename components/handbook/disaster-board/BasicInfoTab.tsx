@@ -1,5 +1,5 @@
-'use client';
-import { DisasterDialInfo } from './DisasterDialInfo';
+"use client";
+import { DisasterDialInfo } from "./DisasterDialInfo";
 //コンポーネントの形状を定義するためのインターフェース
 interface BasicInfoTabProps {
   useDisasterDial: boolean;

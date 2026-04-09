@@ -1,32 +1,32 @@
-import React from 'react';
+import React from "react";
 
 export interface CardProps {
   children: React.ReactNode;
   className?: string;
-  padding?: 'none' | 'sm' | 'md' | 'lg';
-  shadow?: 'none' | 'sm' | 'md' | 'lg';
+  padding?: "none" | "sm" | "md" | "lg";
+  shadow?: "none" | "sm" | "md" | "lg";
 }
 
 export function Card({
   children,
-  className = '',
-  padding = 'md',
-  shadow = 'md',
+  className = "",
+  padding = "md",
+  shadow = "md",
 }: CardProps) {
-  const baseStyles = 'bg-white rounded-lg border border-gray-200';
+  const baseStyles = "bg-white rounded-lg border border-gray-200";
 
   const paddings = {
-    none: '',
-    sm: 'p-4',
-    md: 'p-6',
-    lg: 'p-8',
+    none: "",
+    sm: "p-4",
+    md: "p-6",
+    lg: "p-8",
   };
 
   const shadows = {
-    none: '',
-    sm: 'shadow-sm',
-    md: 'shadow-md',
-    lg: 'shadow-lg',
+    none: "",
+    sm: "shadow-sm",
+    md: "shadow-md",
+    lg: "shadow-lg",
   };
 
   return (

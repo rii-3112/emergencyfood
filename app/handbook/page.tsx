@@ -1,19 +1,19 @@
-import { getServerUser } from '@/utils/auth/server';
+import { getServerUser } from "@/utils/auth/server";
 import {
   fetchDisasterBoardFromDB,
   fetchHandbookChecklistFromDB,
   fetchTeamFromDB,
-} from '@/utils/data/server';
-import { redirect } from 'next/navigation';
-import HandbookClient from './_components/HandbookClient';
+} from "@/utils/data/server";
+import { redirect } from "next/navigation";
+import HandbookClient from "./_components/HandbookClient";
 
 export default async function HandbookPage() {
   const user = await getServerUser();
   if (!user) {
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
   if (!user.teamId) {
-    redirect('/settings?tab=team');
+    redirect("/settings?tab=team");
   }
 
   const [disasterBoardData, teamData, initialChecklistData] = await Promise.all(

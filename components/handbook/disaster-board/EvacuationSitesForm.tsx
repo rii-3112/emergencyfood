@@ -1,7 +1,7 @@
-'use client';
-import { Button, Card, Input, Select } from '@/components/ui';
-import type { DisasterType, EvacuationSite } from '@/types/forms';
-import { useState } from 'react';
+"use client";
+import { Button, Card, Input, Select } from "@/components/ui";
+import type { DisasterType, EvacuationSite } from "@/types/forms";
+import { useState } from "react";
 
 interface EvacuationSitesFormProps {
   sites: EvacuationSite[];
@@ -9,17 +9,17 @@ interface EvacuationSitesFormProps {
 }
 
 const DISASTER_TYPES: { value: DisasterType; label: string }[] = [
-  { value: 'earthquake', label: '地震' },
-  { value: 'tsunami', label: '津波' },
-  { value: 'flood', label: '大雨・洪水' },
-  { value: 'typhoon', label: '台風' },
+  { value: "earthquake", label: "地震" },
+  { value: "tsunami", label: "津波" },
+  { value: "flood", label: "大雨・洪水" },
+  { value: "typhoon", label: "台風" },
 ];
 
-const INITIAL_SITE: Omit<EvacuationSite, 'id'> = {
-  disasterType: 'earthquake',
-  name: '',
-  address: '',
-  notes: '',
+const INITIAL_SITE: Omit<EvacuationSite, "id"> = {
+  disasterType: "earthquake",
+  name: "",
+  address: "",
+  notes: "",
 };
 
 export function EvacuationSitesForm({
@@ -27,7 +27,7 @@ export function EvacuationSitesForm({
   onUpdate,
 }: EvacuationSitesFormProps) {
   const [newSite, setNewSite] =
-    useState<Omit<EvacuationSite, 'id'>>(INITIAL_SITE);
+    useState<Omit<EvacuationSite, "id">>(INITIAL_SITE);
   const [isAdding, setIsAdding] = useState(false);
 
   const resetForm = () => {
@@ -48,7 +48,7 @@ export function EvacuationSitesForm({
   };
 
   const handleRemoveSite = (id: string) => {
-    onUpdate(sites.filter(site => site.id !== id));
+    onUpdate(sites.filter((site) => site.id !== id));
   };
 
   const _handleUpdateSite = (
@@ -56,7 +56,7 @@ export function EvacuationSitesForm({
     updatedSite: Partial<EvacuationSite>
   ) => {
     onUpdate(
-      sites.map(site => (site.id === id ? { ...site, ...updatedSite } : site))
+      sites.map((site) => (site.id === id ? { ...site, ...updatedSite } : site))
     );
   };
 
@@ -75,7 +75,7 @@ export function EvacuationSitesForm({
       </div>
 
       <div className='space-y-4'>
-        {sites.map(site => (
+        {sites.map((site) => (
           <div key={site.id} className='border border-gray-200 rounded-lg p-4'>
             <div className='flex justify-between items-start mb-2'>
               <div className='flex items-center gap-2'>
@@ -83,7 +83,7 @@ export function EvacuationSitesForm({
                 <span className='text-sm text-gray-500'>
                   (
                   {
-                    DISASTER_TYPES.find(t => t.value === site.disasterType)
+                    DISASTER_TYPES.find((t) => t.value === site.disasterType)
                       ?.label
                   }
                   )
@@ -123,8 +123,8 @@ export function EvacuationSitesForm({
                 label='どんな災害のときか'
                 required
                 value={newSite.disasterType}
-                onChange={e =>
-                  setNewSite(prev => ({
+                onChange={(e) =>
+                  setNewSite((prev) => ({
                     ...prev,
                     disasterType: e.target.value as DisasterType,
                   }))
@@ -136,8 +136,8 @@ export function EvacuationSitesForm({
                 label='避難場所名'
                 required
                 value={newSite.name}
-                onChange={e =>
-                  setNewSite(prev => ({ ...prev, name: e.target.value }))
+                onChange={(e) =>
+                  setNewSite((prev) => ({ ...prev, name: e.target.value }))
                 }
                 placeholder='例: 〇〇小学校体育館'
               />
@@ -146,17 +146,17 @@ export function EvacuationSitesForm({
                 label='住所・場所'
                 required
                 value={newSite.address}
-                onChange={e =>
-                  setNewSite(prev => ({ ...prev, address: e.target.value }))
+                onChange={(e) =>
+                  setNewSite((prev) => ({ ...prev, address: e.target.value }))
                 }
                 placeholder='例: 〇〇市〇〇1-2-3'
               />
 
               <Input
                 label='備考・メモ'
-                value={newSite.notes || ''}
-                onChange={e =>
-                  setNewSite(prev => ({ ...prev, notes: e.target.value }))
+                value={newSite.notes || ""}
+                onChange={(e) =>
+                  setNewSite((prev) => ({ ...prev, notes: e.target.value }))
                 }
                 placeholder='例: 3階建て'
               />

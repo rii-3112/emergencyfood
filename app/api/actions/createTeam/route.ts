@@ -1,25 +1,25 @@
 // app/api/actions/create-team/route.ts
-import type { Transaction } from 'firebase-admin/firestore';
-import { NextResponse } from 'next/server';
+import type { Transaction } from "firebase-admin/firestore";
+import { NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { error: 'Authorization header missing or malformed' },
+        { error: "Authorization header missing or malformed" },
         { status: 401 }
       );
     }
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     let decodedToken;
     try {
       decodedToken = await adminAuth.verifyIdToken(idToken);
     } catch (_error) {
       return NextResponse.json(
-        { error: 'Invalid or expired ID token' },
+        { error: "Invalid or expired ID token" },
         { status: 403 }
       );
     }
@@ -29,18 +29,18 @@ export async function POST(req: Request) {
 
     if (!teamName) {
       return NextResponse.json(
-        { error: 'Team name is required' },
+        { error: "Team name is required" },
         { status: 400 }
       );
     }
 
-    const teamsRef = adminDb.collection('teams');
+    const teamsRef = adminDb.collection("teams");
     const existingTeamSnapshot = await teamsRef
-      .where('name', '==', teamName)
+      .where("name", "==", teamName)
       .get();
     if (!existingTeamSnapshot.empty) {
       return NextResponse.json(
-        { error: 'Team name already exists' },
+        { error: "Team name already exists" },
         { status: 409 }
       );
     }
@@ -49,11 +49,11 @@ export async function POST(req: Request) {
 
     const newTeamId = await adminDb.runTransaction(
       async (transaction: Transaction) => {
-        const userDocRef = adminDb.collection('users').doc(uid);
+        const userDocRef = adminDb.collection("users").doc(uid);
         const userDoc = await transaction.get(userDocRef);
 
         if (!userDoc.exists) {
-          throw new Error('User document not found.');
+          throw new Error("User document not found.");
         }
 
         const userData = userDoc.data();
@@ -94,11 +94,11 @@ export async function POST(req: Request) {
     });
   } catch (_error: unknown) {
     const errorMessage =
-      _error instanceof Error ? _error.message : 'Internal Server Error';
-    if (errorMessage.includes('You are already a member of another team')) {
+      _error instanceof Error ? _error.message : "Internal Server Error";
+    if (errorMessage.includes("You are already a member of another team")) {
       return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
-    if (errorMessage.includes('Team name already exists')) {
+    if (errorMessage.includes("Team name already exists")) {
       return NextResponse.json({ error: errorMessage }, { status: 409 });
     }
     return NextResponse.json({ error: errorMessage }, { status: 500 });

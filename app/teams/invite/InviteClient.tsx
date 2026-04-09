@@ -1,14 +1,14 @@
-'use client';
-import { useAuth } from '@/hooks';
-import { ERROR_MESSAGES } from '@/utils/constants';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+"use client";
+import { useAuth } from "@/hooks";
+import { ERROR_MESSAGES } from "@/utils/constants";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function InviteClient() {
   const { user, loading: authLoading } = useAuth(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const inviteCode = searchParams.get('code');
+  const inviteCode = searchParams.get("code");
 
   const [teamInfo, setTeamInfo] = useState<{
     teamName: string;
@@ -16,12 +16,15 @@ export default function InviteClient() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // errorは、最初エラーなしで、seterrorが出てくることでエラー処理がなされる
+  //　loadingが初期状態で、読み込み中が最初に出ることになっている。そのため、後のinvitecodeが取得できたら読み込みを終わらせるようになっている
+
   const [joining, setJoining] = useState(false);
 
   useEffect(() => {
     const fetchInviteInfo = async () => {
       if (!inviteCode) {
-        setError('招待コードが無効です');
+        setError("招待コードが無効です");
         setLoading(false);
         return;
       }
@@ -32,7 +35,7 @@ export default function InviteClient() {
         );
 
         if (!response.ok) {
-          throw new Error('招待リンクが無効または期限切れです');
+          throw new Error("招待リンクが無効または期限切れです");
         }
 
         const data = await response.json();
@@ -42,14 +45,17 @@ export default function InviteClient() {
         });
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : '招待情報の取得に失敗しました'
+          err instanceof Error ? err.message : "招待情報の取得に失敗しました"
         );
+        //例外処理
       } finally {
         setLoading(false);
+        // finallyは絶対に実行される
       }
     };
 
     fetchInviteInfo();
+    // このuseeffectでinvitecodeが変わったら、fetchInviteInfoが実行される。
   }, [inviteCode]);
 
   const handleJoinTeam = async () => {
@@ -65,10 +71,10 @@ export default function InviteClient() {
 
     try {
       const idToken = await user.getIdToken();
-      const response = await fetch('/api/team/join-by-invite', {
-        method: 'POST',
+      const response = await fetch("/api/team/join-by-invite", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({ inviteCode }),
@@ -77,16 +83,16 @@ export default function InviteClient() {
       const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(result.error || 'チームへの参加に失敗しました');
+        throw new Error(result.error || "チームへの参加に失敗しました");
       }
 
       await user.getIdToken(true);
 
-      router.push('/supplies/list');
+      router.push("/supplies/list");
       router.refresh();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : 'チームへの参加に失敗しました'
+        err instanceof Error ? err.message : "チームへの参加に失敗しました"
       );
     } finally {
       setJoining(false);
@@ -111,7 +117,7 @@ export default function InviteClient() {
           </div>
         </div>
         <button
-          onClick={() => router.push('/')}
+          onClick={() => router.push("/")}
           className='w-full bg-gray-900 text-white py-3 px-6 rounded-md hover:bg-gray-800 transition-colors'
         >
           ホームに戻る
@@ -158,14 +164,14 @@ export default function InviteClient() {
         className='w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
       >
         {joining
-          ? '参加中...'
+          ? "参加中..."
           : user
-            ? 'このチームに参加する'
-            : 'ログイン/登録して参加'}
+            ? "このチームに参加する"
+            : "ログイン/登録して参加"}
       </button>
 
       <button
-        onClick={() => router.push('/')}
+        onClick={() => router.push("/")}
         className='w-full bg-gray-200 text-gray-800 py-2 px-6 rounded-md hover:bg-gray-300 transition-colors'
       >
         キャンセル

@@ -1,9 +1,9 @@
-'use client';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+"use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
-import { useAuth } from '@/hooks';
+import { useAuth } from "@/hooks";
 
 interface HeaderProps {
   onLogoClick: () => void;
@@ -34,14 +34,14 @@ export default function Header({
   const [currentTeam, setCurrentTeam] = useState<TeamInfo | null>(null);
 
   const shouldHideNavLinks =
-    pathname.startsWith('/auth/') ||
-    pathname === '/' ||
-    pathname.startsWith('/teams/');
+    pathname.startsWith("/auth/") ||
+    pathname === "/" ||
+    pathname.startsWith("/teams/");
 
   const shouldShowNavLinks =
-    (isLoggedIn && !shouldHideNavLinks && pathname.startsWith('/supplies')) ||
-    pathname.startsWith('/settings') ||
-    pathname.startsWith('/handbook');
+    (isLoggedIn && !shouldHideNavLinks && pathname.startsWith("/supplies")) ||
+    pathname.startsWith("/settings") ||
+    pathname.startsWith("/handbook");
 
   const getUrlWithTeamId = (basePath: string) => {
     return basePath;
@@ -53,7 +53,7 @@ export default function Header({
 
       try {
         const idToken = await user.getIdToken();
-        const response = await fetch('/api/team/my-teams', {
+        const response = await fetch("/api/team/my-teams", {
           headers: {
             Authorization: `Bearer ${idToken}`,
           },
@@ -66,7 +66,7 @@ export default function Header({
           setCurrentTeam(active || null);
         }
       } catch (error) {
-        console.error('チーム一覧取得エラー:', error);
+        console.error("チーム一覧取得エラー:", error);
       }
     };
 
@@ -78,10 +78,10 @@ export default function Header({
 
     try {
       const idToken = await user.getIdToken();
-      const response = await fetch('/api/team/switch', {
-        method: 'POST',
+      const response = await fetch("/api/team/switch", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({ teamId: newTeamId }),
@@ -92,10 +92,10 @@ export default function Header({
         await user.getIdToken(true);
         setIsTeamMenuOpen(false);
         // ページ全体をリロード（状態を完全にリセット）
-        window.location.href = '/supplies/list';
+        window.location.href = "/supplies/list";
       }
     } catch (error) {
-      console.error('チーム切り替えエラー:', error);
+      console.error("チーム切り替えエラー:", error);
     }
   };
 
@@ -108,15 +108,15 @@ export default function Header({
   };
 
   const defaultNavLinks = [
-    { href: getUrlWithTeamId('/supplies/list'), label: '備蓄品リスト' },
-    { href: getUrlWithTeamId('/supplies/add'), label: '備蓄品登録' },
-    { href: getUrlWithTeamId('/supplies/history'), label: '備蓄履歴' },
-    { href: getUrlWithTeamId('/handbook'), label: 'ハンドブック' },
-    { href: getUrlWithTeamId('/settings'), label: '設定' },
+    { href: getUrlWithTeamId("/supplies/list"), label: "備蓄品リスト" },
+    { href: getUrlWithTeamId("/supplies/add"), label: "備蓄品登録" },
+    { href: getUrlWithTeamId("/supplies/history"), label: "備蓄履歴" },
+    { href: getUrlWithTeamId("/handbook"), label: "ハンドブック" },
+    { href: getUrlWithTeamId("/settings"), label: "設定" },
   ];
 
   const navLinks = customNavLinks || defaultNavLinks;
-  const title = customTitle || 'SonaBase';
+  const title = customTitle || "SonaBase";
 
   return (
     <header className='bg-white shadow-sm border-b border-gray-300 py-4 z-50 sticky top-0 w-full'>
@@ -136,7 +136,7 @@ export default function Header({
                 className='flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors'
               >
                 <div className='max-w-[80px] sm:max-w-none truncate'>
-                  {currentTeam?.name || 'チーム選択'}
+                  {currentTeam?.name || "チーム選択"}
                 </div>
                 <svg
                   className='w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0'
@@ -155,14 +155,14 @@ export default function Header({
 
               {isTeamMenuOpen && (
                 <div className='absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50'>
-                  {teams.map(team => (
+                  {teams.map((team) => (
                     <button
                       key={team.id}
                       onClick={() => switchTeam(team.id)}
                       className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors flex items-center justify-between ${
                         team.isActive
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'text-gray-700'
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-gray-700"
                       }`}
                     >
                       <span>{team.name}</span>
@@ -178,7 +178,7 @@ export default function Header({
         {shouldShowNavLinks && (
           <>
             <nav className='hidden md:flex items-center space-x-6'>
-              {navLinks.map(link => (
+              {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   className='text-gray-700 hover:text-black transition-colors font-medium'
@@ -224,7 +224,7 @@ export default function Header({
       {shouldShowNavLinks && isMenuOpen && (
         <div className='md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-lg'>
           <nav className='container mx-auto px-4 py-4 space-y-2'>
-            {navLinks.map(link => (
+            {navLinks.map((link) => (
               <Link
                 key={link.href}
                 className='block py-3 px-4 text-gray-700 hover:text-black hover:bg-gray-50/80 rounded-lg transition-all duration-200 font-medium'

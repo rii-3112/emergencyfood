@@ -1,14 +1,14 @@
-'use client';
-import { memo, useMemo, useState } from 'react';
+"use client";
+import { memo, useMemo, useState } from "react";
 
-import { Button, Card } from '@/components/ui';
-import { useDebounce } from '@/hooks/performance/useDebounce';
-import { useMemoizedCallback } from '@/hooks/performance/useMemoizedCallback';
-import type { Supply } from '@/types';
-import { sortSupplies } from '@/utils/sortSupplies';
+import { Button, Card } from "@/components/ui";
+import { useDebounce } from "@/hooks/performance/useDebounce";
+import { useMemoizedCallback } from "@/hooks/performance/useMemoizedCallback";
+import type { Supply } from "@/types";
+import { sortSupplies } from "@/utils/sortSupplies";
 
-import SupplyItem from './SupplyItem';
-import type { SortOption, SortOrder } from './SupplySort';
+import SupplyItem from "./SupplyItem";
+import type { SortOption, SortOrder } from "./SupplySort";
 
 interface OptimizedSupplyListProps {
   supplies: Supply[];
@@ -25,10 +25,10 @@ export const OptimizedSupplyList = memo(function OptimizedSupplyList({
   onDelete,
   onArchive,
 }: OptimizedSupplyListProps) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('registeredAt');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("registeredAt");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
@@ -37,7 +37,7 @@ export const OptimizedSupplyList = memo(function OptimizedSupplyList({
 
     if (debouncedSearchTerm) {
       filtered = filtered.filter(
-        supply =>
+        (supply) =>
           supply.name
             .toLowerCase()
             .includes(debouncedSearchTerm.toLowerCase()) ||
@@ -50,15 +50,19 @@ export const OptimizedSupplyList = memo(function OptimizedSupplyList({
       );
     }
 
-    if (categoryFilter !== 'all') {
-      filtered = filtered.filter(supply => supply.category === categoryFilter);
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter(
+        (supply) => supply.category === categoryFilter
+      );
     }
 
     return sortSupplies(filtered, sortBy, sortOrder);
   }, [supplies, debouncedSearchTerm, categoryFilter, sortBy, sortOrder]);
 
   const categories = useMemo(() => {
-    const uniqueCategories = Array.from(new Set(supplies.map(s => s.category)));
+    const uniqueCategories = Array.from(
+      new Set(supplies.map((s) => s.category))
+    );
     return uniqueCategories.sort();
   }, [supplies]);
 
@@ -107,7 +111,7 @@ export const OptimizedSupplyList = memo(function OptimizedSupplyList({
               placeholder='品名、カテゴリ、保存場所で検索...'
               type='text'
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
@@ -122,10 +126,10 @@ export const OptimizedSupplyList = memo(function OptimizedSupplyList({
               className='w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent'
               id='category-filter'
               value={categoryFilter}
-              onChange={e => setCategoryFilter(e.target.value)}
+              onChange={(e) => setCategoryFilter(e.target.value)}
             >
               <option value='all'>すべて</option>
-              {categories.map(category => (
+              {categories.map((category) => (
                 <option key={category} value={category}>
                   {category}
                 </option>
@@ -145,7 +149,7 @@ export const OptimizedSupplyList = memo(function OptimizedSupplyList({
                 className='flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent'
                 id='sort-by'
                 value={sortBy}
-                onChange={e => setSortBy(e.target.value as SortOption)}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
               >
                 <option value='registeredAt'>登録日</option>
                 <option value='expiryDate'>賞味期限</option>
@@ -156,10 +160,10 @@ export const OptimizedSupplyList = memo(function OptimizedSupplyList({
                 size='sm'
                 variant='outline'
                 onClick={() =>
-                  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+                  setSortOrder(sortOrder === "asc" ? "desc" : "asc")
                 }
               >
-                {sortOrder === 'asc' ? '↑' : '↓'}
+                {sortOrder === "asc" ? "↑" : "↓"}
               </Button>
             </div>
           </div>
@@ -168,7 +172,7 @@ export const OptimizedSupplyList = memo(function OptimizedSupplyList({
         <div className='mt-4 text-sm text-gray-600'>
           {processedSupplies.length} 件の備蓄品
           {debouncedSearchTerm && ` (「${debouncedSearchTerm}」で検索)`}
-          {categoryFilter !== 'all' && ` (${categoryFilter}カテゴリ)`}
+          {categoryFilter !== "all" && ` (${categoryFilter}カテゴリ)`}
         </div>
       </Card>
 

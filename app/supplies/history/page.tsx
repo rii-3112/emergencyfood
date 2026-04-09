@@ -1,15 +1,15 @@
-import { getServerUser } from '@/utils/auth/server';
-import { fetchHistoriesFromDB } from '@/utils/data/server';
-import { redirect } from 'next/navigation';
-import SupplyHistoryView from './_components/SupplyHistoryView';
+import { getServerUser } from "@/utils/auth/server";
+import { fetchHistoriesFromDB } from "@/utils/data/server";
+import { redirect } from "next/navigation";
+import SupplyHistoryView from "./_components/SupplyHistoryView";
 
 export default async function SupplyHistoryPage() {
   const user = await getServerUser();
   if (!user) {
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
   if (!user.teamId) {
-    redirect('/settings?tab=team');
+    redirect("/settings?tab=team");
   }
 
   const histories = await fetchHistoriesFromDB(user.teamId);

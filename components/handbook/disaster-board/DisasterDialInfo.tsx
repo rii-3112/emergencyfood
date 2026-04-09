@@ -1,4 +1,4 @@
-import { Button, Card } from '@/components/ui';
+import { Button, Card } from "@/components/ui";
 
 interface DisasterDialInfoProps {
   useDisasterDial: boolean;
@@ -24,14 +24,14 @@ export function DisasterDialInfo({
           </div>
           <div className='flex items-center gap-3'>
             <span className='text-sm text-gray-700 font-medium'>
-              {useDisasterDial ? '利用' : '不利用'}
+              {useDisasterDial ? "利用" : "不利用"}
             </span>
             <Button
-              variant={useDisasterDial ? 'primary' : 'secondary'}
+              variant={useDisasterDial ? "primary" : "secondary"}
               size='sm'
               onClick={() => onToggleUse(!useDisasterDial)}
             >
-              {useDisasterDial ? '利用しない' : '利用する'}
+              {useDisasterDial ? "利用しない" : "利用する"}
             </Button>
           </div>
         </div>

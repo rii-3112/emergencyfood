@@ -1,59 +1,59 @@
-'use client';
-import { useState } from 'react';
+"use client";
+import { useState } from "react";
 
 export default function HazardMapCheckpoint() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPrefecture, setSelectedPrefecture] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedPrefecture, setSelectedPrefecture] = useState("");
 
   // 都道府県リスト（一部）
   const prefectures = [
-    '北海道',
-    '青森県',
-    '岩手県',
-    '宮城県',
-    '秋田県',
-    '山形県',
-    '福島県',
-    '茨城県',
-    '栃木県',
-    '群馬県',
-    '埼玉県',
-    '千葉県',
-    '東京都',
-    '神奈川県',
-    '新潟県',
-    '富山県',
-    '石川県',
-    '福井県',
-    '山梨県',
-    '長野県',
-    '岐阜県',
-    '静岡県',
-    '愛知県',
-    '三重県',
-    '滋賀県',
-    '京都府',
-    '大阪府',
-    '兵庫県',
-    '奈良県',
-    '和歌山県',
-    '鳥取県',
-    '島根県',
-    '岡山県',
-    '広島県',
-    '山口県',
-    '徳島県',
-    '香川県',
-    '愛媛県',
-    '高知県',
-    '福岡県',
-    '佐賀県',
-    '長崎県',
-    '熊本県',
-    '大分県',
-    '宮崎県',
-    '鹿児島県',
-    '沖縄県',
+    "北海道",
+    "青森県",
+    "岩手県",
+    "宮城県",
+    "秋田県",
+    "山形県",
+    "福島県",
+    "茨城県",
+    "栃木県",
+    "群馬県",
+    "埼玉県",
+    "千葉県",
+    "東京都",
+    "神奈川県",
+    "新潟県",
+    "富山県",
+    "石川県",
+    "福井県",
+    "山梨県",
+    "長野県",
+    "岐阜県",
+    "静岡県",
+    "愛知県",
+    "三重県",
+    "滋賀県",
+    "京都府",
+    "大阪府",
+    "兵庫県",
+    "奈良県",
+    "和歌山県",
+    "鳥取県",
+    "島根県",
+    "岡山県",
+    "広島県",
+    "山口県",
+    "徳島県",
+    "香川県",
+    "愛媛県",
+    "高知県",
+    "福岡県",
+    "佐賀県",
+    "長崎県",
+    "熊本県",
+    "大分県",
+    "宮崎県",
+    "鹿児島県",
+    "沖縄県",
   ];
 
   return (
@@ -80,11 +80,11 @@ export default function HazardMapCheckpoint() {
             </label>
             <select
               value={selectedPrefecture}
-              onChange={e => setSelectedPrefecture(e.target.value)}
+              onChange={(e) => setSelectedPrefecture(e.target.value)}
               className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500'
             >
               <option value=''>都道府県を選択</option>
-              {prefectures.map(pref => (
+              {prefectures.map((pref) => (
                 <option key={pref} value={pref}>
                   {pref}
                 </option>
@@ -101,7 +101,7 @@ export default function HazardMapCheckpoint() {
               <input
                 type='text'
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder='市町村名を入力'
                 className='flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500'
               />
@@ -110,7 +110,7 @@ export default function HazardMapCheckpoint() {
                   if (searchQuery.trim()) {
                     const searchQueryForGoogle = `${selectedPrefecture} ${searchQuery} 防災マップ`;
                     const googleSearchUrl = `https://www.google.com/search?q=${encodeURIComponent(searchQueryForGoogle)}`;
-                    window.open(googleSearchUrl, '_blank');
+                    window.open(googleSearchUrl, "_blank");
                   }
                 }}
                 disabled={!searchQuery.trim()}

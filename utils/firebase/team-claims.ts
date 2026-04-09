@@ -1,4 +1,4 @@
-import { auth } from './client';
+import { auth } from "./client";
 
 export const setTeamIdClaim = async () => {
   const user = auth.currentUser;
@@ -6,10 +6,10 @@ export const setTeamIdClaim = async () => {
 
   const token = await user.getIdToken();
 
-  await fetch('/app/api/setTeamClaim', {
-    method: 'POST',
+  await fetch("/app/api/setTeamClaim", {
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
     },
   });

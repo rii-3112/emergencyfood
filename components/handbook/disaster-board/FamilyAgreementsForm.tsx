@@ -1,7 +1,7 @@
-'use client';
-import { Button, Card, Input, Select } from '@/components/ui';
-import type { FamilyAgreement } from '@/types/forms';
-import { useState } from 'react';
+"use client";
+import { Button, Card, Input, Select } from "@/components/ui";
+import type { FamilyAgreement } from "@/types/forms";
+import { useState } from "react";
 
 interface FamilyAgreementsFormProps {
   agreements: FamilyAgreement[];
@@ -9,24 +9,24 @@ interface FamilyAgreementsFormProps {
 }
 
 const AGREEMENT_CATEGORIES = [
-  { value: '集合場所', label: '集合場所・待ち合わせ' },
-  { value: '連絡方法', label: '連絡方法・タイミング' },
-  { value: '役割分担', label: '役割分担・責任' },
-  { value: '避難判断', label: '避難の判断基準' },
-  { value: 'ペット', label: 'ペットについて' },
-  { value: '貴重品', label: '貴重品・重要書類' },
-  { value: 'その他', label: 'その他の約束事' },
+  { value: "集合場所", label: "集合場所・待ち合わせ" },
+  { value: "連絡方法", label: "連絡方法・タイミング" },
+  { value: "役割分担", label: "役割分担・責任" },
+  { value: "避難判断", label: "避難の判断基準" },
+  { value: "ペット", label: "ペットについて" },
+  { value: "貴重品", label: "貴重品・重要書類" },
+  { value: "その他", label: "その他の約束事" },
 ];
 
 export function FamilyAgreementsForm({
   agreements,
   onUpdate,
 }: FamilyAgreementsFormProps) {
-  const [newAgreement, setNewAgreement] = useState<Omit<FamilyAgreement, 'id'>>(
+  const [newAgreement, setNewAgreement] = useState<Omit<FamilyAgreement, "id">>(
     {
-      title: '',
-      description: '',
-      category: '集合場所',
+      title: "",
+      description: "",
+      category: "集合場所",
     }
   );
   const [isAdding, setIsAdding] = useState(false);
@@ -41,15 +41,15 @@ export function FamilyAgreementsForm({
 
     onUpdate([...agreements, agreement]);
     setNewAgreement({
-      title: '',
-      description: '',
-      category: '集合場所',
+      title: "",
+      description: "",
+      category: "集合場所",
     });
     setIsAdding(false);
   };
 
   const handleRemoveAgreement = (id: string) => {
-    onUpdate(agreements.filter(agreement => agreement.id !== id));
+    onUpdate(agreements.filter((agreement) => agreement.id !== id));
   };
 
   const groupedAgreements = agreements.reduce(
@@ -65,7 +65,7 @@ export function FamilyAgreementsForm({
 
   const getCategoryIcon = (category: string) => {
     return (
-      AGREEMENT_CATEGORIES.find(cat => cat.value === category)?.label || ''
+      AGREEMENT_CATEGORIES.find((cat) => cat.value === category)?.label || ""
     );
   };
 
@@ -94,11 +94,11 @@ export function FamilyAgreementsForm({
                 >
                   <h3 className='font-medium text-gray-800 mb-3'>
                     {getCategoryIcon(category)}
-                    {AGREEMENT_CATEGORIES.find(cat => cat.value === category)
+                    {AGREEMENT_CATEGORIES.find((cat) => cat.value === category)
                       ?.label || category}
                   </h3>
                   <div className='space-y-3'>
-                    {categoryAgreements.map(agreement => (
+                    {categoryAgreements.map((agreement) => (
                       <div
                         key={agreement.id}
                         className='bg-gray-50 rounded-lg p-3'
@@ -142,8 +142,8 @@ export function FamilyAgreementsForm({
                 label='カテゴリ'
                 required
                 value={newAgreement.category}
-                onChange={e =>
-                  setNewAgreement(prev => ({
+                onChange={(e) =>
+                  setNewAgreement((prev) => ({
                     ...prev,
                     category: e.target.value,
                   }))
@@ -155,8 +155,11 @@ export function FamilyAgreementsForm({
                 label='約束事のタイトル'
                 required
                 value={newAgreement.title}
-                onChange={e =>
-                  setNewAgreement(prev => ({ ...prev, title: e.target.value }))
+                onChange={(e) =>
+                  setNewAgreement((prev) => ({
+                    ...prev,
+                    title: e.target.value,
+                  }))
                 }
                 placeholder='例:〇〇にいるとき'
               />
@@ -168,8 +171,8 @@ export function FamilyAgreementsForm({
                 <textarea
                   required
                   value={newAgreement.description}
-                  onChange={e =>
-                    setNewAgreement(prev => ({
+                  onChange={(e) =>
+                    setNewAgreement((prev) => ({
                       ...prev,
                       description: e.target.value,
                     }))
@@ -195,9 +198,9 @@ export function FamilyAgreementsForm({
                   onClick={() => {
                     setIsAdding(false);
                     setNewAgreement({
-                      title: '',
-                      description: '',
-                      category: '集合場所',
+                      title: "",
+                      description: "",
+                      category: "集合場所",
                     });
                   }}
                 >

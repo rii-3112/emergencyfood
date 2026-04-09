@@ -1,22 +1,22 @@
 //component/supplies/SupplyItem.tsx
-'use client';
-import { formatDistanceToNow } from 'date-fns';
-import { ja } from 'date-fns/locale/ja';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+"use client";
+import { formatDistanceToNow } from "date-fns";
+import { ja } from "date-fns/locale/ja";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { RestockModal } from '@/components/supplies/RestockModal';
-import { ConfirmDialog } from '@/components/ui';
-import { useAuth, useClickOutside } from '@/hooks';
-import type { Supply, TeamStockSettings } from '@/types';
-import { UI_CONSTANTS } from '@/utils/constants';
-import { calculateStockStatus } from '@/utils/stockCalculator';
+import { RestockModal } from "@/components/supplies/RestockModal";
+import { ConfirmDialog } from "@/components/ui";
+import { useAuth, useClickOutside } from "@/hooks";
+import type { Supply, TeamStockSettings } from "@/types";
+import { UI_CONSTANTS } from "@/utils/constants";
+import { calculateStockStatus } from "@/utils/stockCalculator";
 import {
   getNearestExpiryDate,
   migrateSupplyToExpiryDates,
   sortExpiryDates,
-} from '@/utils/supplyHelpers';
+} from "@/utils/supplyHelpers";
 
 type SupplyItemProps = {
   supply: Supply;
@@ -31,26 +31,26 @@ type SupplyItemProps = {
 
 const getExpiryLabel = (category: string) => {
   const foodCategories = [
-    '米・パン',
-    '麺類',
-    '缶詰・レトルト',
-    '調味料',
-    '飲料',
-    'お菓子・スイーツ',
+    "米・パン",
+    "麺類",
+    "缶詰・レトルト",
+    "調味料",
+    "飲料",
+    "お菓子・スイーツ",
   ];
   const dailyNecessities = [
-    'トイレットペーパー',
-    'マスク・消毒液',
-    '電池・電球',
-    'その他日用品',
+    "トイレットペーパー",
+    "マスク・消毒液",
+    "電池・電球",
+    "その他日用品",
   ];
 
   if (foodCategories.includes(category)) {
-    return '賞味期限';
+    return "賞味期限";
   } else if (dailyNecessities.includes(category)) {
-    return '使用期限';
+    return "使用期限";
   } else {
-    return '期限';
+    return "期限";
   }
 };
 
@@ -79,7 +79,7 @@ export default function SupplyItem({
     expiryDate < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   const isOverExpiry = expiryDate.getTime() < Date.now();
   const registeredDate = new Date(supply.registeredAt.seconds * 1000);
-  const _formattedRegisteredDate = registeredDate.toLocaleString('ja-JP');
+  const _formattedRegisteredDate = registeredDate.toLocaleString("ja-JP");
   const [showMenu, setShowMenu] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [showExpiryDetails, setShowExpiryDetails] = useState(false);
@@ -97,7 +97,7 @@ export default function SupplyItem({
   const reviewsLink = `/supplies/${supply.id}/reviews`;
 
   const handleMenuToggle = () => {
-    setShowMenu(prev => !prev);
+    setShowMenu((prev) => !prev);
   };
 
   const handleArchiveClick = async () => {
@@ -105,10 +105,10 @@ export default function SupplyItem({
 
     try {
       const idToken = await user.getIdToken();
-      const res = await fetch('/api/actions/archive-to-history', {
-        method: 'POST',
+      const res = await fetch("/api/actions/archive-to-history", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
@@ -118,7 +118,7 @@ export default function SupplyItem({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || '履歴への移動に失敗しました');
+        throw new Error(data.error || "履歴への移動に失敗しました");
       }
 
       setToastMessage(`${supply.name} を履歴に移動しました`);
@@ -132,9 +132,9 @@ export default function SupplyItem({
         }
       }, 300);
     } catch (error) {
-      console.error('Archive to history error:', error);
+      console.error("Archive to history error:", error);
       setToastMessage(
-        error instanceof Error ? error.message : '履歴への移動に失敗しました'
+        error instanceof Error ? error.message : "履歴への移動に失敗しました"
       );
       setTimeout(() => setToastMessage(null), 3000);
     }
@@ -163,7 +163,7 @@ export default function SupplyItem({
   const handleConsume = async () => {
     if (!user) return;
     if (supply.quantity <= 0) {
-      setToastMessage('在庫がありません');
+      setToastMessage("在庫がありません");
       setTimeout(() => setToastMessage(null), 2000);
       return;
     }
@@ -172,10 +172,10 @@ export default function SupplyItem({
       setConsuming(true);
       const idToken = await user.getIdToken();
 
-      const res = await fetch('/api/actions/consume-supply', {
-        method: 'POST',
+      const res = await fetch("/api/actions/consume-supply", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
@@ -186,7 +186,7 @@ export default function SupplyItem({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || '消費に失敗しました');
+        throw new Error(data.error || "消費に失敗しました");
       }
 
       const data = await res.json();
@@ -203,9 +203,9 @@ export default function SupplyItem({
         }
       }, 300);
     } catch (error) {
-      console.error('Consume error:', error);
+      console.error("Consume error:", error);
       setToastMessage(
-        error instanceof Error ? error.message : '消費に失敗しました'
+        error instanceof Error ? error.message : "消費に失敗しました"
       );
       setTimeout(() => setToastMessage(null), 3000);
     } finally {
@@ -224,10 +224,10 @@ export default function SupplyItem({
       setRestocking(true);
       const idToken = await user.getIdToken();
 
-      const res = await fetch('/api/actions/restock-supply', {
-        method: 'POST',
+      const res = await fetch("/api/actions/restock-supply", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
@@ -240,7 +240,7 @@ export default function SupplyItem({
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || '買い足しに失敗しました');
+        throw new Error(data.error || "買い足しに失敗しました");
       }
 
       const data = await res.json();
@@ -258,9 +258,9 @@ export default function SupplyItem({
         }
       }, 300);
     } catch (error) {
-      console.error('Restock error:', error);
+      console.error("Restock error:", error);
       setToastMessage(
-        error instanceof Error ? error.message : '買い足しに失敗しました'
+        error instanceof Error ? error.message : "買い足しに失敗しました"
       );
       setTimeout(() => setToastMessage(null), 3000);
     } finally {
@@ -270,15 +270,15 @@ export default function SupplyItem({
 
   const getExpiryStyle = () => {
     if (supply.quantity === 0) {
-      return 'border-gray-200 bg-white';
+      return "border-gray-200 bg-white";
     }
 
     if (isOverExpiry) {
-      return 'border-red-500 bg-red-50';
+      return "border-red-500 bg-red-50";
     } else if (isNearExpiry) {
-      return 'border-yellow-500 bg-yellow-50';
+      return "border-yellow-500 bg-yellow-50";
     }
-    return 'border-gray-200 bg-white';
+    return "border-gray-200 bg-white";
   };
 
   return (
@@ -365,14 +365,14 @@ export default function SupplyItem({
                   disabled={consuming || supply.quantity <= 0}
                   onClick={handleConsume}
                 >
-                  {consuming ? '処理中...' : '使った'}
+                  {consuming ? "処理中..." : "使った"}
                 </button>
                 <button
                   className='px-2 py-1 text-xs bg-gray-700 text-white rounded hover:bg-gray-800 transition-colors disabled:opacity-50'
                   disabled={restocking}
                   onClick={() => setShowRestockModal(true)}
                 >
-                  {restocking ? '処理中...' : '買い足した'}
+                  {restocking ? "処理中..." : "買い足した"}
                 </button>
               </div>
             )}
@@ -387,7 +387,7 @@ export default function SupplyItem({
                   className='text-xs text-blue-600 hover:text-blue-800 mt-1'
                   onClick={() => setShowExpiryDetails(!showExpiryDetails)}
                 >
-                  {showExpiryDetails ? '▼ 詳細を隠す' : '▶ 詳細を表示'}
+                  {showExpiryDetails ? "▼ 詳細を隠す" : "▶ 詳細を表示"}
                 </button>
               )}
               {showExpiryDetails && migratedSupply.expiryDates && (
@@ -409,10 +409,10 @@ export default function SupplyItem({
                           key={index}
                           className={`text-xs ${
                             lotIsOver
-                              ? 'text-red-600 font-semibold'
+                              ? "text-red-600 font-semibold"
                               : lotIsNear
-                                ? 'text-yellow-600 font-semibold'
-                                : 'text-gray-600'
+                                ? "text-yellow-600 font-semibold"
+                                : "text-gray-600"
                           }`}
                         >
                           {expiry.date}: {expiry.quantity}
@@ -433,25 +433,25 @@ export default function SupplyItem({
               </p>
             )}
           {supply.storageLocation &&
-            supply.storageLocation.trim() !== '' &&
-            supply.storageLocation !== '未設定' && (
+            supply.storageLocation.trim() !== "" &&
+            supply.storageLocation !== "未設定" && (
               <p className='text-xs sm:text-sm text-gray-700'>
                 保存場所: {supply.storageLocation}
               </p>
             )}
-          {supply.purchaseLocation && supply.purchaseLocation.trim() !== '' && (
+          {supply.purchaseLocation && supply.purchaseLocation.trim() !== "" && (
             <p className='text-xs sm:text-sm text-gray-700'>
               購入場所: {supply.purchaseLocation}
             </p>
           )}
-          {supply.label && supply.label.trim() !== '' && (
+          {supply.label && supply.label.trim() !== "" && (
             <p className='text-xs sm:text-sm text-gray-700'>
               ラベル: {supply.label}
             </p>
           )}
         </div>
 
-        {!supply.isArchived && stockStatus.status === 'out' && (
+        {!supply.isArchived && stockStatus.status === "out" && (
           <div className='p-3 rounded mb-3 bg-red-100 text-red-700 border-2 border-red-300 animate-pulse'>
             <p className='text-sm font-bold flex items-center gap-2'>
               在庫がなくなりました！買い足してください
@@ -468,8 +468,8 @@ export default function SupplyItem({
         )}
 
         {!supply.isArchived &&
-          (stockStatus.status === 'critical' ||
-            stockStatus.status === 'low') && (
+          (stockStatus.status === "critical" ||
+            stockStatus.status === "low") && (
             <div className='p-3 rounded mb-3 bg-orange-100 text-orange-700 border-2 border-orange-300'>
               <p className='text-sm font-semibold flex items-center gap-2'>
                 {stockStatus.message}
@@ -485,7 +485,7 @@ export default function SupplyItem({
             </div>
           )}
 
-        {!supply.isArchived && stockStatus.status === 'below-recommended' && (
+        {!supply.isArchived && stockStatus.status === "below-recommended" && (
           <div className='p-2 rounded mb-3 bg-yellow-50 text-yellow-700 border border-yellow-200'>
             <p className='text-xs flex items-center gap-2'>
               {stockStatus.message}
@@ -497,8 +497,8 @@ export default function SupplyItem({
           <div
             className={`p-2 rounded mb-3 ${
               isOverExpiry
-                ? 'bg-red-100 text-red-700'
-                : 'bg-yellow-100 text-yellow-700'
+                ? "bg-red-100 text-red-700"
+                : "bg-yellow-100 text-yellow-700"
             }`}
           >
             <p className='text-xs sm:text-sm font-medium'>

@@ -1,15 +1,15 @@
 // components/supplies/MissingCategoriesAlert.tsx
-'use client';
-import Link from 'next/link';
-import { useState } from 'react';
+"use client";
+import Link from "next/link";
+import { useState } from "react";
 
-import type { Supply, TeamStockSettings } from '@/types';
-import { aggregateStockStatus } from '@/utils/stockCalculator';
+import type { Supply, TeamStockSettings } from "@/types";
+import { aggregateStockStatus } from "@/utils/stockCalculator";
 import {
   getMissingCategoriesByPriority,
   getProgress,
   getRecommendedItems,
-} from '@/utils/stockRecommendations';
+} from "@/utils/stockRecommendations";
 
 interface MissingCategoriesAlertProps {
   supplies: Supply[];
@@ -23,7 +23,7 @@ export function MissingCategoriesAlert({
   teamStockSettings,
 }: MissingCategoriesAlertProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const userSupplies = supplies.map(s => ({
+  const userSupplies = supplies.map((s) => ({
     category: s.category,
     quantity: s.quantity,
   }));
@@ -111,7 +111,7 @@ export function MissingCategoriesAlert({
             )}
             <svg
               className={`w-5 h-5 text-gray-600 transition-transform ${
-                isExpanded ? 'transform rotate-180' : ''
+                isExpanded ? "transform rotate-180" : ""
               }`}
               fill='none'
               stroke='currentColor'
@@ -135,7 +135,7 @@ export function MissingCategoriesAlert({
                   <span>必須カテゴリ（{missing.essential.length}件）</span>
                 </h4>
                 <div className='space-y-2'>
-                  {missing.essential.map(rec => (
+                  {missing.essential.map((rec) => (
                     <div
                       key={rec.category}
                       className='p-3 bg-white border border-red-200 rounded-md'
@@ -150,7 +150,7 @@ export function MissingCategoriesAlert({
                               推奨商品例:
                             </p>
                             <div className='flex flex-wrap gap-1'>
-                              {getRecommendedItems(rec.category).map(item => (
+                              {getRecommendedItems(rec.category).map((item) => (
                                 <span
                                   key={item}
                                   className='text-xs bg-gray-100 px-2 py-1 rounded'
@@ -180,7 +180,7 @@ export function MissingCategoriesAlert({
                   <span>重要カテゴリ（{missing.important.length}件）</span>
                 </h4>
                 <div className='space-y-2'>
-                  {missing.important.map(rec => (
+                  {missing.important.map((rec) => (
                     <div
                       key={rec.category}
                       className='p-3 bg-white border border-yellow-200 rounded-md'
@@ -198,7 +198,7 @@ export function MissingCategoriesAlert({
                               推奨商品例:
                             </p>
                             <div className='flex flex-wrap gap-1'>
-                              {getRecommendedItems(rec.category).map(item => (
+                              {getRecommendedItems(rec.category).map((item) => (
                                 <span
                                   key={item}
                                   className='text-xs bg-gray-100 px-2 py-1 rounded'
@@ -228,7 +228,7 @@ export function MissingCategoriesAlert({
                   <span>推奨カテゴリ（{missing.recommended.length}件）</span>
                 </summary>
                 <div className='mt-2 space-y-2'>
-                  {missing.recommended.map(rec => (
+                  {missing.recommended.map((rec) => (
                     <div
                       key={rec.category}
                       className='p-3 bg-white border border-gray-200 rounded-md'
@@ -246,7 +246,7 @@ export function MissingCategoriesAlert({
                               推奨商品例:
                             </p>
                             <div className='flex flex-wrap gap-1'>
-                              {getRecommendedItems(rec.category).map(item => (
+                              {getRecommendedItems(rec.category).map((item) => (
                                 <span
                                   key={item}
                                   className='text-xs bg-gray-100 px-2 py-1 rounded'

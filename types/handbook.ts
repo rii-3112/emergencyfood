@@ -1,33 +1,33 @@
-export type AgeGroup = 'adult' | 'child' | 'infant' | 'elderly';
+export type AgeGroup = "adult" | "child" | "infant" | "elderly";
 
-export type PetType = 'dog' | 'cat' | 'small_animal' | 'bird';
+export type PetType = "dog" | "cat" | "small_animal" | "bird";
 
 export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
-  adult: '大人（18-64歳）',
-  child: '子供（6-17歳）',
-  infant: '乳幼児（0-5歳）',
-  elderly: '高齢者（65歳以上）',
+  adult: "大人（18-64歳）",
+  child: "子供（6-17歳）",
+  infant: "乳幼児（0-5歳）",
+  elderly: "高齢者（65歳以上）",
 };
 
 export const PET_TYPE_LABELS: Record<PetType, string> = {
-  dog: '犬',
-  cat: '猫',
-  small_animal: '小動物',
-  bird: '鳥',
+  dog: "犬",
+  cat: "猫",
+  small_animal: "小動物",
+  bird: "鳥",
 };
 
 export const AGE_GROUP_EMOJIS: Record<AgeGroup, string> = {
-  adult: '',
-  child: '',
-  infant: '',
-  elderly: '',
+  adult: "",
+  child: "",
+  infant: "",
+  elderly: "",
 };
 
 export const PET_TYPE_EMOJIS: Record<PetType, string> = {
-  dog: '',
-  cat: '',
-  small_animal: '',
-  bird: '',
+  dog: "",
+  cat: "",
+  small_animal: "",
+  bird: "",
 };
 
 export interface SupplyItem {
@@ -87,7 +87,7 @@ export interface DisasterMessage {
 }
 
 export interface HandbookState {
-  currentCheckpoint: 'supplies' | 'hazardmap' | 'messages';
+  currentCheckpoint: "supplies" | "hazardmap" | "messages";
   checklist: HandbookChecklist;
   hazardMaps: HazardMapInfo[];
   messages: DisasterMessage[];

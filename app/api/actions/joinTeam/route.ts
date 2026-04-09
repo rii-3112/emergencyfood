@@ -1,23 +1,23 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { error: 'Authorization header missing or malformed' },
+        { error: "Authorization header missing or malformed" },
         { status: 401 }
       );
     }
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     let decodedToken;
     try {
       decodedToken = await adminAuth.verifyIdToken(idToken);
     } catch (_error) {
       return NextResponse.json(
-        { error: 'Invalid or expired ID token' },
+        { error: "Invalid or expired ID token" },
         { status: 403 }
       );
     }
@@ -27,17 +27,17 @@ export async function POST(req: Request) {
 
     if (!teamName || !teamPassword) {
       return NextResponse.json(
-        { error: 'Team name and password are required' },
+        { error: "Team name and password are required" },
         { status: 400 }
       );
     }
 
-    const teamsRef = adminDb.collection('teams');
-    const q = teamsRef.where('name', '==', teamName);
+    const teamsRef = adminDb.collection("teams");
+    const q = teamsRef.where("name", "==", teamName);
     const querySnapshot = await q.get();
 
     if (querySnapshot.empty) {
-      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+      return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
 
     const teamDoc = querySnapshot.docs[0];
@@ -45,23 +45,23 @@ export async function POST(req: Request) {
     const foundTeamId = teamDoc.id;
     if (teamData?.password !== teamPassword) {
       return NextResponse.json(
-        { error: 'Incorrect team name or password' },
+        { error: "Incorrect team name or password" },
         { status: 401 }
       );
     }
 
-    await adminDb.runTransaction(async transaction => {
-      const userDocRef = adminDb.collection('users').doc(uid);
-      const teamDocRef = adminDb.collection('teams').doc(foundTeamId);
+    await adminDb.runTransaction(async (transaction) => {
+      const userDocRef = adminDb.collection("users").doc(uid);
+      const teamDocRef = adminDb.collection("teams").doc(foundTeamId);
 
       const userDoc = await transaction.get(userDocRef);
       const teamDocFromTransaction = await transaction.get(teamDocRef);
 
       if (!userDoc.exists) {
-        throw new Error('User document not found.');
+        throw new Error("User document not found.");
       }
       if (!teamDocFromTransaction.exists) {
-        throw new Error('Team document not found.');
+        throw new Error("Team document not found.");
       }
 
       const userData = userDoc.data();
@@ -98,8 +98,8 @@ export async function POST(req: Request) {
     });
   } catch (_error: unknown) {
     const errorMessage =
-      _error instanceof Error ? _error.message : 'Internal Server Error';
-    if (errorMessage.includes('You are already a member of another team')) {
+      _error instanceof Error ? _error.message : "Internal Server Error";
+    if (errorMessage.includes("You are already a member of another team")) {
       return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
     return NextResponse.json({ error: errorMessage }, { status: 500 });

@@ -1,24 +1,24 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
-        { error: 'Authorization header missing or malformed' },
+        { error: "Authorization header missing or malformed" },
         { status: 401 }
       );
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     let decodedToken;
     try {
       decodedToken = await adminAuth.verifyIdToken(idToken);
     } catch (_error) {
       return NextResponse.json(
-        { error: 'Invalid or expired ID token' },
+        { error: "Invalid or expired ID token" },
         { status: 403 }
       );
     }
@@ -28,29 +28,29 @@ export async function POST(req: Request) {
 
     if (!supplyId) {
       return NextResponse.json(
-        { error: 'Supply ID is required' },
+        { error: "Supply ID is required" },
         { status: 400 }
       );
     }
 
-    const supplyRef = adminDb.collection('supplies').doc(supplyId);
+    const supplyRef = adminDb.collection("supplies").doc(supplyId);
     const supplyDoc = await supplyRef.get();
 
     if (!supplyDoc.exists) {
-      return NextResponse.json({ error: 'Supply not found' }, { status: 404 });
+      return NextResponse.json({ error: "Supply not found" }, { status: 404 });
     }
 
     const supply = supplyDoc.data();
 
-    const teamDoc = await adminDb.collection('teams').doc(supply?.teamId).get();
+    const teamDoc = await adminDb.collection("teams").doc(supply?.teamId).get();
     if (!teamDoc.exists) {
-      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+      return NextResponse.json({ error: "Team not found" }, { status: 404 });
     }
 
     const teamData = teamDoc.data();
     if (!teamData?.members?.includes(uid)) {
       return NextResponse.json(
-        { error: 'You are not a member of this team' },
+        { error: "You are not a member of this team" },
         { status: 403 }
       );
     }
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     if (expiryDates.length === 0) {
       expiryDates = [
         {
-          date: supply?.expiryDate || new Date().toISOString().split('T')[0],
+          date: supply?.expiryDate || new Date().toISOString().split("T")[0],
           quantity: supply?.quantity || 0,
           addedAt:
             supply?.registeredAt?.toDate?.()?.toISOString?.() ||
@@ -88,7 +88,7 @@ export async function POST(req: Request) {
       remainingToConsume -= consumeFromThis;
     }
 
-    const updatedExpiryDates = sortedLots.filter(lot => lot.quantity > 0);
+    const updatedExpiryDates = sortedLots.filter((lot) => lot.quantity > 0);
 
     const newTotalQuantity = updatedExpiryDates.reduce(
       (sum, lot) => sum + lot.quantity,
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
 
     const nearestDate =
       updatedExpiryDates.length > 0
-        ? updatedExpiryDates.map(e => e.date).sort()[0]
+        ? updatedExpiryDates.map((e) => e.date).sort()[0]
         : supply?.expiryDate;
 
     const updateData: Record<string, unknown> = {
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
     await supplyRef.update(updateData);
 
     return NextResponse.json({
-      message: 'Supply consumed successfully',
+      message: "Supply consumed successfully",
       consumed: {
         quantity,
         from: consumedFrom,
@@ -126,9 +126,9 @@ export async function POST(req: Request) {
       remaining: newTotalQuantity,
     });
   } catch (_error: unknown) {
-    console.error('Consume supply error:', _error);
+    console.error("Consume supply error:", _error);
     const errorMessage =
-      _error instanceof Error ? _error.message : 'Internal Server Error';
+      _error instanceof Error ? _error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

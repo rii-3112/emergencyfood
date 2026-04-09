@@ -1,7 +1,7 @@
-import { ERROR_MESSAGES, UI_CONSTANTS } from '@/utils/constants';
-import Link from 'next/link';
-import { Suspense } from 'react';
-import LoginClient from './LoginClient';
+import { ERROR_MESSAGES, UI_CONSTANTS } from "@/utils/constants";
+import Link from "next/link";
+import { Suspense } from "react";
+import LoginClient from "./LoginClient";
 
 export default function Login() {
   return (

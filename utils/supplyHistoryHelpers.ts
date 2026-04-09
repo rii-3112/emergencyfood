@@ -1,5 +1,5 @@
 // utils/supplyHistoryHelpers.ts
-import type { Review, Supply, SupplyHistory } from '@/types';
+import type { Review, Supply, SupplyHistory } from "@/types";
 
 export async function convertSupplyToHistory(
   supply: Supply,
@@ -7,7 +7,7 @@ export async function convertSupplyToHistory(
   reviews: Review[] = []
 ): Promise<SupplyHistory> {
   const purchaseLocations: string[] = [];
-  if (supply.purchaseLocation && supply.purchaseLocation.trim() !== '') {
+  if (supply.purchaseLocation && supply.purchaseLocation.trim() !== "") {
     purchaseLocations.push(supply.purchaseLocation.trim());
   }
 
@@ -52,7 +52,7 @@ export function createSupplyFromHistory(
     category: history.category,
     unit: history.unit,
     quantity: 0,
-    expiryDate: '',
+    expiryDate: "",
     purchaseLocation:
       history.purchaseLocations.length > 0
         ? history.purchaseLocations[0]
@@ -69,7 +69,7 @@ export function mergeSupplyHistory(
   const purchaseLocations = [...existingHistory.purchaseLocations];
   if (
     newSupply.purchaseLocation &&
-    newSupply.purchaseLocation.trim() !== '' &&
+    newSupply.purchaseLocation.trim() !== "" &&
     !purchaseLocations.includes(newSupply.purchaseLocation.trim())
   ) {
     purchaseLocations.push(newSupply.purchaseLocation.trim());
@@ -103,42 +103,42 @@ export function mergeSupplyHistory(
 }
 
 export type HistorySortOption =
-  | 'archivedAt'
-  | 'name'
-  | 'category'
-  | 'totalConsumed'
-  | 'reviewCount';
+  | "archivedAt"
+  | "name"
+  | "category"
+  | "totalConsumed"
+  | "reviewCount";
 
 export function sortSupplyHistory(
   histories: SupplyHistory[],
-  sortBy: HistorySortOption = 'archivedAt',
-  order: 'asc' | 'desc' = 'desc'
+  sortBy: HistorySortOption = "archivedAt",
+  order: "asc" | "desc" = "desc"
 ): SupplyHistory[] {
   const sorted = [...histories].sort((a, b) => {
     let comparison = 0;
 
     switch (sortBy) {
-      case 'archivedAt':
+      case "archivedAt":
         comparison =
           new Date(a.archivedAt).getTime() - new Date(b.archivedAt).getTime();
         break;
-      case 'name':
-        comparison = a.name.localeCompare(b.name, 'ja');
+      case "name":
+        comparison = a.name.localeCompare(b.name, "ja");
         break;
-      case 'category':
-        comparison = a.category.localeCompare(b.category, 'ja');
+      case "category":
+        comparison = a.category.localeCompare(b.category, "ja");
         break;
-      case 'totalConsumed':
+      case "totalConsumed":
         comparison = a.totalConsumed - b.totalConsumed;
         break;
-      case 'reviewCount':
+      case "reviewCount":
         comparison = a.reviewCount - b.reviewCount;
         break;
       default:
         comparison = 0;
     }
 
-    return order === 'asc' ? comparison : -comparison;
+    return order === "asc" ? comparison : -comparison;
   });
 
   return sorted;

@@ -1,14 +1,14 @@
-import { getServerUser } from '@/utils/auth/server';
-import { redirect } from 'next/navigation';
-import SupplyAddForm from './_components/SupplyAddForm';
+import { getServerUser } from "@/utils/auth/server";
+import { redirect } from "next/navigation";
+import SupplyAddForm from "./_components/SupplyAddForm";
 
 export default async function SupplyAddPage() {
   const user = await getServerUser();
   if (!user) {
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
   if (!user.teamId) {
-    redirect('/settings?tab=team');
+    redirect("/settings?tab=team");
   }
 
   return (

@@ -1,9 +1,9 @@
-import { onAuthStateChanged, signOut, updateProfile } from 'firebase/auth';
-import { useEffect, useState } from 'react';
+import { onAuthStateChanged, signOut, updateProfile } from "firebase/auth";
+import { useEffect, useState } from "react";
 
-import type { AppUser } from '@/types';
-import { API_ENDPOINTS, ERROR_MESSAGES } from '@/utils/constants';
-import { auth } from '@/utils/firebase';
+import type { AppUser } from "@/types";
+import { API_ENDPOINTS, ERROR_MESSAGES } from "@/utils/constants";
+import { auth } from "@/utils/firebase";
 
 interface UseAuthReturn {
   user: AppUser | null;
@@ -22,11 +22,11 @@ export const useAuth = (requireAuth = false): UseAuthReturn => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(
       auth,
-      firebaseUser => {
+      (firebaseUser) => {
         if (firebaseUser) {
           const appUser: AppUser = {
             uid: firebaseUser.uid,
-            email: firebaseUser.email || '',
+            email: firebaseUser.email || "",
             displayName: firebaseUser.displayName,
             getIdToken: (forceRefresh?: boolean) =>
               firebaseUser.getIdToken(forceRefresh),
@@ -42,7 +42,7 @@ export const useAuth = (requireAuth = false): UseAuthReturn => {
         }
         setLoading(false);
       },
-      error => {
+      (error) => {
         setError(ERROR_MESSAGES.LOGIN_FAILED);
         setLoading(false);
       }
@@ -56,7 +56,7 @@ export const useAuth = (requireAuth = false): UseAuthReturn => {
       await signOut(auth);
       setUser(null);
     } catch (error) {
-      setError('ログアウトに失敗しました');
+      setError("ログアウトに失敗しました");
     }
   };
 
@@ -77,9 +77,9 @@ export const useAuth = (requireAuth = false): UseAuthReturn => {
 
       const idToken = await user.getIdToken();
       const response = await fetch(API_ENDPOINTS.UPDATE_USER_NAME, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
@@ -104,9 +104,9 @@ export const useAuth = (requireAuth = false): UseAuthReturn => {
     try {
       const idToken = await user.getIdToken();
       const response = await fetch(API_ENDPOINTS.CHANGE_PASSWORD, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({

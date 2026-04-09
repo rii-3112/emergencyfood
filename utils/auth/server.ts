@@ -1,6 +1,6 @@
-import { adminAuth } from '@/utils/firebase/admin';
-import { cookies } from 'next/headers';
-import { NextRequest } from 'next/server';
+import { adminAuth } from "@/utils/firebase/admin";
+import { cookies } from "next/headers";
+import { NextRequest } from "next/server";
 
 export interface ServerUser {
   uid: string;
@@ -16,7 +16,7 @@ export interface ServerUser {
 export async function getServerUser(): Promise<ServerUser | null> {
   try {
     const cookieStore = await cookies();
-    const idToken = cookieStore.get('idToken')?.value;
+    const idToken = cookieStore.get("idToken")?.value;
 
     if (!idToken) {
       return null;
@@ -29,12 +29,12 @@ export async function getServerUser(): Promise<ServerUser | null> {
 
     return {
       uid: decodedToken.uid,
-      email: decodedToken.email || '',
+      email: decodedToken.email || "",
       displayName: decodedToken.name,
       teamId,
     };
   } catch (error) {
-    console.error('Server auth error:', error);
+    console.error("Server auth error:", error);
     return null;
   }
 }
@@ -46,24 +46,24 @@ export async function getServerUserFromRequest(
   request: NextRequest
 ): Promise<ServerUser | null> {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
       return null;
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await adminAuth.verifyIdToken(idToken);
 
     const teamId = decodedToken.teamId as string | undefined;
 
     return {
       uid: decodedToken.uid,
-      email: decodedToken.email || '',
+      email: decodedToken.email || "",
       displayName: decodedToken.name,
       teamId,
     };
   } catch (error) {
-    console.error('Server auth error:', error);
+    console.error("Server auth error:", error);
     return null;
   }
 }
@@ -74,7 +74,7 @@ export async function getServerUserFromRequest(
 export async function requireAuth(): Promise<ServerUser> {
   const user = await getServerUser();
   if (!user) {
-    throw new Error('Unauthorized');
+    throw new Error("Unauthorized");
   }
   return user;
 }

@@ -1,28 +1,28 @@
 // components/auth/RegisterForm.tsx
-'use client';
-import { saveAuthTokenToCookie } from '@/utils/auth/cookies';
-import { API_ENDPOINTS, ERROR_MESSAGES } from '@/utils/constants';
-import { auth, db } from '@/utils/firebase';
+"use client";
+import { saveAuthTokenToCookie } from "@/utils/auth/cookies";
+import { API_ENDPOINTS, ERROR_MESSAGES } from "@/utils/constants";
+import { auth, db } from "@/utils/firebase";
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
   updateProfile,
-} from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useMemo, useState } from 'react';
+} from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useMemo, useState } from "react";
 
 export default function RegisterForm() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const inviteCode = useMemo(() => searchParams.get('invite'), [searchParams]);
+  const inviteCode = useMemo(() => searchParams.get("invite"), [searchParams]);
 
   // Googleで登録
   const handleGoogleRegister = async () => {
@@ -32,31 +32,31 @@ export default function RegisterForm() {
     try {
       const provider = new GoogleAuthProvider();
       provider.setCustomParameters({
-        prompt: 'select_account',
+        prompt: "select_account",
       });
 
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
       if (user) {
-        const userDocRef = doc(db, 'users', user.uid);
+        const userDocRef = doc(db, "users", user.uid);
         const userDocSnap = await getDoc(userDocRef);
 
         if (userDocSnap.exists()) {
-          router.push('/auth/login');
+          router.push("/auth/login");
           return;
         }
 
         await setDoc(userDocRef, {
           email: user.email,
-          displayName: user.displayName || 'ゲスト',
+          displayName: user.displayName || "ゲスト",
           teamId: null,
         });
 
         const idToken = await user.getIdToken();
         const res = await fetch(API_ENDPOINTS.SET_CUSTOM_CLAIMS, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             uid: user.uid,
             teamId: null,
@@ -65,17 +65,17 @@ export default function RegisterForm() {
         });
 
         if (!res.ok) {
-          setError('登録処理に失敗しました');
+          setError("登録処理に失敗しました");
           return;
         }
 
         await user.getIdToken(true);
         try {
           if (inviteCode) {
-            const joinResponse = await fetch('/api/team/join-by-invite', {
-              method: 'POST',
+            const joinResponse = await fetch("/api/team/join-by-invite", {
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
                 Authorization: `Bearer ${await user.getIdToken()}`,
               },
               body: JSON.stringify({ inviteCode }),
@@ -84,21 +84,21 @@ export default function RegisterForm() {
             const joinResult = await joinResponse.json();
 
             if (joinResponse.ok && joinResult.teamId) {
-              router.push('/supplies/list');
+              router.push("/supplies/list");
             } else {
-              throw new Error('招待チームへの参加に失敗しました');
+              throw new Error("招待チームへの参加に失敗しました");
             }
           } else {
-            const displayName = user.displayName || 'ゲスト';
+            const displayName = user.displayName || "ゲスト";
             const teamResponse = await fetch(API_ENDPOINTS.CREATE_TEAM, {
-              method: 'POST',
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
                 Authorization: `Bearer ${await user.getIdToken()}`,
               },
               body: JSON.stringify({
                 teamName: `${displayName}の家族`,
-                teamPassword: '',
+                teamPassword: "",
               }),
             });
 
@@ -109,34 +109,34 @@ export default function RegisterForm() {
               router.push(`/supplies/list?teamId=${teamResult.teamId}`);
               router.refresh();
             } else {
-              router.push('/supplies/list');
+              router.push("/supplies/list");
             }
           }
         } catch (teamError) {
-          console.error('チーム処理エラー:', teamError);
-          router.push('/settings?tab=team');
+          console.error("チーム処理エラー:", teamError);
+          router.push("/settings?tab=team");
         }
       }
     } catch (_error: unknown) {
-      if (_error instanceof Error && 'code' in _error) {
+      if (_error instanceof Error && "code" in _error) {
         switch (_error.code) {
-          case 'auth/popup-closed-by-user':
-            setError('登録がキャンセルされました');
+          case "auth/popup-closed-by-user":
+            setError("登録がキャンセルされました");
             break;
-          case 'auth/popup-blocked':
+          case "auth/popup-blocked":
             setError(
-              'ポップアップがブロックされました。ブラウザの設定を確認してください。'
+              "ポップアップがブロックされました。ブラウザの設定を確認してください。"
             );
             break;
-          case 'auth/account-exists-with-different-credential':
-            setError('このメールアドレスは既に別の方法で登録されています');
+          case "auth/account-exists-with-different-credential":
+            setError("このメールアドレスは既に別の方法で登録されています");
             break;
           default:
-            setError('Google登録に失敗しました');
+            setError("Google登録に失敗しました");
             break;
         }
       } else {
-        setError('Google登録に失敗しました');
+        setError("Google登録に失敗しました");
       }
     } finally {
       setIsLoading(false);
@@ -149,12 +149,12 @@ export default function RegisterForm() {
     setError(null);
 
     if (!name.trim()) {
-      setError('名前を入力してください');
+      setError("名前を入力してください");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('パスワードが一致しません');
+      setError("パスワードが一致しません");
       return;
     }
 
@@ -171,7 +171,7 @@ export default function RegisterForm() {
           displayName: name.trim(),
         });
 
-        await setDoc(doc(db, 'users', userCredential.user.uid), {
+        await setDoc(doc(db, "users", userCredential.user.uid), {
           email: email,
           displayName: name.trim(),
           teamId: null,
@@ -179,8 +179,8 @@ export default function RegisterForm() {
 
         const idToken = await userCredential.user.getIdToken();
         const res = await fetch(API_ENDPOINTS.SET_CUSTOM_CLAIMS, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             uid: userCredential.user.uid,
             teamId: null,
@@ -188,7 +188,7 @@ export default function RegisterForm() {
           }),
         });
         if (!res.ok) {
-          setError('クレームの同期に失敗しました');
+          setError("クレームの同期に失敗しました");
           return;
         }
         await userCredential.user.getIdToken(true);
@@ -197,10 +197,10 @@ export default function RegisterForm() {
 
         try {
           if (inviteCode) {
-            const joinResponse = await fetch('/api/team/join-by-invite', {
-              method: 'POST',
+            const joinResponse = await fetch("/api/team/join-by-invite", {
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
                 Authorization: `Bearer ${await userCredential.user.getIdToken()}`,
               },
               body: JSON.stringify({ inviteCode }),
@@ -209,20 +209,20 @@ export default function RegisterForm() {
             const joinResult = await joinResponse.json();
 
             if (joinResponse.ok && joinResult.teamId) {
-              router.push('/supplies/list');
+              router.push("/supplies/list");
             } else {
-              throw new Error('招待チームへの参加に失敗しました');
+              throw new Error("招待チームへの参加に失敗しました");
             }
           } else {
             const teamResponse = await fetch(API_ENDPOINTS.CREATE_TEAM, {
-              method: 'POST',
+              method: "POST",
               headers: {
-                'Content-Type': 'application/json',
+                "Content-Type": "application/json",
                 Authorization: `Bearer ${await userCredential.user.getIdToken()}`,
               },
               body: JSON.stringify({
                 teamName: `${name.trim()}の家族`, // Google登録と同じデフォルト名
-                teamPassword: '',
+                teamPassword: "",
               }),
             });
 
@@ -230,24 +230,24 @@ export default function RegisterForm() {
 
             if (teamResponse.ok && teamResult.teamId) {
               await userCredential.user.getIdToken(true);
-              router.push('/supplies/list');
+              router.push("/supplies/list");
               router.refresh();
             } else {
-              router.push('/settings?tab=team');
+              router.push("/settings?tab=team");
             }
           }
         } catch (teamError) {
-          console.error('チーム処理エラー:', teamError);
-          router.push('/settings?tab=team');
+          console.error("チーム処理エラー:", teamError);
+          router.push("/settings?tab=team");
         }
       }
     } catch (_error: unknown) {
-      if (_error instanceof Error && 'code' in _error) {
-        if (_error.code === 'auth/email-already-in-use') {
+      if (_error instanceof Error && "code" in _error) {
+        if (_error.code === "auth/email-already-in-use") {
           setError(ERROR_MESSAGES.EMAIL_ALREADY_IN_USE);
-        } else if (_error.code === 'auth/invalid-email') {
+        } else if (_error.code === "auth/invalid-email") {
           setError(ERROR_MESSAGES.INVALID_EMAIL);
-        } else if (_error.code === 'auth/weak-password') {
+        } else if (_error.code === "auth/weak-password") {
           setError(ERROR_MESSAGES.WEAK_PASSWORD);
         } else {
           setError(ERROR_MESSAGES.REGISTRATION_FAILED);
@@ -340,7 +340,7 @@ export default function RegisterForm() {
             placeholder='表示名を入力'
             type='text'
             value={name}
-            onChange={e => setName(e.target.value)}
+            onChange={(e) => setName(e.target.value)}
           />
         </div>
 
@@ -359,7 +359,7 @@ export default function RegisterForm() {
             placeholder='example@email.com'
             type='email'
             value={email}
-            onChange={e => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
 
@@ -378,7 +378,7 @@ export default function RegisterForm() {
             placeholder='6文字以上のパスワード'
             type='password'
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
 
@@ -397,7 +397,7 @@ export default function RegisterForm() {
             placeholder='パスワード再入力'
             type='password'
             value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value)}
+            onChange={(e) => setConfirmPassword(e.target.value)}
           />
         </div>
 
@@ -406,7 +406,7 @@ export default function RegisterForm() {
           type='submit'
           disabled={isLoading}
         >
-          {isLoading ? '登録中...' : 'メールアドレスで登録'}
+          {isLoading ? "登録中..." : "メールアドレスで登録"}
         </button>
       </form>
     </div>

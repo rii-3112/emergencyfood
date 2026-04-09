@@ -3,7 +3,7 @@ export interface ErrorMessageProps {
   className?: string;
 }
 
-export function ErrorMessage({ message, className = '' }: ErrorMessageProps) {
+export function ErrorMessage({ message, className = "" }: ErrorMessageProps) {
   return (
     <div
       className={`bg-red-50 border border-red-200 text-red-700 px-3 sm:px-4 py-3 rounded mb-4 text-sm ${className}`}

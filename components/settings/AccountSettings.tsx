@@ -1,12 +1,12 @@
-'use client';
-import { useAuth } from '@/hooks';
-import type { AppUser } from '@/types';
+"use client";
+import { useAuth } from "@/hooks";
+import type { AppUser } from "@/types";
 import {
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
   UI_CONSTANTS,
-} from '@/utils/constants';
-import { useState } from 'react';
+} from "@/utils/constants";
+import { useState } from "react";
 
 interface AccountSettingsProps {
   user: AppUser;
@@ -20,23 +20,23 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
   };
 
   const getEditDisplayName = () => {
-    return user.displayName || '';
+    return user.displayName || "";
   };
 
   const [displayName, setDisplayName] = useState(getEditDisplayName());
   const [isEditingName, setIsEditingName] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{
-    type: 'success' | 'error';
+    type: "success" | "error";
     text: string;
   } | null>(null);
   //名前保存
   const handleNameSave = async () => {
     if (!displayName.trim()) {
-      setMessage({ type: 'error', text: '名前を入力してください' });
+      setMessage({ type: "error", text: "名前を入力してください" });
       return;
     }
 
@@ -44,9 +44,9 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
     try {
       await updateUserName(displayName.trim());
       setIsEditingName(false);
-      setMessage({ type: 'success', text: SUCCESS_MESSAGES.NAME_UPDATED });
+      setMessage({ type: "success", text: SUCCESS_MESSAGES.NAME_UPDATED });
     } catch (_error) {
-      setMessage({ type: 'error', text: ERROR_MESSAGES.NAME_UPDATE_FAILED });
+      setMessage({ type: "error", text: ERROR_MESSAGES.NAME_UPDATE_FAILED });
     } finally {
       setLoading(false);
     }
@@ -55,14 +55,14 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
   const handlePasswordChange = async () => {
     if (newPassword.length < 6) {
       setMessage({
-        type: 'error',
-        text: 'パスワードは6文字以上にしてください',
+        type: "error",
+        text: "パスワードは6文字以上にしてください",
       });
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setMessage({ type: 'error', text: 'パスワードが一致しません' });
+      setMessage({ type: "error", text: "パスワードが一致しません" });
       return;
     }
 
@@ -70,12 +70,12 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
     try {
       await changePassword(newPassword);
       setIsChangingPassword(false);
-      setNewPassword('');
-      setConfirmPassword('');
-      setMessage({ type: 'success', text: SUCCESS_MESSAGES.PASSWORD_CHANGED });
+      setNewPassword("");
+      setConfirmPassword("");
+      setMessage({ type: "success", text: SUCCESS_MESSAGES.PASSWORD_CHANGED });
     } catch (_error) {
       setMessage({
-        type: 'error',
+        type: "error",
         text: ERROR_MESSAGES.PASSWORD_CHANGE_FAILED,
       });
     } finally {
@@ -91,9 +91,9 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
       {message && (
         <div
           className={`p-3 rounded-md ${
-            message.type === 'success'
-              ? 'bg-green-200 text-black border'
-              : 'bg-red-200 text-black border'
+            message.type === "success"
+              ? "bg-green-200 text-black border"
+              : "bg-red-200 text-black border"
           }`}
         >
           {message.text}
@@ -111,7 +111,7 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
               placeholder='アカウント名を入力'
               type='text'
               value={displayName}
-              onChange={e => setDisplayName(e.target.value)}
+              onChange={(e) => setDisplayName(e.target.value)}
             />
             <button
               className='px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50 transition-colors'
@@ -163,14 +163,14 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
               placeholder='新しいパスワード（6文字以上）'
               type='password'
               value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
+              onChange={(e) => setNewPassword(e.target.value)}
             />
             <input
               className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
               placeholder='新しいパスワード（確認）'
               type='password'
               value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
+              onChange={(e) => setConfirmPassword(e.target.value)}
             />
             <div className='flex gap-2'>
               <button
@@ -184,8 +184,8 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
                 className='px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors'
                 onClick={() => {
                   setIsChangingPassword(false);
-                  setNewPassword('');
-                  setConfirmPassword('');
+                  setNewPassword("");
+                  setConfirmPassword("");
                 }}
               >
                 {UI_CONSTANTS.CANCEL}

@@ -1,15 +1,15 @@
-'use client';
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+"use client";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
-import CreateTeamForm from '@/components/teams/CreateTeamForm';
-import { useAuth, useTeam } from '@/hooks';
-import type { AppUser, Team } from '@/types';
+import CreateTeamForm from "@/components/teams/CreateTeamForm";
+import { useAuth, useTeam } from "@/hooks";
+import type { AppUser, Team } from "@/types";
 import {
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
   UI_CONSTANTS,
-} from '@/utils/constants';
+} from "@/utils/constants";
 
 interface TeamSettingsProps {
   user: AppUser;
@@ -46,7 +46,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
   }, [clientTeam, loading]);
 
   const [message, setMessage] = useState<{
-    type: 'success' | 'error';
+    type: "success" | "error";
     text: string;
   } | null>(null);
   const [_showDebug, _setShowDebug] = useState(false);
@@ -58,7 +58,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
   const [showGuide, setShowGuide] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isEditingTeamName, setIsEditingTeamName] = useState(false);
-  const [newTeamName, setNewTeamName] = useState('');
+  const [newTeamName, setNewTeamName] = useState("");
   const [updatingTeamName, setUpdatingTeamName] = useState(false);
 
   // 備蓄管理設定
@@ -146,7 +146,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
     try {
       const idToken = await firebaseUser.getIdToken();
-      const response = await fetch('/api/team/my-teams', {
+      const response = await fetch("/api/team/my-teams", {
         headers: {
           Authorization: `Bearer ${idToken}`,
         },
@@ -159,14 +159,14 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
         // デフォルトチーム名の場合はガイド表示
         if (
           data.teams?.length === 1 &&
-          (data.teams[0].name.includes('の備蓄品') ||
-            data.teams[0].name.includes('の家族'))
+          (data.teams[0].name.includes("の備蓄品") ||
+            data.teams[0].name.includes("の家族"))
         ) {
           setShowGuide(true);
         }
       }
     } catch (error) {
-      console.error('チーム一覧取得エラー:', error);
+      console.error("チーム一覧取得エラー:", error);
     }
   }, [firebaseUser]);
 
@@ -193,25 +193,25 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
   const currentUserRole =
     team.ownerId === user.uid
-      ? 'owner'
+      ? "owner"
       : team.admins.includes(user.uid)
-        ? 'admin'
-        : 'member';
+        ? "admin"
+        : "member";
 
   const canManageAdmins =
-    currentUserRole === 'owner' || currentUserRole === 'admin';
+    currentUserRole === "owner" || currentUserRole === "admin";
 
   const handleAdminToggle = async (memberId: string, isAdmin: boolean) => {
     try {
       if (isAdmin) {
         await removeAdmin(memberId);
-        setMessage({ type: 'success', text: SUCCESS_MESSAGES.ADMIN_REMOVED });
+        setMessage({ type: "success", text: SUCCESS_MESSAGES.ADMIN_REMOVED });
       } else {
         await addAdmin(memberId);
-        setMessage({ type: 'success', text: SUCCESS_MESSAGES.ADMIN_ADDED });
+        setMessage({ type: "success", text: SUCCESS_MESSAGES.ADMIN_ADDED });
       }
     } catch (_error) {
-      setMessage({ type: 'error', text: ERROR_MESSAGES.ADMIN_UPDATE_FAILED });
+      setMessage({ type: "error", text: ERROR_MESSAGES.ADMIN_UPDATE_FAILED });
     }
   };
 
@@ -220,11 +220,11 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
     try {
       await migrateTeamData();
       setMessage({
-        type: 'success',
-        text: 'チームデータを最新の形式に移行しました',
+        type: "success",
+        text: "チームデータを最新の形式に移行しました",
       });
     } catch (_error) {
-      setMessage({ type: 'error', text: 'チームデータの移行に失敗しました' });
+      setMessage({ type: "error", text: "チームデータの移行に失敗しました" });
     } finally {
       setMigrating(false);
     }
@@ -233,14 +233,14 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
   // チーム名更新
   const handleUpdateTeamName = async () => {
     if (!newTeamName.trim()) {
-      setMessage({ type: 'error', text: 'グループ名を入力してください' });
+      setMessage({ type: "error", text: "グループ名を入力してください" });
       return;
     }
 
     if (newTeamName.trim().length > 25) {
       setMessage({
-        type: 'error',
-        text: 'グループ名は25文字以内にしてください',
+        type: "error",
+        text: "グループ名は25文字以内にしてください",
       });
       return;
     }
@@ -251,13 +251,13 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
     try {
       const idToken = await firebaseUser?.getIdToken();
       if (!idToken) {
-        throw new Error('認証トークンを取得できませんでした');
+        throw new Error("認証トークンを取得できませんでした");
       }
 
-      const response = await fetch('/api/actions/update-team-name', {
-        method: 'POST',
+      const response = await fetch("/api/actions/update-team-name", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
@@ -269,20 +269,20 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
       const result = await response.json();
 
       if (response.ok) {
-        setMessage({ type: 'success', text: 'グループ名を変更しました' });
+        setMessage({ type: "success", text: "グループ名を変更しました" });
         setIsEditingTeamName(false);
         // ページをリフレッシュして新しいチーム名を反映
         router.refresh();
       } else {
-        throw new Error(result.error || 'グループ名の変更に失敗しました');
+        throw new Error(result.error || "グループ名の変更に失敗しました");
       }
     } catch (error) {
       setMessage({
-        type: 'error',
+        type: "error",
         text:
           error instanceof Error
             ? error.message
-            : 'グループ名の変更に失敗しました',
+            : "グループ名の変更に失敗しました",
       });
     } finally {
       setUpdatingTeamName(false);
@@ -297,13 +297,13 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
     try {
       const idToken = await firebaseUser?.getIdToken();
       if (!idToken) {
-        throw new Error('認証トークンを取得できませんでした');
+        throw new Error("認証トークンを取得できませんでした");
       }
 
-      const response = await fetch('/api/team/update-stock-settings', {
-        method: 'POST',
+      const response = await fetch("/api/team/update-stock-settings", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
@@ -337,16 +337,16 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
       const result = await response.json();
 
       if (response.ok) {
-        setMessage({ type: 'success', text: '備蓄管理設定を保存しました' });
+        setMessage({ type: "success", text: "備蓄管理設定を保存しました" });
         router.refresh();
       } else {
-        throw new Error(result.error || '設定の保存に失敗しました');
+        throw new Error(result.error || "設定の保存に失敗しました");
       }
     } catch (error) {
       setMessage({
-        type: 'error',
+        type: "error",
         text:
-          error instanceof Error ? error.message : '設定の保存に失敗しました',
+          error instanceof Error ? error.message : "設定の保存に失敗しました",
       });
     } finally {
       setUpdatingStockSettings(false);
@@ -354,15 +354,15 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
   };
 
   const getRoleLabel = (memberId: string) => {
-    if (team.ownerId === memberId) return 'オーナー';
-    if (team.admins.includes(memberId)) return '管理者';
-    return 'メンバー';
+    if (team.ownerId === memberId) return "オーナー";
+    if (team.admins.includes(memberId)) return "管理者";
+    return "メンバー";
   };
 
   const getRoleColor = (memberId: string) => {
-    if (team.ownerId === memberId) return 'text-black';
-    if (team.admins.includes(memberId)) return 'text-black';
-    return 'text-black';
+    if (team.ownerId === memberId) return "text-black";
+    if (team.admins.includes(memberId)) return "text-black";
+    return "text-black";
   };
 
   const generateInviteLink = async () => {
@@ -372,13 +372,13 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
     try {
       const idToken = await firebaseUser?.getIdToken();
       if (!idToken) {
-        throw new Error('認証トークンを取得できませんでした');
+        throw new Error("認証トークンを取得できませんでした");
       }
 
-      const response = await fetch('/api/team/generate-invite', {
-        method: 'POST',
+      const response = await fetch("/api/team/generate-invite", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
@@ -388,16 +388,16 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
       });
 
       if (!response.ok) {
-        throw new Error('招待リンクの生成に失敗しました');
+        throw new Error("招待リンクの生成に失敗しました");
       }
 
       const result = await response.json();
       const link = `${window.location.origin}/teams/invite?code=${result.inviteCode}`;
       setInviteLink(link);
       setShowInviteDialog(true);
-      setMessage({ type: 'success', text: '招待リンクを生成しました' });
+      setMessage({ type: "success", text: "招待リンクを生成しました" });
     } catch (_error) {
-      setMessage({ type: 'error', text: '招待リンクの生成に失敗しました' });
+      setMessage({ type: "error", text: "招待リンクの生成に失敗しました" });
     } finally {
       setGeneratingInvite(false);
     }
@@ -408,9 +408,9 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
     try {
       await navigator.clipboard.writeText(inviteLink);
-      setMessage({ type: 'success', text: 'リンクをコピーしました' });
+      setMessage({ type: "success", text: "リンクをコピーしました" });
     } catch (_error) {
-      setMessage({ type: 'error', text: 'コピーに失敗しました' });
+      setMessage({ type: "error", text: "コピーに失敗しました" });
     }
   };
 
@@ -425,9 +425,9 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
       {message && (
         <div
           className={`p-3 rounded-md text-sm ${
-            message.type === 'success'
-              ? 'bg-green-200 text-black '
-              : 'bg-red-200 text-black '
+            message.type === "success"
+              ? "bg-green-200 text-black "
+              : "bg-red-200 text-black "
           }`}
         >
           {message.text}
@@ -447,7 +447,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                 placeholder='新しいグループ名を入力'
                 type='text'
                 value={newTeamName}
-                onChange={e => setNewTeamName(e.target.value)}
+                onChange={(e) => setNewTeamName(e.target.value)}
               />
               <div className='flex gap-2'>
                 <button
@@ -455,7 +455,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                   disabled={updatingTeamName}
                   onClick={handleUpdateTeamName}
                 >
-                  {updatingTeamName ? '保存中...' : '保存'}
+                  {updatingTeamName ? "保存中..." : "保存"}
                 </button>
                 <button
                   className='px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors text-sm sm:text-base'
@@ -498,12 +498,12 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
             <span className='text-gray-900 text-sm sm:text-base'>
               {(() => {
                 const ownerMember = teamMembers.find(
-                  m => m.uid === team.ownerId
+                  (m) => m.uid === team.ownerId
                 );
                 if (ownerMember) {
                   return ownerMember.displayName || ownerMember.email;
                 }
-                return '不明';
+                return "不明";
               })()}
             </span>
           </div>
@@ -564,7 +564,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
             disabled={generatingInvite}
             className='w-full bg-orange-400 text-white font-semibold py-3 px-6 rounded-md hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
           >
-            {generatingInvite ? '生成中...' : '家族を招待する'}
+            {generatingInvite ? "生成中..." : "家族を招待する"}
           </button>
 
           <button
@@ -618,7 +618,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
         </h3>
 
         <div className='space-y-3'>
-          {teamMembers.map(member => (
+          {teamMembers.map((member) => (
             <div
               key={member.uid}
               className='flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-white border border-gray-300 rounded-lg shadow-sm space-y-2 sm:space-y-0'
@@ -647,8 +647,8 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                     <button
                       className={`px-2 sm:px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                         team.admins.includes(member.uid)
-                          ? 'bg-red-100 text-red-800 hover:bg-red-200'
-                          : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                          ? "bg-red-100 text-red-800 hover:bg-red-200"
+                          : "bg-gray-200 text-gray-800 hover:bg-gray-300"
                       }`}
                       onClick={() =>
                         handleAdminToggle(
@@ -665,7 +665,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
                 {canManageAdmins &&
                   member.uid === user.uid &&
-                  currentUserRole === 'admin' && (
+                  currentUserRole === "admin" && (
                     <button
                       className='px-2 sm:px-3 py-1 text-xs font-medium rounded-md bg-red-100 text-black hover:bg-red-200 transition-colors'
                       onClick={() => handleAdminToggle(member.uid, true)}
@@ -699,7 +699,9 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                 min='1'
                 max='50'
                 value={householdSize}
-                onChange={e => setHouseholdSize(parseInt(e.target.value) || 1)}
+                onChange={(e) =>
+                  setHouseholdSize(parseInt(e.target.value) || 1)
+                }
                 className='w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
               />
               <span className='text-gray-600'>人</span>
@@ -712,7 +714,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
             </label>
             <select
               value={stockDays}
-              onChange={e => setStockDays(parseInt(e.target.value))}
+              onChange={(e) => setStockDays(parseInt(e.target.value))}
               className='px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
             >
               <option value='3'>3日分</option>
@@ -730,7 +732,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
               <input
                 type='checkbox'
                 checked={hasPets}
-                onChange={e => setHasPets(e.target.checked)}
+                onChange={(e) => setHasPets(e.target.checked)}
                 className='rounded'
               />
               <span className='text-sm font-medium text-gray-700'>
@@ -750,7 +752,9 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                       min='0'
                       max='10'
                       value={dogCount}
-                      onChange={e => setDogCount(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setDogCount(parseInt(e.target.value) || 0)
+                      }
                       className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
                     />
                     <span className='text-gray-600'>匹</span>
@@ -767,7 +771,9 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                       min='0'
                       max='10'
                       value={catCount}
-                      onChange={e => setCatCount(parseInt(e.target.value) || 0)}
+                      onChange={(e) =>
+                        setCatCount(parseInt(e.target.value) || 0)
+                      }
                       className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
                     />
                     <span className='text-gray-600'>匹</span>
@@ -783,7 +789,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
               <input
                 type='checkbox'
                 checked={useDetailedComposition}
-                onChange={e => setUseDetailedComposition(e.target.checked)}
+                onChange={(e) => setUseDetailedComposition(e.target.checked)}
                 className='rounded'
               />
               <span className='text-sm font-medium text-gray-700'>
@@ -807,7 +813,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                       min='0'
                       max='20'
                       value={adultCount}
-                      onChange={e =>
+                      onChange={(e) =>
                         setAdultCount(parseInt(e.target.value) || 0)
                       }
                       className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
@@ -826,7 +832,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                       min='0'
                       max='10'
                       value={childCount}
-                      onChange={e =>
+                      onChange={(e) =>
                         setChildCount(parseInt(e.target.value) || 0)
                       }
                       className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
@@ -845,7 +851,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                       min='0'
                       max='5'
                       value={infantCount}
-                      onChange={e =>
+                      onChange={(e) =>
                         setInfantCount(parseInt(e.target.value) || 0)
                       }
                       className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
@@ -864,7 +870,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                       min='0'
                       max='10'
                       value={elderlyCount}
-                      onChange={e =>
+                      onChange={(e) =>
                         setElderlyCount(parseInt(e.target.value) || 0)
                       }
                       className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
@@ -886,7 +892,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
               <input
                 type='checkbox'
                 checked={notificationsEnabled}
-                onChange={e => setNotificationsEnabled(e.target.checked)}
+                onChange={(e) => setNotificationsEnabled(e.target.checked)}
                 className='rounded'
               />
               <span className='text-sm font-medium text-gray-700'>
@@ -900,7 +906,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                   <input
                     type='checkbox'
                     checked={notifyCriticalStock}
-                    onChange={e => setNotifyCriticalStock(e.target.checked)}
+                    onChange={(e) => setNotifyCriticalStock(e.target.checked)}
                     className='rounded'
                   />
                   <span className='text-gray-700'>在庫切れ・緊急警告</span>
@@ -910,7 +916,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                   <input
                     type='checkbox'
                     checked={notifyLowStock}
-                    onChange={e => setNotifyLowStock(e.target.checked)}
+                    onChange={(e) => setNotifyLowStock(e.target.checked)}
                     className='rounded'
                   />
                   <span className='text-gray-700'>在庫が少ない時の警告</span>
@@ -920,7 +926,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                   <input
                     type='checkbox'
                     checked={notifyExpiryNear}
-                    onChange={e => setNotifyExpiryNear(e.target.checked)}
+                    onChange={(e) => setNotifyExpiryNear(e.target.checked)}
                     className='rounded'
                   />
                   <span className='text-gray-700'>賞味期限接近の通知</span>
@@ -930,7 +936,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                   <input
                     type='checkbox'
                     checked={notifyWeeklyReport}
-                    onChange={e => setNotifyWeeklyReport(e.target.checked)}
+                    onChange={(e) => setNotifyWeeklyReport(e.target.checked)}
                     className='rounded'
                   />
                   <span className='text-gray-700'>
@@ -950,7 +956,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
             disabled={updatingStockSettings || !canManageAdmins}
             className='w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'
           >
-            {updatingStockSettings ? '保存中...' : '💾 設定を保存'}
+            {updatingStockSettings ? "保存中..." : "💾 設定を保存"}
           </button>
 
           {!canManageAdmins && (

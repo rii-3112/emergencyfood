@@ -1,9 +1,9 @@
-'use client';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+"use client";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { useAuth } from '@/hooks';
-import { UI_CONSTANTS } from '@/utils/constants';
+import { useAuth } from "@/hooks";
+import { UI_CONSTANTS } from "@/utils/constants";
 
 export default function LogoutSection() {
   const { logout } = useAuth();
@@ -15,7 +15,7 @@ export default function LogoutSection() {
     setLoading(true);
     try {
       await logout();
-      router.push('/');
+      router.push("/");
     } catch (_error) {
       setLoading(false);
     }
@@ -51,7 +51,7 @@ export default function LogoutSection() {
               disabled={loading}
               onClick={handleLogout}
             >
-              {loading ? UI_CONSTANTS.PROCESSING : 'ログアウトする'}
+              {loading ? UI_CONSTANTS.PROCESSING : "ログアウトする"}
             </button>
             <button
               className='px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 transition-colors'

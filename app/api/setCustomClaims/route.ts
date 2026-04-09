@@ -1,6 +1,6 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -8,7 +8,7 @@ export async function POST(req: Request) {
 
   if (!idToken) {
     return NextResponse.json(
-      { error: 'ID token is required' },
+      { error: "ID token is required" },
       { status: 400 }
     );
   }
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
     if (uid && decodedToken.uid !== uid) {
       return NextResponse.json(
-        { error: 'Unauthorized: UID mismatch' },
+        { error: "Unauthorized: UID mismatch" },
         { status: 401 }
       );
     }
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       if (lineUserId !== undefined) claims.lineUserId = lineUserId;
 
       await adminAuth.setCustomUserClaims(uid, claims);
-      return NextResponse.json({ message: 'カスタムクレームを設定しました' });
+      return NextResponse.json({ message: "カスタムクレームを設定しました" });
     }
 
     const userRecord = await adminAuth.getUser(decodedToken.uid);
@@ -39,12 +39,12 @@ export async function POST(req: Request) {
 
     if (!isAdmin) {
       return NextResponse.json(
-        { error: '管理者権限が必要です' },
+        { error: "管理者権限が必要です" },
         { status: 403 }
       );
     }
 
-    const usersSnapshot = await adminDb.collection('users').get();
+    const usersSnapshot = await adminDb.collection("users").get();
     const results: Array<{ userId: string; success: boolean; error?: string }> =
       [];
 
@@ -67,20 +67,20 @@ export async function POST(req: Request) {
         results.push({
           userId,
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: error instanceof Error ? error.message : "Unknown error",
         });
       }
     }
 
     return NextResponse.json({
-      message: '一括カスタムクレーム設定を完了しました',
+      message: "一括カスタムクレーム設定を完了しました",
       results,
     });
   } catch (_error: unknown) {
     const errorMessage =
       _error instanceof Error
         ? _error.message
-        : 'カスタムクレームの設定に失敗しました';
+        : "カスタムクレームの設定に失敗しました";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
@@ -89,7 +89,7 @@ export async function GET() {
   return NextResponse.json(
     {
       message:
-        'This API only supports POST requests for setting custom claims.',
+        "This API only supports POST requests for setting custom claims.",
     },
     { status: 405 }
   );

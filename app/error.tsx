@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
+import { useEffect } from "react";
 
 interface ErrorProps {
   error: Error & { digest?: string };
@@ -9,7 +9,7 @@ interface ErrorProps {
 
 export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {
-    console.error('Global error:', error);
+    console.error("Global error:", error);
   }, [error]);
 
   return (
@@ -31,7 +31,7 @@ export default function Error({ error, reset }: ErrorProps) {
           </button>
           <button
             className='w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium'
-            onClick={() => (window.location.href = '/')}
+            onClick={() => (window.location.href = "/")}
           >
             ホームに戻る
           </button>

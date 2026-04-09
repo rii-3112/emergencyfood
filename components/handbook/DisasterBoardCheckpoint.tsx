@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import {
   Button,
   Card,
@@ -6,13 +6,13 @@ import {
   SuccessMessage,
   TabItem,
   Tabs,
-} from '@/components/ui';
-import { useAuth } from '@/hooks';
-import type { DisasterBoardData, Team } from '@/types';
-import { useState } from 'react';
-import { BasicInfoTab } from './disaster-board/BasicInfoTab';
-import { CommunicationTab } from './disaster-board/CommunicationTab';
-import { EvacuationTab } from './disaster-board/EvacuationTab';
+} from "@/components/ui";
+import { useAuth } from "@/hooks";
+import type { DisasterBoardData, Team } from "@/types";
+import { useState } from "react";
+import { BasicInfoTab } from "./disaster-board/BasicInfoTab";
+import { CommunicationTab } from "./disaster-board/CommunicationTab";
+import { EvacuationTab } from "./disaster-board/EvacuationTab";
 
 interface ServerUser {
   uid: string;
@@ -57,10 +57,10 @@ export default function DisasterBoardCheckpoint({
       setSuccess(null);
 
       const token = await firebaseUser.getIdToken();
-      const response = await fetch('/api/disaster-board', {
-        method: 'POST',
+      const response = await fetch("/api/disaster-board", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -70,13 +70,13 @@ export default function DisasterBoardCheckpoint({
       });
 
       if (!response.ok) {
-        throw new Error('保存に失敗しました');
+        throw new Error("保存に失敗しました");
       }
 
-      setSuccess('災害用伝言板の情報を保存しました');
+      setSuccess("災害用伝言板の情報を保存しました");
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '保存に失敗しました');
+      setError(err instanceof Error ? err.message : "保存に失敗しました");
     } finally {
       setSaving(false);
     }
@@ -95,45 +95,45 @@ export default function DisasterBoardCheckpoint({
 
   const tabItems: TabItem[] = [
     {
-      id: 'evacuation',
-      label: '避難関連',
+      id: "evacuation",
+      label: "避難関連",
       content: (
         <EvacuationTab
           sites={data.evacuationSites}
           routes={data.evacuationRoutes}
-          onSitesUpdate={sites =>
-            setData(prev => ({ ...prev, evacuationSites: sites }))
+          onSitesUpdate={(sites) =>
+            setData((prev) => ({ ...prev, evacuationSites: sites }))
           }
-          onRoutesUpdate={routes =>
-            setData(prev => ({ ...prev, evacuationRoutes: routes }))
+          onRoutesUpdate={(routes) =>
+            setData((prev) => ({ ...prev, evacuationRoutes: routes }))
           }
         />
       ),
     },
     {
-      id: 'communication',
-      label: '連絡・約束',
+      id: "communication",
+      label: "連絡・約束",
       content: (
         <CommunicationTab
           methods={data.safetyMethods}
           agreements={data.familyAgreements}
-          onMethodsUpdate={methods =>
-            setData(prev => ({ ...prev, safetyMethods: methods }))
+          onMethodsUpdate={(methods) =>
+            setData((prev) => ({ ...prev, safetyMethods: methods }))
           }
-          onAgreementsUpdate={agreements =>
-            setData(prev => ({ ...prev, familyAgreements: agreements }))
+          onAgreementsUpdate={(agreements) =>
+            setData((prev) => ({ ...prev, familyAgreements: agreements }))
           }
         />
       ),
     },
     {
-      id: 'basic-info',
-      label: '基本情報',
+      id: "basic-info",
+      label: "基本情報",
       content: (
         <BasicInfoTab
           useDisasterDial={data.useDisasterDial}
-          onToggleUse={use =>
-            setData(prev => ({ ...prev, useDisasterDial: use }))
+          onToggleUse={(use) =>
+            setData((prev) => ({ ...prev, useDisasterDial: use }))
           }
         />
       ),
@@ -156,7 +156,7 @@ export default function DisasterBoardCheckpoint({
 
       <div className='flex justify-end'>
         <Button onClick={handleSave} loading={saving} disabled={saving}>
-          {saving ? '保存中...' : '変更を保存'}
+          {saving ? "保存中..." : "変更を保存"}
         </Button>
       </div>
 
@@ -165,18 +165,18 @@ export default function DisasterBoardCheckpoint({
       {data.lastUpdated && (
         <Card>
           <div className='text-center text-sm text-gray-500'>
-            最終更新:{' '}
+            最終更新:{" "}
             {(() => {
               try {
                 const date =
-                  typeof data.lastUpdated === 'string'
+                  typeof data.lastUpdated === "string"
                     ? new Date(data.lastUpdated)
                     : data.lastUpdated;
                 return date instanceof Date && !isNaN(date.getTime())
-                  ? date.toLocaleString('ja-JP')
-                  : '不明';
+                  ? date.toLocaleString("ja-JP")
+                  : "不明";
               } catch {
-                return '不明';
+                return "不明";
               }
             })()}
             {data.lastUpdatedBy && (
@@ -193,7 +193,7 @@ export default function DisasterBoardCheckpoint({
           disabled={saving}
           size='lg'
         >
-          {saving ? '保存中...' : '変更を保存'}
+          {saving ? "保存中..." : "変更を保存"}
         </Button>
       </div>
 

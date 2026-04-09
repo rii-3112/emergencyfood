@@ -1,9 +1,9 @@
-'use client';
-import Modal from '@/components/ui/Modal';
-import { useAuth } from '@/hooks';
-import type { Review } from '@/types';
-import { ERROR_MESSAGES } from '@/utils/constants';
-import React, { useCallback, useEffect, useState } from 'react';
+"use client";
+import Modal from "@/components/ui/Modal";
+import { useAuth } from "@/hooks";
+import type { Review } from "@/types";
+import { ERROR_MESSAGES } from "@/utils/constants";
+import React, { useCallback, useEffect, useState } from "react";
 
 interface ServerUser {
   uid: string;
@@ -24,7 +24,7 @@ export default function ReviewsClient({
   supplyName: _supplyName,
 }: ReviewsClientProps) {
   const { user: firebaseUser } = useAuth();
-  const [reviewText, setReviewText] = useState('');
+  const [reviewText, setReviewText] = useState("");
   const [reviews, setReviews] = useState<Review[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -48,7 +48,7 @@ export default function ReviewsClient({
         setReviews(data.reviews || []);
       }
     } catch (error) {
-      console.error('Failed to fetch reviews:', error);
+      console.error("Failed to fetch reviews:", error);
     }
   }, [supplyId, user.teamId, firebaseUser]);
 
@@ -67,9 +67,9 @@ export default function ReviewsClient({
     try {
       const idToken = await firebaseUser.getIdToken();
       const response = await fetch(`/api/supplies/${supplyId}/reviews`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
@@ -79,15 +79,15 @@ export default function ReviewsClient({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || '感想の投稿に失敗しました');
+        throw new Error(errorData.error || "感想の投稿に失敗しました");
       }
 
-      setReviewText('');
+      setReviewText("");
       fetchReviews();
     } catch (error: unknown) {
-      console.error('Review submission error:', error);
+      console.error("Review submission error:", error);
       setError(
-        error instanceof Error ? error.message : '感想の投稿に失敗しました。'
+        error instanceof Error ? error.message : "感想の投稿に失敗しました。"
       );
     } finally {
       setSubmitting(false);
@@ -108,7 +108,7 @@ export default function ReviewsClient({
       const response = await fetch(
         `/api/supplies/${supplyId}/reviews?reviewId=${reviewToDelete}`,
         {
-          method: 'DELETE',
+          method: "DELETE",
           headers: {
             Authorization: `Bearer ${idToken}`,
           },
@@ -117,14 +117,14 @@ export default function ReviewsClient({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || '削除に失敗しました');
+        throw new Error(errorData.error || "削除に失敗しました");
       }
 
       fetchReviews();
     } catch (error: unknown) {
-      console.error('Review deletion error:', error);
+      console.error("Review deletion error:", error);
       setError(
-        error instanceof Error ? error.message : '感想の削除に失敗しました。'
+        error instanceof Error ? error.message : "感想の削除に失敗しました。"
       );
     } finally {
       setDeletingReviewId(null);
@@ -140,36 +140,36 @@ export default function ReviewsClient({
 
   const formatDate = (timestamp: unknown) => {
     if (!timestamp) {
-      return '日時情報がありません';
+      return "日時情報がありません";
     }
 
     let date: Date;
     if (
-      typeof timestamp === 'object' &&
+      typeof timestamp === "object" &&
       timestamp !== null &&
-      (('seconds' in timestamp && typeof timestamp.seconds === 'number') ||
-        ('_seconds' in timestamp && typeof timestamp._seconds === 'number'))
+      (("seconds" in timestamp && typeof timestamp.seconds === "number") ||
+        ("_seconds" in timestamp && typeof timestamp._seconds === "number"))
     ) {
       const seconds = (timestamp as any).seconds || (timestamp as any)._seconds;
       date = new Date(seconds * 1000);
-    } else if (typeof timestamp === 'string') {
+    } else if (typeof timestamp === "string") {
       date = new Date(timestamp);
     } else if (timestamp instanceof Date) {
       date = timestamp;
     } else {
-      return '日時情報がありません';
+      return "日時情報がありません";
     }
 
     if (isNaN(date.getTime())) {
-      return '日時情報がありません';
+      return "日時情報がありません";
     }
 
-    return date.toLocaleString('ja-JP', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleString("ja-JP", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -197,7 +197,7 @@ export default function ReviewsClient({
               placeholder='この備蓄品についての感想を書いてください...'
               rows={4}
               value={reviewText}
-              onChange={e => setReviewText(e.target.value)}
+              onChange={(e) => setReviewText(e.target.value)}
             />
           </div>
           <div className='flex justify-end'>
@@ -206,7 +206,7 @@ export default function ReviewsClient({
               disabled={submitting}
               type='submit'
             >
-              {submitting ? '投稿中...' : '感想を投稿'}
+              {submitting ? "投稿中..." : "感想を投稿"}
             </button>
           </div>
         </form>
@@ -247,7 +247,7 @@ export default function ReviewsClient({
                       disabled={deletingReviewId === review.id}
                       className='text-orange-400 hover:text-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm font-medium'
                     >
-                      {deletingReviewId === review.id ? '削除中...' : '削除'}
+                      {deletingReviewId === review.id ? "削除中..." : "削除"}
                     </button>
                   )}
                 </div>
@@ -290,7 +290,7 @@ export default function ReviewsClient({
               disabled={deletingReviewId === reviewToDelete}
               className='px-4 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
             >
-              {deletingReviewId === reviewToDelete ? '削除中...' : '削除する'}
+              {deletingReviewId === reviewToDelete ? "削除中..." : "削除する"}
             </button>
           </div>
         </div>

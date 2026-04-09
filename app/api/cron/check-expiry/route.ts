@@ -1,28 +1,28 @@
 // app/api/cron/check-expiry/route.ts
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
-import { calculateStockStatus } from '@/utils/stockCalculator';
-import { getExpiryType } from '@/utils/stockRecommendations';
-import { Client } from '@line/bot-sdk';
-import { FieldValue, type Timestamp } from 'firebase-admin/firestore';
-import { NextResponse } from 'next/server';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { calculateStockStatus } from "@/utils/stockCalculator";
+import { getExpiryType } from "@/utils/stockRecommendations";
+import { Client } from "@line/bot-sdk";
+import { FieldValue, type Timestamp } from "firebase-admin/firestore";
+import { NextResponse } from "next/server";
 
 const lineConfig = {
-  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN || '',
-  channelSecret: process.env.LINE_CHANNEL_SECRET || '',
+  channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN || "",
+  channelSecret: process.env.LINE_CHANNEL_SECRET || "",
 };
 const lineClient = new Client(lineConfig);
 
 export async function POST(req: Request) {
   try {
-    const cronSecret = req.headers.get('x-cron-secret');
+    const cronSecret = req.headers.get("x-cron-secret");
     if (!cronSecret || cronSecret !== process.env.CRON_JOB_SECRET) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const now = new Date();
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    const teamsSnapshot = await adminDb.collection('teams').get();
+    const teamsSnapshot = await adminDb.collection("teams").get();
 
     const teamNotifications: {
       [teamId: string]: {
@@ -89,9 +89,9 @@ export async function POST(req: Request) {
       }
 
       const suppliesSnapshot = await adminDb
-        .collection('supplies')
-        .where('teamId', '==', teamId)
-        .where('isArchived', '==', false)
+        .collection("supplies")
+        .where("teamId", "==", teamId)
+        .where("isArchived", "==", false)
         .get();
 
       const outOfStock: Array<{ name: string; id: string }> = [];
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
         expiryType: string;
       }> = [];
 
-      suppliesSnapshot.docs.forEach(doc => {
+      suppliesSnapshot.docs.forEach((doc) => {
         const supply = doc.data();
         const supplyId = doc.id;
 
@@ -123,13 +123,13 @@ export async function POST(req: Request) {
           );
 
           if (
-            stockStatus.status === 'out' &&
+            stockStatus.status === "out" &&
             stockSettings.notifications.criticalStock
           ) {
             outOfStock.push({ name: supply.name, id: supplyId });
           } else if (
-            (stockStatus.status === 'critical' ||
-              stockStatus.status === 'low') &&
+            (stockStatus.status === "critical" ||
+              stockStatus.status === "low") &&
             stockSettings.notifications.lowStock
           ) {
             lowStock.push({
@@ -148,7 +148,7 @@ export async function POST(req: Request) {
         ) {
           const expiryType = getExpiryType(supply.category);
 
-          if (expiryType.type === 'noExpiry') {
+          if (expiryType.type === "noExpiry") {
             return;
           }
 
@@ -175,10 +175,10 @@ export async function POST(req: Request) {
       });
 
       const historySnapshot = await adminDb
-        .collection('supply_history')
-        .where('teamId', '==', teamId)
-        .where('archivedBy', '==', 'system')
-        .where('archivedAt', '>=', sevenDaysAgo.toISOString())
+        .collection("supply_history")
+        .where("teamId", "==", teamId)
+        .where("archivedBy", "==", "system")
+        .where("archivedAt", ">=", sevenDaysAgo.toISOString())
         .get();
 
       const autoArchivedCount = historySnapshot.size;
@@ -223,7 +223,7 @@ export async function POST(req: Request) {
         messageText += `━━━━━━━━━━━━━━━\n`;
         messageText += `⚠️ 在庫切れ (${outOfStock.length}件)\n`;
         messageText += `━━━━━━━━━━━━━━━\n`;
-        outOfStock.forEach(item => {
+        outOfStock.forEach((item) => {
           messageText += `• ${item.name}\n`;
         });
         messageText += `\nすぐに買い足してください！\n\n`;
@@ -233,7 +233,7 @@ export async function POST(req: Request) {
         messageText += `━━━━━━━━━━━━━━━\n`;
         messageText += `⚡ 在庫少ない (${lowStock.length}件)\n`;
         messageText += `━━━━━━━━━━━━━━━\n`;
-        lowStock.slice(0, MAX_ITEMS_TO_SHOW).forEach(item => {
+        lowStock.slice(0, MAX_ITEMS_TO_SHOW).forEach((item) => {
           messageText += `• ${item.name} (残り${item.quantity}${item.unit})\n`;
         });
         if (lowStock.length > MAX_ITEMS_TO_SHOW) {
@@ -246,13 +246,13 @@ export async function POST(req: Request) {
         messageText += `━━━━━━━━━━━━━━━\n`;
         messageText += `📅 期限接近 (${expiryNear.length}件)\n`;
         messageText += `━━━━━━━━━━━━━━━\n`;
-        expiryNear.slice(0, MAX_ITEMS_TO_SHOW).forEach(item => {
+        expiryNear.slice(0, MAX_ITEMS_TO_SHOW).forEach((item) => {
           const urgency =
             item.remainingDays <= 3
-              ? '🔴'
+              ? "🔴"
               : item.remainingDays <= 7
-                ? '🟡'
-                : '⚪';
+                ? "🟡"
+                : "⚪";
           messageText += `${urgency} ${item.name} (${item.expiryType} 残り${item.remainingDays}日)\n`;
         });
         if (expiryNear.length > MAX_ITEMS_TO_SHOW) {
@@ -270,12 +270,12 @@ export async function POST(req: Request) {
 
       messageText += `━━━━━━━━━━━━━━━\n`;
       messageText += `詳細はSonaBaseで確認してください！\n`;
-      messageText += `${process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.vercel.app'}/supplies/list`;
+      messageText += `${process.env.NEXT_PUBLIC_APP_URL || "https://your-domain.vercel.app"}/supplies/list`;
 
       for (const lineUserId of lineUserIds) {
         try {
           await lineClient.pushMessage(lineUserId, {
-            type: 'text',
+            type: "text",
             text: messageText,
           });
         } catch (lineError: unknown) {
@@ -285,18 +285,18 @@ export async function POST(req: Request) {
           );
           if (
             lineError instanceof Error &&
-            'originalError' in lineError &&
+            "originalError" in lineError &&
             lineError.originalError &&
-            typeof lineError.originalError === 'object' &&
-            'response' in lineError.originalError &&
+            typeof lineError.originalError === "object" &&
+            "response" in lineError.originalError &&
             lineError.originalError.response &&
-            typeof lineError.originalError.response === 'object' &&
-            'data' in lineError.originalError.response &&
+            typeof lineError.originalError.response === "object" &&
+            "data" in lineError.originalError.response &&
             lineError.originalError.response.data &&
-            typeof lineError.originalError.response.data === 'object' &&
-            'message' in lineError.originalError.response.data &&
+            typeof lineError.originalError.response.data === "object" &&
+            "message" in lineError.originalError.response.data &&
             lineError.originalError.response.data.message ===
-              'User has not agreed to receive messages.'
+              "User has not agreed to receive messages."
           ) {
             console.warn(
               `User has not agreed to receive messages from your LINE official account.`
@@ -310,8 +310,8 @@ export async function POST(req: Request) {
 
     if (teamsToUpdateNotifiedAt.length > 0) {
       const batch = adminDb.batch();
-      teamsToUpdateNotifiedAt.forEach(teamId => {
-        const teamDocRef = adminDb.collection('teams').doc(teamId);
+      teamsToUpdateNotifiedAt.forEach((teamId) => {
+        const teamDocRef = adminDb.collection("teams").doc(teamId);
         batch.update(teamDocRef, {
           lastWeeklyReportAt: FieldValue.serverTimestamp(),
         });
@@ -321,7 +321,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        message: 'Weekly report completed and notifications sent.',
+        message: "Weekly report completed and notifications sent.",
         teamsSent: teamsToUpdateNotifiedAt.length,
       },
       { status: 200 }
@@ -331,7 +331,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     return NextResponse.json(
-      { error: 'Internal Server Error' },
+      { error: "Internal Server Error" },
       { status: 500 }
     );
   }

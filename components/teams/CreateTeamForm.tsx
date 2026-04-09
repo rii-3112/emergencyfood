@@ -1,17 +1,17 @@
 // components/teams/CreateTeamForm.tsx
-'use client';
-import { useRouter } from 'next/navigation';
-import React, { useState } from 'react';
+"use client";
+import { useRouter } from "next/navigation";
+import React, { useState } from "react";
 
-import { useAuth, useTeam } from '@/hooks';
-import { ERROR_MESSAGES } from '@/utils/constants';
+import { useAuth, useTeam } from "@/hooks";
+import { ERROR_MESSAGES } from "@/utils/constants";
 
 interface CreateTeamFormProps {
   onClose?: () => void;
 }
 
 export default function CreateTeamForm({ onClose }: CreateTeamFormProps) {
-  const [teamName, setTeamName] = useState('');
+  const [teamName, setTeamName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,7 @@ export default function CreateTeamForm({ onClose }: CreateTeamFormProps) {
     }
 
     try {
-      const result = await createTeam(teamName, '');
+      const result = await createTeam(teamName, "");
       setSuccessMessage(
         result.message || `家族グループ "${teamName}" を作成し、参加しました！`
       );
@@ -49,7 +49,7 @@ export default function CreateTeamForm({ onClose }: CreateTeamFormProps) {
           router.refresh();
         }
       } else {
-        router.replace('/supplies/list');
+        router.replace("/supplies/list");
       }
     } catch (_error: unknown) {
       let msg: string = ERROR_MESSAGES.UNKNOWN_ERROR;
@@ -94,7 +94,7 @@ export default function CreateTeamForm({ onClose }: CreateTeamFormProps) {
             placeholder='家族グループ名を決めてください'
             type='text'
             value={teamName}
-            onChange={e => setTeamName(e.target.value)}
+            onChange={(e) => setTeamName(e.target.value)}
           />
           <p className='text-xs text-gray-600 mt-1'>
             家族を招待するには、作成後に招待リンクを生成してください
@@ -105,7 +105,7 @@ export default function CreateTeamForm({ onClose }: CreateTeamFormProps) {
         className='w-full bg-black text-white font-semibold py-3 px-6 rounded-md hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 text-base'
         type='submit'
       >
-        {loading ? '作成中...' : '作成'}
+        {loading ? "作成中..." : "作成"}
       </button>
     </form>
   );

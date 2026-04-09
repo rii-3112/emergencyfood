@@ -1,7 +1,7 @@
-import React from 'react';
+import React from "react";
 
-import { Input } from '@/components/ui';
-import type { SupplyFormData } from '@/types/forms';
+import { Input } from "@/components/ui";
+import type { SupplyFormData } from "@/types/forms";
 
 interface SupplyOptionalFieldsProps {
   formData: SupplyFormData;
@@ -25,7 +25,7 @@ export function SupplyOptionalFields({
           name='amount'
           placeholder='例: 500'
           type='number'
-          value={formData.amount || ''}
+          value={formData.amount || ""}
           onChange={onChange}
         />
 
@@ -35,7 +35,7 @@ export function SupplyOptionalFields({
           name='purchaseLocation'
           placeholder='例: スーパーマーケット'
           type='text'
-          value={formData.purchaseLocation || ''}
+          value={formData.purchaseLocation || ""}
           onChange={onChange}
         />
       </div>
@@ -47,7 +47,7 @@ export function SupplyOptionalFields({
           name='label'
           placeholder='例: 非常用、日常用'
           type='text'
-          value={formData.label || ''}
+          value={formData.label || ""}
           onChange={onChange}
         />
 
@@ -57,7 +57,7 @@ export function SupplyOptionalFields({
           name='storageLocation'
           placeholder='例: キッチン、倉庫'
           type='text'
-          value={formData.storageLocation || ''}
+          value={formData.storageLocation || ""}
           onChange={onChange}
         />
       </div>

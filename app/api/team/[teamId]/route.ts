@@ -1,27 +1,27 @@
-import { NextResponse, type NextRequest } from 'next/server';
+import { NextResponse, type NextRequest } from "next/server";
 
-import { adminAuth, adminDb } from '@/utils/firebase/admin';
+import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
   try {
-    const authHeader = request.headers.get('authorization');
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json({ error: '認証が必要です' }, { status: 401 });
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
     }
 
-    const idToken = authHeader.split('Bearer ')[1];
+    const idToken = authHeader.split("Bearer ")[1];
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const userId = decodedToken.uid;
 
     const { teamId } = await params;
 
-    const teamDoc = await adminDb.collection('teams').doc(teamId).get();
+    const teamDoc = await adminDb.collection("teams").doc(teamId).get();
     if (!teamDoc.exists) {
       return NextResponse.json(
-        { error: 'チームが見つかりません' },
+        { error: "チームが見つかりません" },
         { status: 404 }
       );
     }
@@ -29,7 +29,7 @@ export async function GET(
     const teamData = teamDoc.data();
     if (!teamData) {
       return NextResponse.json(
-        { error: 'チームデータが見つかりません' },
+        { error: "チームデータが見つかりません" },
         { status: 404 }
       );
     }
@@ -39,7 +39,7 @@ export async function GET(
 
     if (!teamData.members.includes(userId)) {
       return NextResponse.json(
-        { error: 'このチームのメンバーではありません' },
+        { error: "このチームのメンバーではありません" },
         { status: 403 }
       );
     }
@@ -47,19 +47,19 @@ export async function GET(
     const memberIds = [...new Set([...teamData.members, ownerId])];
 
     const userRecords = await Promise.all(
-      memberIds.map(id => adminAuth.getUser(id))
+      memberIds.map((id) => adminAuth.getUser(id))
     );
 
     const members = userRecords
-      .filter(userRecord => userRecord)
-      .map(userRecord => {
+      .filter((userRecord) => userRecord)
+      .map((userRecord) => {
         const uid = userRecord.uid;
-        let role: 'owner' | 'admin' | 'member' = 'member';
+        let role: "owner" | "admin" | "member" = "member";
 
         if (uid === ownerId) {
-          role = 'owner';
+          role = "owner";
         } else if (admins.includes(uid)) {
-          role = 'admin';
+          role = "admin";
         }
 
         return {
@@ -88,7 +88,7 @@ export async function GET(
     });
   } catch (_error) {
     return NextResponse.json(
-      { error: 'チーム情報の取得に失敗しました' },
+      { error: "チーム情報の取得に失敗しました" },
       { status: 500 }
     );
   }

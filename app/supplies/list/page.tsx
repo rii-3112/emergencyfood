@@ -1,17 +1,17 @@
-import { getServerUser } from '@/utils/auth/server';
-import { fetchSuppliesFromDB, fetchTeamFromDB } from '@/utils/data/server';
-import { redirect } from 'next/navigation';
-import SupplyListView from './_components/SupplyListView';
+import { getServerUser } from "@/utils/auth/server";
+import { fetchSuppliesFromDB, fetchTeamFromDB } from "@/utils/data/server";
+import { redirect } from "next/navigation";
+import SupplyListView from "./_components/SupplyListView";
 
 export default async function SupplyListPage() {
   const user = await getServerUser();
 
   if (!user) {
-    redirect('/auth/login');
+    redirect("/auth/login");
   }
 
   if (!user.teamId) {
-    redirect('/settings?tab=team');
+    redirect("/settings?tab=team");
   }
 
   const [supplies, team] = await Promise.all([
