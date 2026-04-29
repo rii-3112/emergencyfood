@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+/** 親ディレクトリに別の package-lock があると Next がワークスペースルートを誤認するため明示する */
+const projectDir = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: projectDir,
+  turbopack: {
+    root: projectDir,
+  },
   // SSG対応の最適化
   output: 'standalone',
 
