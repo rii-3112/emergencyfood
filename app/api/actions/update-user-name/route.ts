@@ -13,15 +13,33 @@ export async function POST(request: NextRequest) {
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const userId = decodedToken.uid;
 
-    const { displayName } = await request.json();
+    const ALLOWED_GENDERS = ["male", "female", "prefer_not_to_say"] as const;
+
+    const body = await request.json();
+    const { displayName, gender } = body as {
+      displayName?: string;
+      gender?: string;
+    };
 
     if (!displayName || !displayName.trim()) {
       return NextResponse.json({ error: "表示名が必要です" }, { status: 400 });
     }
 
-    await adminDb.collection("users").doc(userId).update({
+    const firestoreUpdates: Record<string, string> = {
       displayName: displayName.trim(),
-    });
+    };
+
+    if (gender !== undefined) {
+      const isAllowed = ALLOWED_GENDERS.includes(
+        gender as (typeof ALLOWED_GENDERS)[number]
+      );
+      if (!gender || typeof gender !== "string" || !isAllowed) {
+        return NextResponse.json({ error: "性別が不正です" }, { status: 400 });
+      }
+      firestoreUpdates.gender = gender;
+    }
+
+    await adminDb.collection("users").doc(userId).update(firestoreUpdates);
 
     await adminAuth.updateUser(userId, {
       displayName: displayName.trim(),

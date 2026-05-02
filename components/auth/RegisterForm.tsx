@@ -7,14 +7,12 @@ import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
   signInWithPopup,
-  updateProfile,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
 
 export default function RegisterForm() {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -49,7 +47,6 @@ export default function RegisterForm() {
 
         await setDoc(userDocRef, {
           email: user.email,
-          displayName: user.displayName || "ゲスト",
           teamId: null,
         });
 
@@ -70,52 +67,12 @@ export default function RegisterForm() {
         }
 
         await user.getIdToken(true);
-        try {
-          if (inviteCode) {
-            const joinResponse = await fetch("/api/team/join-by-invite", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${await user.getIdToken()}`,
-              },
-              body: JSON.stringify({ inviteCode }),
-            });
+        saveAuthTokenToCookie(user);
 
-            const joinResult = await joinResponse.json();
-
-            if (joinResponse.ok && joinResult.teamId) {
-              router.push("/supplies/list");
-            } else {
-              throw new Error("招待チームへの参加に失敗しました");
-            }
-          } else {
-            const displayName = user.displayName || "ゲスト";
-            const teamResponse = await fetch(API_ENDPOINTS.CREATE_TEAM, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${await user.getIdToken()}`,
-              },
-              body: JSON.stringify({
-                teamName: `${displayName}の家族`,
-                teamPassword: "",
-              }),
-            });
-
-            const teamResult = await teamResponse.json();
-
-            if (teamResponse.ok && teamResult.teamId) {
-              await user.getIdToken(true);
-              router.push(`/supplies/list?teamId=${teamResult.teamId}`);
-              router.refresh();
-            } else {
-              router.push("/supplies/list");
-            }
-          }
-        } catch (teamError) {
-          console.error("チーム処理エラー:", teamError);
-          router.push("/settings?tab=team");
-        }
+        const profileQuery = inviteCode
+          ? `?invite=${encodeURIComponent(inviteCode)}`
+          : "";
+        router.push(`/auth/register/profile${profileQuery}`);
       }
     } catch (_error: unknown) {
       if (_error instanceof Error && "code" in _error) {
@@ -148,11 +105,6 @@ export default function RegisterForm() {
     e.preventDefault();
     setError(null);
 
-    if (!name.trim()) {
-      setError("名前を入力してください");
-      return;
-    }
-
     if (password !== confirmPassword) {
       setError("パスワードが一致しません");
       return;
@@ -167,13 +119,8 @@ export default function RegisterForm() {
         password
       );
       if (userCredential.user) {
-        await updateProfile(userCredential.user, {
-          displayName: name.trim(),
-        });
-
         await setDoc(doc(db, "users", userCredential.user.uid), {
           email: email,
-          displayName: name.trim(),
           teamId: null,
         });
 
@@ -195,51 +142,10 @@ export default function RegisterForm() {
 
         saveAuthTokenToCookie(userCredential.user);
 
-        try {
-          if (inviteCode) {
-            const joinResponse = await fetch("/api/team/join-by-invite", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${await userCredential.user.getIdToken()}`,
-              },
-              body: JSON.stringify({ inviteCode }),
-            });
-
-            const joinResult = await joinResponse.json();
-
-            if (joinResponse.ok && joinResult.teamId) {
-              router.push("/supplies/list");
-            } else {
-              throw new Error("招待チームへの参加に失敗しました");
-            }
-          } else {
-            const teamResponse = await fetch(API_ENDPOINTS.CREATE_TEAM, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${await userCredential.user.getIdToken()}`,
-              },
-              body: JSON.stringify({
-                teamName: `${name.trim()}の家族`, // Google登録と同じデフォルト名
-                teamPassword: "",
-              }),
-            });
-
-            const teamResult = await teamResponse.json();
-
-            if (teamResponse.ok && teamResult.teamId) {
-              await userCredential.user.getIdToken(true);
-              router.push("/supplies/list");
-              router.refresh();
-            } else {
-              router.push("/settings?tab=team");
-            }
-          }
-        } catch (teamError) {
-          console.error("チーム処理エラー:", teamError);
-          router.push("/settings?tab=team");
-        }
+        const profileQuery = inviteCode
+          ? `?invite=${encodeURIComponent(inviteCode)}`
+          : "";
+        router.push(`/auth/register/profile${profileQuery}`);
       }
     } catch (_error: unknown) {
       if (_error instanceof Error && "code" in _error) {
@@ -274,7 +180,7 @@ export default function RegisterForm() {
                 グループへの招待を受けています
               </p>
               <p className='text-xs text-black'>
-                登録後、自動的にグループに参加します
+                プロフィール登録後、自動的にグループに参加します
               </p>
             </div>
           </div>
@@ -325,25 +231,6 @@ export default function RegisterForm() {
       </div>
 
       <form className='space-y-3 sm:space-y-4' onSubmit={handleSubmit}>
-        <div>
-          <label
-            className='block text-gray-900 text-sm font-medium mb-1 sm:mb-2'
-            htmlFor='name'
-          >
-            名前
-          </label>
-          <input
-            required
-            disabled={isLoading}
-            className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 text-base disabled:opacity-50'
-            id='name'
-            placeholder='表示名を入力'
-            type='text'
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-
         <div>
           <label
             className='block text-gray-900 text-sm font-medium mb-1 sm:mb-2'

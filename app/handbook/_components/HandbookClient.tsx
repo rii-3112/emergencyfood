@@ -43,6 +43,7 @@ export default function HandbookClient({
       case "supplies":
         return (
           <SuppliesChecklist
+            key={initialTeamData?.id ?? "no-team"}
             initialTeamData={initialTeamData}
             initialChecklistData={initialChecklistData}
           />
@@ -60,6 +61,7 @@ export default function HandbookClient({
       default:
         return (
           <SuppliesChecklist
+            key={initialTeamData?.id ?? "no-team"}
             initialTeamData={initialTeamData}
             initialChecklistData={initialChecklistData}
           />

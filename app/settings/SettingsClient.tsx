@@ -13,6 +13,7 @@ interface ServerUser {
   email: string;
   displayName?: string;
   teamId?: string;
+  gender?: string;
 }
 
 interface SettingsClientProps {

@@ -10,6 +10,10 @@ import {
   SUCCESS_MESSAGES,
   UI_CONSTANTS,
 } from "@/utils/constants";
+import {
+  compositionTotal,
+  resolveCompositionFromStockSettings,
+} from "@/utils/teamStockComposition";
 
 interface TeamSettingsProps {
   user: AppUser;
@@ -61,34 +65,23 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
   const [newTeamName, setNewTeamName] = useState("");
   const [updatingTeamName, setUpdatingTeamName] = useState(false);
 
-  // 備蓄管理設定
-  const [householdSize, setHouseholdSize] = useState(
-    team?.stockSettings?.householdSize || 1
+  const initialComposition = resolveCompositionFromStockSettings(
+    team?.stockSettings ?? null
   );
+
+  // 備蓄管理設定（人数の合計は年齢別の合計から算出）
   const [stockDays, setStockDays] = useState(
-    team?.stockSettings?.stockDays || 7
+    team?.stockSettings?.stockDays || 3
   );
   const [hasPets, setHasPets] = useState(team?.stockSettings?.hasPets || false);
   const [dogCount, setDogCount] = useState(team?.stockSettings?.dogCount || 0);
   const [catCount, setCatCount] = useState(team?.stockSettings?.catCount || 0);
   const [updatingStockSettings, setUpdatingStockSettings] = useState(false);
 
-  // 詳細設定
-  const [useDetailedComposition, setUseDetailedComposition] = useState(
-    team?.stockSettings?.useDetailedComposition || false
-  );
-  const [adultCount, setAdultCount] = useState(
-    team?.stockSettings?.composition?.adult || 0
-  );
-  const [childCount, setChildCount] = useState(
-    team?.stockSettings?.composition?.child || 0
-  );
-  const [infantCount, setInfantCount] = useState(
-    team?.stockSettings?.composition?.infant || 0
-  );
-  const [elderlyCount, setElderlyCount] = useState(
-    team?.stockSettings?.composition?.elderly || 0
-  );
+  const [adultCount, setAdultCount] = useState(initialComposition.adult);
+  const [childCount, setChildCount] = useState(initialComposition.child);
+  const [infantCount, setInfantCount] = useState(initialComposition.infant);
+  const [elderlyCount, setElderlyCount] = useState(initialComposition.elderly);
 
   // 通知設定
   const [notificationsEnabled, setNotificationsEnabled] = useState(
@@ -107,22 +100,26 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
     team?.stockSettings?.notifications?.weeklyReport || false
   );
 
+  const householdSize = compositionTotal({
+    adult: adultCount,
+    child: childCount,
+    infant: infantCount,
+    elderly: elderlyCount,
+  });
+
   // チーム設定が更新されたらstateを同期
   useEffect(() => {
     if (team?.stockSettings) {
-      setHouseholdSize(team.stockSettings.householdSize || 1);
-      setStockDays(team.stockSettings.stockDays || 7);
+      const comp = resolveCompositionFromStockSettings(team.stockSettings);
+      setStockDays(team.stockSettings.stockDays || 3);
       setHasPets(team.stockSettings.hasPets || false);
       setDogCount(team.stockSettings.dogCount || 0);
       setCatCount(team.stockSettings.catCount || 0);
 
-      setUseDetailedComposition(
-        team.stockSettings.useDetailedComposition || false
-      );
-      setAdultCount(team.stockSettings.composition?.adult || 0);
-      setChildCount(team.stockSettings.composition?.child || 0);
-      setInfantCount(team.stockSettings.composition?.infant || 0);
-      setElderlyCount(team.stockSettings.composition?.elderly || 0);
+      setAdultCount(comp.adult);
+      setChildCount(comp.child);
+      setInfantCount(comp.infant);
+      setElderlyCount(comp.elderly);
 
       setNotificationsEnabled(
         team.stockSettings.notifications?.enabled !== false
@@ -173,6 +170,15 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
   useEffect(() => {
     fetchUserTeams();
   }, [firebaseUser, fetchUserTeams]);
+
+  // 自動生成パターンから外れた名前に変更したら案内を閉じる
+  useEffect(() => {
+    if (!team?.name) return;
+    if (team.name.includes("の備蓄品") || team.name.includes("の家族")) {
+      return;
+    }
+    setShowGuide(false);
+  }, [team?.name]);
 
   if (loading) {
     return <div className='text-center py-8'>{ERROR_MESSAGES.LOADING}</div>;
@@ -293,6 +299,21 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
   const handleUpdateStockSettings = async () => {
     if (!team) return;
 
+    if (householdSize < 1) {
+      setMessage({
+        type: "error",
+        text: "家族の合計が1人以上になるよう、年齢別の人数を入力してください",
+      });
+      return;
+    }
+    if (householdSize > 50) {
+      setMessage({
+        type: "error",
+        text: "家族の合計は50人以内にしてください",
+      });
+      return;
+    }
+
     setUpdatingStockSettings(true);
     try {
       const idToken = await firebaseUser?.getIdToken();
@@ -314,15 +335,13 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
             hasPets,
             dogCount,
             catCount,
-            useDetailedComposition,
-            composition: useDetailedComposition
-              ? {
-                  adult: adultCount,
-                  child: childCount,
-                  infant: infantCount,
-                  elderly: elderlyCount,
-                }
-              : undefined,
+            useDetailedComposition: true,
+            composition: {
+              adult: adultCount,
+              child: childCount,
+              infant: infantCount,
+              elderly: elderlyCount,
+            },
             notifications: {
               enabled: notificationsEnabled,
               criticalStock: notifyCriticalStock,
@@ -510,71 +529,37 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
         </div>
       </div>
 
-      {/*デフォルトチーム名の場合のガイド */}
+      {/* デフォルトチーム名の場合のガイド（操作ボタンは下の共通セクションに集約） */}
       {showGuide && (
-        <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6 space-y-4'>
-          <div className='flex items-start space-x-3'>
-            <div>
-              <h3 className='font-bold text-lg text-gray-900 mb-2'>
-                グループ名をカスタマイズしましょう
-              </h3>
-              <p className='text-sm text-gray-700 mb-4'>
-                現在のグループ名は自動生成されたものです。好きな名前に変更したり、家族を招待したりできます。
-              </p>
-            </div>
-          </div>
-
-          <div className='space-y-3'>
-            <button
-              onClick={() => {
-                setShowGuide(false);
-                // そのまま招待リンク生成
-                generateInviteLink();
-              }}
-              className='w-full bg-orange-400 text-white font-semibold py-3 px-6 rounded-md hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
-            >
-              このチームで家族を招待する
-            </button>
-
-            <button
-              onClick={() => {
-                setShowGuide(false);
-                setShowCreateModal(true);
-              }}
-              className='w-full bg-white border-2 border-orange-400 text-orange-400 font-semibold py-3 px-6 rounded-md hover:bg-orange-50 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2'
-            >
-              新しい家族グループを作成する
-            </button>
-
-            <button
-              onClick={() => setShowGuide(false)}
-              className='w-full text-gray-600 text-sm hover:text-gray-900 transition-colors'
-            >
-              後で設定する
-            </button>
+        <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6'>
+          <div>
+            <h3 className='font-bold text-lg text-gray-900 mb-2'>
+              グループ名をカスタマイズしましょう
+            </h3>
+            <p className='text-sm text-gray-700'>
+              現在のグループ名は自動生成されたものです。上の入力欄で好きな名前に変更できるほか、この下から家族を招待したり別のグループを作成できます。
+            </p>
           </div>
         </div>
       )}
 
-      {/* 招待ボタン（ガイドを閉じた後、または複数チームの場合に表示） */}
-      {!showGuide && (
-        <div className='space-y-3'>
-          <button
-            onClick={generateInviteLink}
-            disabled={generatingInvite}
-            className='w-full bg-orange-400 text-white font-semibold py-3 px-6 rounded-md hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
-          >
-            {generatingInvite ? "生成中..." : "家族を招待する"}
-          </button>
+      {/* 招待・グループ作成 */}
+      <div className='space-y-3'>
+        <button
+          onClick={generateInviteLink}
+          disabled={generatingInvite}
+          className='w-full bg-orange-400 text-white font-semibold py-3 px-6 rounded-md hover:bg-orange-700 transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+        >
+          {generatingInvite ? "生成中..." : "家族を招待する"}
+        </button>
 
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className='w-full bg-white border-2 border-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-md hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2'
-          >
-            新しいグループを作成
-          </button>
-        </div>
-      )}
+        <button
+          onClick={() => setShowCreateModal(true)}
+          className='w-full bg-white border-2 border-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-md hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2'
+        >
+          新しいグループを作成
+        </button>
+      </div>
 
       {/* 招待リンクダイアログ */}
       {showInviteDialog && inviteLink && (
@@ -686,26 +671,22 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
         </h4>
         <div className='space-y-4'>
           <p className='text-sm text-orange-800'>
-            家族構成に応じて、各備蓄品の推奨在庫量を自動計算します
+            年齢別の家族構成に応じて、各備蓄品の推奨在庫量を自動計算します（ハンドブックのチェックリストにも反映されます）
           </p>
 
           <div>
             <label className='block text-sm font-medium text-gray-700 mb-2'>
-              家族の人数 <span className='text-red-500'>*</span>
+              家族の人数（年齢別の合計）
             </label>
             <div className='flex items-center gap-2'>
-              <input
-                type='number'
-                min='1'
-                max='50'
-                value={householdSize}
-                onChange={(e) =>
-                  setHouseholdSize(parseInt(e.target.value) || 1)
-                }
-                className='w-24 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-              />
+              <span className='text-lg font-semibold text-gray-900 tabular-nums'>
+                {householdSize}
+              </span>
               <span className='text-gray-600'>人</span>
             </div>
+            <p className='text-xs text-gray-500 mt-1'>
+              下の年齢別の人数を入力すると自動で合計されます（1〜50人）
+            </p>
           </div>
 
           <div>
@@ -723,7 +704,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
               <option value='30'>30日分</option>
             </select>
             <p className='text-xs text-gray-500 mt-1'>
-              ※ 政府推奨：最低3日分（1週間分以上が望ましい。広域災害に備えて）
+              ※最低3日分、できれば7日分が目安です。
             </p>
           </div>
 
@@ -783,107 +764,96 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
             )}
           </div>
 
-          {/* 詳細な家族構成設定 */}
+          {/* 家族構成（年齢別）—標準で利用 */}
           <div className='border-t pt-4'>
-            <label className='flex items-center gap-2 mb-3'>
-              <input
-                type='checkbox'
-                checked={useDetailedComposition}
-                onChange={(e) => setUseDetailedComposition(e.target.checked)}
-                className='rounded'
-              />
-              <span className='text-sm font-medium text-gray-700'>
-                詳細な家族構成を設定（より正確な計算）
-              </span>
-            </label>
+            <p className='text-sm font-medium text-gray-900 mb-2'>
+              家族構成（年齢別）
+            </p>
+            <p className='text-xs text-gray-600 mb-3'>
+              年齢層ごとに必要な備蓄量が異なります。人数はいつでも変更できます。
+            </p>
 
-            {useDetailedComposition && (
-              <div className='ml-6 space-y-3 bg-white p-3 rounded border border-gray-200'>
-                <p className='text-xs text-gray-600 mb-2'>
-                  年齢層ごとに必要な備蓄量が異なります
-                </p>
-
-                <div>
-                  <label className='block text-sm text-gray-600 mb-1'>
-                    👨 大人（18-64歳）
-                  </label>
-                  <div className='flex items-center gap-2'>
-                    <input
-                      type='number'
-                      min='0'
-                      max='20'
-                      value={adultCount}
-                      onChange={(e) =>
-                        setAdultCount(parseInt(e.target.value) || 0)
-                      }
-                      className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-                    />
-                    <span className='text-gray-600'>人</span>
-                  </div>
+            <div className='space-y-3 bg-white p-3 rounded border border-gray-200'>
+              <div>
+                <label className='block text-sm text-gray-600 mb-1'>
+                  👨 大人（18-64歳）
+                </label>
+                <div className='flex items-center gap-2'>
+                  <input
+                    type='number'
+                    min='0'
+                    max='20'
+                    value={adultCount}
+                    onChange={(e) =>
+                      setAdultCount(parseInt(e.target.value) || 0)
+                    }
+                    className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  />
+                  <span className='text-gray-600'>人</span>
                 </div>
-
-                <div>
-                  <label className='block text-sm text-gray-600 mb-1'>
-                    👦 子供（6-17歳）
-                  </label>
-                  <div className='flex items-center gap-2'>
-                    <input
-                      type='number'
-                      min='0'
-                      max='10'
-                      value={childCount}
-                      onChange={(e) =>
-                        setChildCount(parseInt(e.target.value) || 0)
-                      }
-                      className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-                    />
-                    <span className='text-gray-600'>人</span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className='block text-sm text-gray-600 mb-1'>
-                    👶 乳幼児（0-5歳）
-                  </label>
-                  <div className='flex items-center gap-2'>
-                    <input
-                      type='number'
-                      min='0'
-                      max='5'
-                      value={infantCount}
-                      onChange={(e) =>
-                        setInfantCount(parseInt(e.target.value) || 0)
-                      }
-                      className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-                    />
-                    <span className='text-gray-600'>人</span>
-                  </div>
-                </div>
-
-                <div>
-                  <label className='block text-sm text-gray-600 mb-1'>
-                    👴 高齢者（65歳以上）
-                  </label>
-                  <div className='flex items-center gap-2'>
-                    <input
-                      type='number'
-                      min='0'
-                      max='10'
-                      value={elderlyCount}
-                      onChange={(e) =>
-                        setElderlyCount(parseInt(e.target.value) || 0)
-                      }
-                      className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-                    />
-                    <span className='text-gray-600'>人</span>
-                  </div>
-                </div>
-
-                <p className='text-xs text-blue-600 mt-2'>
-                  合計: {adultCount + childCount + infantCount + elderlyCount}人
-                </p>
               </div>
-            )}
+
+              <div>
+                <label className='block text-sm text-gray-600 mb-1'>
+                  👦 子供（6-17歳）
+                </label>
+                <div className='flex items-center gap-2'>
+                  <input
+                    type='number'
+                    min='0'
+                    max='10'
+                    value={childCount}
+                    onChange={(e) =>
+                      setChildCount(parseInt(e.target.value) || 0)
+                    }
+                    className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  />
+                  <span className='text-gray-600'>人</span>
+                </div>
+              </div>
+
+              <div>
+                <label className='block text-sm text-gray-600 mb-1'>
+                  👶 乳幼児（0-5歳）
+                </label>
+                <div className='flex items-center gap-2'>
+                  <input
+                    type='number'
+                    min='0'
+                    max='5'
+                    value={infantCount}
+                    onChange={(e) =>
+                      setInfantCount(parseInt(e.target.value) || 0)
+                    }
+                    className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  />
+                  <span className='text-gray-600'>人</span>
+                </div>
+              </div>
+
+              <div>
+                <label className='block text-sm text-gray-600 mb-1'>
+                  👴 高齢者（65歳以上）
+                </label>
+                <div className='flex items-center gap-2'>
+                  <input
+                    type='number'
+                    min='0'
+                    max='10'
+                    value={elderlyCount}
+                    onChange={(e) =>
+                      setElderlyCount(parseInt(e.target.value) || 0)
+                    }
+                    className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  />
+                  <span className='text-gray-600'>人</span>
+                </div>
+              </div>
+
+              <p className='text-xs text-blue-700 mt-2 font-medium'>
+                合計: {householdSize}人
+              </p>
+            </div>
           </div>
 
           {/* 通知設定 */}

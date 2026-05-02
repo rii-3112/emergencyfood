@@ -49,6 +49,7 @@ export const SUCCESS_MESSAGES = {
   LINE_ACCOUNT_UNLINKED: "LINEアカウントの連携が解除されました。",
   PASSWORD_CHANGED: "パスワードが変更されました。",
   NAME_UPDATED: "名前が更新されました。",
+  PROFILE_UPDATED: "プロフィールを更新しました。",
   ADMIN_ADDED: "管理者を追加しました。",
   ADMIN_REMOVED: "管理者を削除しました。",
   LOGOUT_SUCCESS: "ログアウトしました。",
@@ -106,6 +107,12 @@ export const UI_CONSTANTS = {
   SAVE: "保存",
 } as const;
 
+export const PROFILE_GENDER_OPTIONS = [
+  { value: "male", label: "男性" },
+  { value: "female", label: "女性" },
+  { value: "prefer_not_to_say", label: "回答しない" },
+] as const;
+
 export const API_ENDPOINTS = {
   ARCHIVE_FOOD: "/api/actions/archive-supply",
   RESTORE_FOOD: "/api/actions/restore-supply",
@@ -125,6 +132,8 @@ export const API_ENDPOINTS = {
   SET_TEAM_CLAIM: "/api/setTeamClaim",
   SET_CUSTOM_CLAIMS: "/api/setCustomClaims",
 } as const;
+
+export const DEFAULT_TEAM_STOCK_DAYS = 3;
 
 export const FOOD_CATEGORIES = [
   // 備蓄品・飲料

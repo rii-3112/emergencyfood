@@ -48,7 +48,12 @@ export interface TeamMember {
 }
 
 // 備蓄管理設定
-export type AgeGroup = "adult" | "child" | "infant" | "elderly";
+export type AgeGroup =
+  | "household_shared"
+  | "adult"
+  | "child"
+  | "infant"
+  | "elderly";
 
 export interface HouseholdComposition {
   adult: number; // 大人（18-64歳）
@@ -68,7 +73,7 @@ export interface NotificationSettings {
 export interface TeamStockSettings {
   // 簡易設定（後方互換性のため残す）
   householdSize: number; // 家族の人数（合計）
-  stockDays: number; // 目標備蓄日数（デフォルト: 7日）
+  stockDays: number; // 目標備蓄日数（初期表示: 3日)
   hasPets: boolean; // ペットの有無
   dogCount?: number; // 犬の数
   catCount?: number; // 猫の数

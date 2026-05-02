@@ -10,7 +10,7 @@ interface UseAuthReturn {
   loading: boolean;
   error: string | null;
   logout: () => Promise<void>;
-  updateUserName: (displayName: string) => Promise<void>;
+  updateUserName: (displayName: string, gender?: string) => Promise<void>;
   changePassword: (newPassword: string) => Promise<void>;
 }
 
@@ -60,7 +60,7 @@ export const useAuth = (requireAuth = false): UseAuthReturn => {
     }
   };
 
-  const updateUserName = async (displayName: string) => {
+  const updateUserName = async (displayName: string, gender?: string) => {
     if (!user) {
       throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
     }
@@ -76,15 +76,17 @@ export const useAuth = (requireAuth = false): UseAuthReturn => {
       });
 
       const idToken = await user.getIdToken();
+      const body: { displayName: string; gender?: string } = { displayName };
+      if (gender !== undefined) {
+        body.gender = gender;
+      }
       const response = await fetch(API_ENDPOINTS.UPDATE_USER_NAME, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
-        body: JSON.stringify({
-          displayName,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {

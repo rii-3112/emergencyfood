@@ -3,17 +3,24 @@ import { useAuth } from "@/hooks";
 import type { AppUser } from "@/types";
 import {
   ERROR_MESSAGES,
+  PROFILE_GENDER_OPTIONS,
   SUCCESS_MESSAGES,
   UI_CONSTANTS,
 } from "@/utils/constants";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+function normalizeStoredGender(g?: string): string {
+  if (!g) return "";
+  if (g === "other") return "prefer_not_to_say";
+  return g;
+}
 
 interface AccountSettingsProps {
-  user: AppUser;
+  user: AppUser & { gender?: string };
 }
 
 export default function AccountSettings({ user }: AccountSettingsProps) {
-  const { updateUserName, changePassword } = useAuth();
+  const { updateUserName, changePassword, user: authUser } = useAuth();
 
   const getDisplayName = () => {
     return user.displayName || user.email;
@@ -24,6 +31,9 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
   };
 
   const [displayName, setDisplayName] = useState(getEditDisplayName());
+  const [gender, setGender] = useState(() =>
+    normalizeStoredGender(user.gender)
+  );
   const [isEditingName, setIsEditingName] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -33,6 +43,10 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  useEffect(() => {
+    setGender(normalizeStoredGender(user.gender));
+  }, [user.gender]);
   //名前保存
   const handleNameSave = async () => {
     if (!displayName.trim()) {
@@ -51,6 +65,43 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
       setLoading(false);
     }
   };
+
+  const handleGenderSave = async () => {
+    if (!gender) {
+      setMessage({ type: "error", text: "性別を選択してください" });
+      return;
+    }
+
+    const nameForApi =
+      authUser?.displayName?.trim() ||
+      displayName.trim() ||
+      user.displayName?.trim() ||
+      "";
+
+    if (!nameForApi) {
+      setMessage({
+        type: "error",
+        text: "先にアカウント名を設定してください",
+      });
+      return;
+    }
+
+    if (!authUser) {
+      setMessage({ type: "error", text: ERROR_MESSAGES.UNAUTHORIZED });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await updateUserName(nameForApi, gender);
+      setMessage({ type: "success", text: SUCCESS_MESSAGES.PROFILE_UPDATED });
+    } catch (_error) {
+      setMessage({ type: "error", text: ERROR_MESSAGES.NAME_UPDATE_FAILED });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   //パスワード変更
   const handlePasswordChange = async () => {
     if (newPassword.length < 6) {
@@ -151,7 +202,41 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
           <span className='text-gray-900'>{user.email}</span>
         </div>
       </div>
-      {/* パスワード変更 */}
+      <div className='space-y-2'>
+        <label
+          className='block text-sm font-medium text-gray-900'
+          htmlFor='settings-gender'
+        >
+          性別（必要な備蓄品を推奨するため）
+        </label>
+        <p className='text-xs text-gray-600 leading-relaxed'>
+          ハンドブックの備蓄リストで、あなたに適した備蓄品を推奨する初期状態のために使います。あとからでもここから変更できます。
+        </p>
+        <div className='flex flex-col sm:flex-row gap-2'>
+          <select
+            disabled={loading}
+            className='flex-1 px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black bg-white disabled:opacity-50'
+            id='settings-gender'
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+          >
+            <option value=''>選択してください</option>
+            {PROFILE_GENDER_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <button
+            className='px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50 transition-colors shrink-0'
+            disabled={loading}
+            type='button'
+            onClick={handleGenderSave}
+          >
+            {loading ? UI_CONSTANTS.PROCESSING : UI_CONSTANTS.SAVE}
+          </button>
+        </div>
+      </div>
       <div className='space-y-2'>
         <label className='block text-sm font-medium text-gray-900'>
           パスワード変更

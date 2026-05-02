@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import type { Supply, TeamStockSettings } from "@/types";
+import { DEFAULT_TEAM_STOCK_DAYS } from "@/utils/constants";
 import { aggregateStockStatus } from "@/utils/stockCalculator";
 import {
   getMissingCategoriesByPriority,
@@ -28,7 +29,7 @@ export function MissingCategoriesAlert({
     quantity: s.quantity,
   }));
 
-  const derivedDays = teamStockSettings?.stockDays || 14;
+  const derivedDays = teamStockSettings?.stockDays ?? DEFAULT_TEAM_STOCK_DAYS;
   const missing = getMissingCategoriesByPriority(
     userSupplies,
     teamStockSettings

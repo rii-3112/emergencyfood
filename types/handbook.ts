@@ -1,8 +1,14 @@
-export type AgeGroup = "adult" | "child" | "infant" | "elderly";
+export type AgeGroup =
+  | "household_shared"
+  | "adult"
+  | "child"
+  | "infant"
+  | "elderly";
 
 export type PetType = "dog" | "cat" | "small_animal" | "bird";
 
 export const AGE_GROUP_LABELS: Record<AgeGroup, string> = {
+  household_shared: "世帯共通",
   adult: "大人（18-64歳）",
   child: "子供（6-17歳）",
   infant: "乳幼児（0-5歳）",
@@ -17,6 +23,7 @@ export const PET_TYPE_LABELS: Record<PetType, string> = {
 };
 
 export const AGE_GROUP_EMOJIS: Record<AgeGroup, string> = {
+  household_shared: "",
   adult: "",
   child: "",
   infant: "",

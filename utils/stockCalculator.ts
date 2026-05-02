@@ -1,6 +1,7 @@
 // utils/stockCalculator.ts
 
 import type { Supply, TeamStockSettings } from "@/types";
+import { DEFAULT_TEAM_STOCK_DAYS } from "@/utils/constants";
 import { getRecommendation } from "./stockRecommendations";
 
 export interface StockStatus {
@@ -17,10 +18,17 @@ export interface StockStatus {
 export function getDefaultSettings(): TeamStockSettings {
   return {
     householdSize: 1,
-    stockDays: 7,
+    stockDays: DEFAULT_TEAM_STOCK_DAYS,
     hasPets: false,
     dogCount: 0,
     catCount: 0,
+    useDetailedComposition: true,
+    composition: {
+      adult: 1,
+      child: 0,
+      infant: 0,
+      elderly: 0,
+    },
   };
 }
 
