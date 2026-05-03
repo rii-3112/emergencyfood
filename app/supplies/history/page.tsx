@@ -3,6 +3,8 @@ import { fetchHistoriesFromDB } from "@/utils/data/server";
 import { redirect } from "next/navigation";
 import SupplyHistoryView from "./_components/SupplyHistoryView";
 
+export const dynamic = "force-dynamic";
+
 export default async function SupplyHistoryPage() {
   const user = await getServerUser();
   if (!user) {
