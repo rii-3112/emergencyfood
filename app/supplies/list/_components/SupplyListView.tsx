@@ -14,6 +14,7 @@ interface ServerUser {
   email: string;
   displayName?: string;
   teamId?: string;
+  gender?: string;
 }
 
 interface SupplyListViewProps {
@@ -242,14 +243,9 @@ export default function SupplyListView({
               ? `${filteredSupplies.length}件の検索結果（全${supplies.length}件）`
               : `${supplies.length}件の備蓄品`}
           </p>
-          <div className='flex items-center gap-3'>
-            <Button variant='secondary' asChild>
-              <Link href='/supplies/history'>備蓄履歴を見る</Link>
-            </Button>
-            <Button asChild>
-              <Link href='/supplies/add'>備蓄品を追加</Link>
-            </Button>
-          </div>
+          <Button asChild>
+            <Link href='/supplies/add'>備蓄品を追加</Link>
+          </Button>
         </div>
       </div>
 
@@ -258,6 +254,7 @@ export default function SupplyListView({
         supplies={sortedSupplies}
         teamId={user.teamId}
         teamStockSettings={team?.stockSettings}
+        viewerGender={user.gender}
       />
       {/* 備蓄品 */}
       <div className='space-y-4'>

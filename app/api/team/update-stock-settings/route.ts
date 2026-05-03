@@ -62,6 +62,12 @@ export async function POST(req: Request) {
     }
 
     const teamData = teamDoc.data();
+    const previousStock =
+      teamData?.stockSettings &&
+      typeof teamData.stockSettings === "object"
+        ? (teamData.stockSettings as Partial<TeamStockSettings>)
+        : undefined;
+
     const isOwner = teamData?.ownerId === uid;
     const isAdmin = teamData?.admins?.includes(uid);
 
@@ -72,6 +78,13 @@ export async function POST(req: Request) {
       );
     }
 
+    const needsSanitaryResolved =
+      typeof stockSettings.needsSanitarySupplies === "boolean"
+        ? stockSettings.needsSanitarySupplies
+        : typeof previousStock?.needsSanitarySupplies === "boolean"
+          ? previousStock.needsSanitarySupplies
+          : undefined;
+
     const settingsToSave: TeamStockSettings = {
       householdSize: stockSettings.householdSize,
       stockDays: stockSettings.stockDays,
@@ -79,6 +92,9 @@ export async function POST(req: Request) {
       dogCount: stockSettings.dogCount || 0,
       catCount: stockSettings.catCount || 0,
       updatedAt: new Date().toISOString(),
+      ...(needsSanitaryResolved !== undefined
+        ? { needsSanitarySupplies: needsSanitaryResolved }
+        : {}),
       ...(stockSettings.useDetailedComposition
         ? {
             useDetailedComposition: true,

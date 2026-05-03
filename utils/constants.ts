@@ -113,6 +113,11 @@ export const PROFILE_GENDER_OPTIONS = [
   { value: "prefer_not_to_say", label: "回答しない" },
 ] as const;
 
+/** ログイン後のハブ（備蓄・ハンドブックへの入口） */
+export const APP_ROUTES = {
+  HOME: "/home",
+} as const;
+
 export const API_ENDPOINTS = {
   ARCHIVE_FOOD: "/api/actions/archive-supply",
   RESTORE_FOOD: "/api/actions/restore-supply",
@@ -161,6 +166,7 @@ export const FOOD_CATEGORIES = [
   "医薬品",
   "懐中電灯・電池",
   "カセットコンロ・ガスボンベ",
+  "カセットコンロ（本体）",
   "ラップ・アルミホイル",
   "ポリ袋・ゴミ袋",
   "ペットフード",

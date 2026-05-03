@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/hooks";
+import { APP_ROUTES } from "@/utils/constants";
 
 interface HeaderProps {
   onLogoClick: () => void;
@@ -41,7 +42,8 @@ export default function Header({
   const shouldShowNavLinks =
     (isLoggedIn && !shouldHideNavLinks && pathname.startsWith("/supplies")) ||
     pathname.startsWith("/settings") ||
-    pathname.startsWith("/handbook");
+    pathname.startsWith("/handbook") ||
+    pathname.startsWith("/home");
 
   const getUrlWithTeamId = (basePath: string) => {
     return basePath;
@@ -92,7 +94,7 @@ export default function Header({
         await user.getIdToken(true);
         setIsTeamMenuOpen(false);
         // ページ全体をリロード（状態を完全にリセット）
-        window.location.href = "/supplies/list";
+        window.location.href = APP_ROUTES.HOME;
       }
     } catch (error) {
       console.error("チーム切り替えエラー:", error);
@@ -108,6 +110,7 @@ export default function Header({
   };
 
   const defaultNavLinks = [
+    { href: getUrlWithTeamId(APP_ROUTES.HOME), label: "ホーム" },
     { href: getUrlWithTeamId("/supplies/list"), label: "備蓄品リスト" },
     { href: getUrlWithTeamId("/supplies/add"), label: "備蓄品登録" },
     { href: getUrlWithTeamId("/supplies/history"), label: "備蓄履歴" },

@@ -1,6 +1,10 @@
 import { getServerUser } from "@/utils/auth/server";
 import { redirect } from "next/navigation";
-import SupplyAddForm from "./_components/SupplyAddForm";
+import { Suspense } from "react";
+
+import SupplyAddForm, {
+  SupplyAddFormFallback,
+} from "./_components/SupplyAddForm";
 
 export default async function SupplyAddPage() {
   const user = await getServerUser();
@@ -20,7 +24,9 @@ export default async function SupplyAddPage() {
         <p className='text-gray-600'>備蓄品の詳細情報を入力</p>
       </header>
 
-      <SupplyAddForm user={user} />
+      <Suspense fallback={<SupplyAddFormFallback />}>
+        <SupplyAddForm user={user} />
+      </Suspense>
     </div>
   );
 }

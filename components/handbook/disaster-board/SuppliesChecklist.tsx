@@ -1,6 +1,11 @@
 "use client";
 import { useAuth } from "@/hooks";
-import type { AgeGroupChecklist, PetChecklist, Team } from "@/types";
+import type {
+  AgeGroupChecklist,
+  PetChecklist,
+  Team,
+  TeamStockSettings,
+} from "@/types";
 import {
   AGE_GROUP_LABELS,
   PET_TYPE_EMOJIS,
@@ -9,13 +14,22 @@ import {
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { DEFAULT_TEAM_STOCK_DAYS } from "@/utils/constants";
 import { getSupplyDraftFromHandbookChecklistItem } from "@/utils/checklistSupplyDraft";
+import { DEFAULT_TEAM_STOCK_DAYS } from "@/utils/constants";
 import {
   compositionTotal,
   effectiveDetailedCompositionFlag,
   resolveCompositionFromStockSettings,
 } from "@/utils/teamStockComposition";
+
+function resolveNeedsSanitaryFromSavedStock(
+  stock: TeamStockSettings | null | undefined
+): boolean {
+  const explicit = stock?.needsSanitarySupplies;
+  if (explicit === true) return true;
+  if (explicit === false) return false;
+  return true;
+}
 
 /** 人数に比例しない・世帯で共有する備蓄チェック（各カードの先頭に表示） */
 function createHouseholdSharedAgeGroup(): AgeGroupChecklist {
@@ -187,6 +201,9 @@ export default function SuppliesChecklist({
   const [catCount, setCatCount] = useState(
     initialTeamData?.stockSettings?.catCount ?? 0
   );
+  const [needsSanitarySupplies, setNeedsSanitarySupplies] = useState(() =>
+    resolveNeedsSanitaryFromSavedStock(initialTeamData?.stockSettings)
+  );
   const [updatingStockSettings, setUpdatingStockSettings] = useState(false);
 
   const [adultCount, setAdultCount] = useState(initialComposition.adult);
@@ -349,6 +366,7 @@ export default function SuppliesChecklist({
     setChildCount(comp.child);
     setInfantCount(comp.infant);
     setElderlyCount(comp.elderly);
+    setNeedsSanitarySupplies(resolveNeedsSanitaryFromSavedStock(stock));
     if (stock) {
       setStockDays(stock.stockDays ?? DEFAULT_TEAM_STOCK_DAYS);
       setHasPets(stock.hasPets ?? false);
@@ -856,6 +874,7 @@ export default function SuppliesChecklist({
               expiryNear: notifyExpiryNear,
               weeklyReport: notifyWeeklyReport,
             },
+            needsSanitarySupplies,
           },
         }),
       });
@@ -1051,6 +1070,25 @@ export default function SuppliesChecklist({
                   </p>
                 </div>
               )}
+            </div>
+
+            <div className='border-t pt-4'>
+              <label className='flex items-start gap-2'>
+                <input
+                  type='checkbox'
+                  checked={needsSanitarySupplies}
+                  onChange={(e) => setNeedsSanitarySupplies(e.target.checked)}
+                  className='rounded mt-0.5 shrink-0'
+                />
+                <span>
+                  <span className='text-sm font-medium text-gray-700'>
+                    生理用品などが世帯で必要
+                  </span>
+                  <span className='block text-xs text-gray-500 mt-1 leading-snug'>
+                    不要なときはオフにして保存してください。
+                  </span>
+                </span>
+              </label>
             </div>
 
             <div className='border-t pt-4'>

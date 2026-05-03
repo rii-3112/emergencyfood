@@ -4,6 +4,7 @@ import {
   removeAuthTokenFromCookie,
   saveAuthTokenToCookie,
 } from "@/utils/auth/cookies";
+import { APP_ROUTES } from "@/utils/constants";
 import { auth, onAuthStateChanged } from "@/utils/firebase";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -51,7 +52,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const isAllowedForTeamUsersPage =
         currentPath.startsWith("/supplies/") ||
         currentPath.startsWith("/handbook") ||
-        currentPath.startsWith("/settings");
+        currentPath.startsWith("/settings") ||
+        currentPath.startsWith("/home");
 
       const isSettingsPage = currentPath.startsWith("/settings");
       let targetPath: string | null = null;
@@ -108,7 +110,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             !isTeamRelatedPage &&
             !isHomepage &&
             !isSettingsPage &&
-            !isAuthPage
+            !isAuthPage &&
+            !currentPath.startsWith("/home")
           ) {
             targetPath = "/";
           } else {
@@ -196,7 +199,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     if (!user) {
       router.push("/");
     } else if (teamId !== null) {
-      router.push("/supplies/list");
+      router.push(APP_ROUTES.HOME);
     } else {
       router.push("/settings?tab=team");
     }

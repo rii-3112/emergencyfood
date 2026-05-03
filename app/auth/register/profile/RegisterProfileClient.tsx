@@ -5,6 +5,7 @@ import { saveAuthTokenToCookie } from "@/utils/auth/cookies";
 import { navigateAfterRegistrationProfile } from "@/utils/auth/postRegistrationNavigate";
 import {
   API_ENDPOINTS,
+  APP_ROUTES,
   ERROR_MESSAGES,
   PROFILE_GENDER_OPTIONS,
 } from "@/utils/constants";
@@ -46,7 +47,7 @@ export default function RegisterProfileClient() {
         const snap = await getDoc(doc(db, "users", uid));
         const data = snap.data();
         if (!cancelled && data?.gender) {
-          router.replace("/supplies/list");
+          router.replace(APP_ROUTES.HOME);
           return;
         }
       } catch {

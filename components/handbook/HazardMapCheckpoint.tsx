@@ -138,12 +138,12 @@ export default function HazardMapCheckpoint() {
               全国のハザードマップを一括検索できます
             </p>
             <a
-              href='https://disaportaldata.gsi.go.jp/raster/01_flood_l2_shinsuishin_data/'
+              href='https://disaportal.gsi.go.jp/'
               target='_blank'
               rel='noopener noreferrer'
               className='text-blue-600 hover:underline text-sm'
             >
-              https://disaportaldata.gsi.go.jp/
+              https://disaportal.gsi.go.jp/
             </a>
           </div>
 

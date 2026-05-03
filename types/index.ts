@@ -12,6 +12,8 @@ export interface AppUser extends BaseFormData {
   uid: string;
   email: string;
   displayName?: string | null;
+  /** 備蓄おすすめ（生理用品など）用途。Firestore users / サーバー側で付与することがある */
+  gender?: string | null;
   teamId?: string | null;
   teams?: string[];
   activeTeamId?: string | null;
@@ -87,6 +89,9 @@ export interface TeamStockSettings {
 
   // 備蓄レベル設定
   stockLevel?: "beginner" | "standard" | "advanced"; // 備蓄レベル
+
+  /** 生理用品などを備蓄リストの推奨に含める世帯。未設定時はログインアカウントが男性のみ除外など従来挙動。 */
+  needsSanitarySupplies?: boolean;
 
   updatedAt?: string; // 更新日時
 }

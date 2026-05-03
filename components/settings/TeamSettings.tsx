@@ -15,6 +15,16 @@ import {
   resolveCompositionFromStockSettings,
 } from "@/utils/teamStockComposition";
 
+function resolveNeedsSanitarySuppliesForForm(
+  team: Team | null | undefined,
+  profileGender?: string | null
+): boolean {
+  const explicit = team?.stockSettings?.needsSanitarySupplies;
+  if (explicit === true) return true;
+  if (explicit === false) return false;
+  return profileGender !== "male";
+}
+
 interface TeamSettingsProps {
   user: AppUser;
   initialTeam?: Team | null;
@@ -100,6 +110,12 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
     team?.stockSettings?.notifications?.weeklyReport || false
   );
 
+  const profileGender = user.gender ?? undefined;
+
+  const [needsSanitarySupplies, setNeedsSanitarySupplies] = useState(() =>
+    resolveNeedsSanitarySuppliesForForm(team ?? null, profileGender)
+  );
+
   const householdSize = compositionTotal({
     adult: adultCount,
     child: childCount,
@@ -109,6 +125,9 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
   // チーム設定が更新されたらstateを同期
   useEffect(() => {
+    setNeedsSanitarySupplies(
+      resolveNeedsSanitarySuppliesForForm(team ?? null, profileGender)
+    );
     if (team?.stockSettings) {
       const comp = resolveCompositionFromStockSettings(team.stockSettings);
       setStockDays(team.stockSettings.stockDays || 3);
@@ -135,7 +154,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
         team.stockSettings.notifications?.weeklyReport || false
       );
     }
-  }, [team]);
+  }, [team, profileGender]);
 
   // 所属チーム一覧を取得
   const fetchUserTeams = useCallback(async () => {
@@ -349,6 +368,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
               expiryNear: notifyExpiryNear,
               weeklyReport: notifyWeeklyReport,
             },
+            needsSanitarySupplies,
           },
         }),
       });
@@ -762,6 +782,25 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                 </div>
               </div>
             )}
+          </div>
+
+          <div className='border-t pt-4'>
+            <label className='flex items-start gap-2'>
+              <input
+                type='checkbox'
+                checked={needsSanitarySupplies}
+                onChange={(e) => setNeedsSanitarySupplies(e.target.checked)}
+                className='rounded mt-0.5 shrink-0'
+              />
+              <span>
+                <span className='text-sm font-medium text-gray-800'>
+                  世帯で生理用品などが必要
+                </span>
+                <span className='block text-xs text-gray-500 mt-1 leading-snug'>
+                  家族に該当者がいればオンで保存してください
+                </span>
+              </span>
+            </label>
           </div>
 
           {/* 家族構成（年齢別）—標準で利用 */}

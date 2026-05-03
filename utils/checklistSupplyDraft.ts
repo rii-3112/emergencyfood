@@ -12,7 +12,7 @@ type ChecklistItemDraftDef = {
 /** チェックリスト項目 ID → 備蓄リスト登録時のデフォルト（省略時は その他系） */
 const CHECKLIST_SUPPLY_DRAFT: Record<string, ChecklistItemDraftDef> = {
   "household-stove": {
-    category: "カセットコンロ・ガスボンベ",
+    category: "カセットコンロ（本体）",
     unit: "個",
     nameOverride: "カセットコンロ（本体）",
   },

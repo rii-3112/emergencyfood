@@ -1,6 +1,6 @@
 import type { User } from "firebase/auth";
 
-import { API_ENDPOINTS } from "@/utils/constants";
+import { API_ENDPOINTS, APP_ROUTES } from "@/utils/constants";
 
 type NavigateRouter = {
   push: (href: string) => void;
@@ -33,7 +33,7 @@ export async function navigateAfterRegistrationProfile(
       const joinResult = await joinResponse.json();
 
       if (joinResponse.ok && joinResult.teamId) {
-        router.push("/supplies/list");
+        router.push(APP_ROUTES.HOME);
       } else {
         throw new Error("招待チームへの参加に失敗しました");
       }
@@ -54,7 +54,7 @@ export async function navigateAfterRegistrationProfile(
 
       if (teamResponse.ok && teamResult.teamId) {
         await user.getIdToken(true);
-        router.push("/supplies/list");
+        router.push(APP_ROUTES.HOME);
         router.refresh();
       } else {
         router.push("/settings?tab=team");

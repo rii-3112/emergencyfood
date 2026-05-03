@@ -9,7 +9,22 @@ interface UseSupplyFormProps {
   teamId: string | null;
   mode?: FormMode;
   supplyId?: string;
-  initialData?: SupplyFormData;
+  initialData?: Partial<SupplyFormData>;
+}
+
+function mergeDefinedPreset(
+  base: SupplyFormData,
+  preset?: Partial<SupplyFormData>
+): SupplyFormData {
+  if (!preset) return base;
+  const next = { ...base };
+  (Object.keys(preset) as (keyof SupplyFormData)[]).forEach((key) => {
+    const value = preset[key];
+    if (value === undefined || value === null) return;
+    if (value === "") return;
+    (next as Record<string, unknown>)[key as string] = value;
+  });
+  return next;
 }
 
 interface UseSupplyFormReturn {
@@ -46,15 +61,24 @@ export function useSupplyForm({
 }: UseSupplyFormProps): UseSupplyFormReturn {
   const router = useRouter();
   const { user } = useAuth();
-  const [formData, setFormData] = useState<SupplyFormData>(initialFormState);
+  const [formData, setFormData] = useState<SupplyFormData>(() =>
+    mergeDefinedPreset(initialFormState, initialData)
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Initialize form data
+  // 初期データ（編集／URL プリセットなど）
   useEffect(() => {
-    if (mode === "edit" && initialData) {
-      setFormData(initialData);
+    if (!initialData) return;
+
+    if (mode === "edit") {
+      setFormData(mergeDefinedPreset(initialFormState, initialData));
+      return;
+    }
+
+    if (mode === "add") {
+      setFormData((prev) => mergeDefinedPreset(prev, initialData));
     }
   }, [mode, initialData]);
 

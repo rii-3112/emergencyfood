@@ -17,6 +17,12 @@ export interface StockRecommendation {
     infant: number; // 乳幼児（0-5歳）
     elderly: number; // 高齢者（65歳以上）
   };
+
+  /**
+   * 世帯あたりこの台数・個数を目標にする（人日あたり消費モデルとは別）。
+   * 設定時は「○日分」ベースのアラートにしない。
+   */
+  householdUnitTarget?: number;
 }
 
 // 備蓄レベル別のカテゴリ設定
@@ -78,6 +84,7 @@ export const STOCK_LEVELS = {
       "医薬品",
       "懐中電灯・電池",
       "カセットコンロ・ガスボンベ",
+      "カセットコンロ（本体）",
       "ラップ・アルミホイル",
       "ポリ袋・ゴミ袋",
       "ペットフード",
@@ -264,10 +271,12 @@ export const STOCK_RECOMMENDATIONS: Record<string, StockRecommendation> = {
   },
   トイレットペーパー: {
     category: "トイレットペーパー",
-    perPersonPerDay: 0.25, // 4日で1ロール
+    // 平常は「おおよそ4日で1ロール/人」程度の目安。防災時は使い増え・他用途を少し織り込み 0.35（約3日弱で1ロール/人）で算出。
+    perPersonPerDay: 0.35,
     unit: "ロール",
     priority: "essential",
-    description: "日用品で最も重要",
+    description:
+      "日用品で最も重要（目安は人数×備蓄日数で増えます。買い足しは12ロールパック等でも可）",
   },
   ティッシュペーパー: {
     category: "ティッシュペーパー",
@@ -385,7 +394,15 @@ export const STOCK_RECOMMENDATIONS: Record<string, StockRecommendation> = {
     perPersonPerDay: 0.5,
     unit: "本",
     priority: "essential",
-    description: "停電時の調理に必須",
+    description: "カセットガス缶など燃料の消耗ペースの目安",
+  },
+  "カセットコンロ（本体）": {
+    category: "カセットコンロ（本体）",
+    perPersonPerDay: 0,
+    householdUnitTarget: 1,
+    unit: "台",
+    priority: "important",
+    description: "停電時に使うコンロ本体",
   },
   "ラップ・アルミホイル": {
     category: "ラップ・アルミホイル",
@@ -442,41 +459,75 @@ export function getRecommendationsByPriority(
   return getAllRecommendations().filter((rec) => rec.priority === priority);
 }
 
+export type StockTeamFilterSettings =
+  | {
+      composition?: { infant?: number };
+      hasPets?: boolean;
+      needsSanitarySupplies?: boolean;
+    }
+  | null
+  | undefined;
+
+/** ログイン利用者の gender（未設定可）。needsSanitarySupplies 未設定のとき生理用品可否のfallbackに利用 */
+export type StockRecommendationViewerGender = string | null | undefined;
+
+/** 乳幼児・ペット・閲覧者の性別など、推奨リストに載せるか */
+export function isStockRecommendationActiveForTeam(
+  rec: StockRecommendation,
+  teamStockSettings?: StockTeamFilterSettings,
+  viewerGender?: StockRecommendationViewerGender
+): boolean {
+  if (rec.category === "おむつ・ベビー用品") {
+    const hasInfant =
+      teamStockSettings?.composition?.infant !== undefined &&
+      (teamStockSettings.composition.infant ?? 0) > 0;
+    return hasInfant;
+  }
+  if (rec.category === "ペットフード") {
+    return teamStockSettings?.hasPets === true;
+  }
+  if (rec.category === "生理用品") {
+    const flag = teamStockSettings?.needsSanitarySupplies;
+    if (flag === false) return false;
+    if (flag === true) return true;
+    return viewerGender !== "male";
+  }
+  return true;
+}
+
+/** 達成率などに使う・現在のコンテキストで有効な STOCK カテゴリ一覧 */
+export function getApplicableStockRecommendationCategories(
+  teamStockSettings?: StockTeamFilterSettings,
+  viewerGender?: StockRecommendationViewerGender
+): string[] {
+  return Object.values(STOCK_RECOMMENDATIONS)
+    .filter((rec) =>
+      isStockRecommendationActiveForTeam(rec, teamStockSettings, viewerGender)
+    )
+    .map((rec) => rec.category);
+}
+
 /**
  * ユーザーが備蓄していないカテゴリを取得（全カテゴリ対象、家族構成を考慮）
  */
 export function getMissingCategories(
   userSupplies: Array<{ category: string; quantity: number }>,
-  teamStockSettings?: {
-    composition?: { infant?: number };
-    hasPets?: boolean;
-  } | null
+  teamStockSettings?: StockTeamFilterSettings,
+  viewerGender?: StockRecommendationViewerGender
 ): StockRecommendation[] {
   const userCategories = new Set(
     userSupplies.filter((s) => s.quantity > 0).map((s) => s.category)
   );
 
-  // 全カテゴリを対象にチェック（家族構成を考慮）
   return Object.values(STOCK_RECOMMENDATIONS).filter((rec) => {
-    // 既に備蓄しているカテゴリは除外
     if (userCategories.has(rec.category)) {
       return false;
     }
-
-    // おむつ・ベビー用品は乳幼児がいる場合のみ表示
-    if (rec.category === "おむつ・ベビー用品") {
-      const hasInfant =
-        teamStockSettings?.composition?.infant !== undefined &&
-        teamStockSettings.composition.infant > 0;
-      return hasInfant;
-    }
-
-    // ペットフードはペットがいる場合のみ表示
-    if (rec.category === "ペットフード") {
-      return teamStockSettings?.hasPets === true;
-    }
-
-    return true;
+    return isStockRecommendationActiveForTeam(
+      rec,
+      teamStockSettings,
+      viewerGender
+    );
   });
 }
 
@@ -485,16 +536,18 @@ export function getMissingCategories(
  */
 export function getMissingCategoriesByPriority(
   userSupplies: Array<{ category: string; quantity: number }>,
-  teamStockSettings?: {
-    composition?: { infant?: number };
-    hasPets?: boolean;
-  } | null
+  teamStockSettings?: StockTeamFilterSettings,
+  viewerGender?: StockRecommendationViewerGender
 ): {
   essential: StockRecommendation[];
   important: StockRecommendation[];
   recommended: StockRecommendation[];
 } {
-  const missing = getMissingCategories(userSupplies, teamStockSettings);
+  const missing = getMissingCategories(
+    userSupplies,
+    teamStockSettings,
+    viewerGender
+  );
 
   return {
     essential: missing.filter((rec) => rec.priority === "essential"),
@@ -504,28 +557,36 @@ export function getMissingCategoriesByPriority(
 }
 
 /**
- * 全カテゴリの進捗状況を取得（レベル不要）
+ * 全カテゴリの進捗状況を取得（表示中のおすすめ対象カテゴリに合わせる）
  */
 export function getProgress(
-  userSupplies: Array<{ category: string; quantity: number }>
+  userSupplies: Array<{ category: string; quantity: number }>,
+  teamStockSettings?: StockTeamFilterSettings,
+  viewerGender?: StockRecommendationViewerGender
 ): {
   totalCategories: number;
   stockedCategories: number;
   missingCategories: number;
   progressPercentage: number;
 } {
+  const applicable = getApplicableStockRecommendationCategories(
+    teamStockSettings,
+    viewerGender
+  );
+
   const userCategories = new Set(
     userSupplies.filter((s) => s.quantity > 0).map((s) => s.category)
   );
 
-  const totalCategories = Object.keys(STOCK_RECOMMENDATIONS).length;
-  const stockedCategories = Object.keys(STOCK_RECOMMENDATIONS).filter(
-    (category) => userCategories.has(category)
+  const totalCategories = applicable.length;
+  const stockedCategories = applicable.filter((category) =>
+    userCategories.has(category)
   ).length;
   const missingCategories = totalCategories - stockedCategories;
-  const progressPercentage = Math.round(
-    (stockedCategories / totalCategories) * 100
-  );
+  const progressPercentage =
+    totalCategories > 0
+      ? Math.round((stockedCategories / totalCategories) * 100)
+      : 0;
 
   return {
     totalCategories,
@@ -620,7 +681,8 @@ export function getRecommendedItems(category: string): string[] {
       "ランタン",
       "モバイルバッテリー",
     ],
-    "カセットコンロ・ガスボンベ": ["カセットコンロ", "ガスボンベ6本"],
+    "カセットコンロ・ガスボンベ": ["カセットガス缶・燃料（予備）"],
+    "カセットコンロ（本体）": ["カセットコンロ（本体・卓上）"],
     "ラップ・アルミホイル": ["食品用ラップ", "アルミホイル"],
     "ポリ袋・ゴミ袋": ["ポリ袋（大・中・小）", "ゴミ袋45L"],
     ペットフード: ["ドッグフード", "キャットフード", "ペット用水"],
