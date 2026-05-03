@@ -2,6 +2,8 @@ import { getServerUser } from "@/utils/auth/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomeHubPage() {
   const user = await getServerUser();
   if (!user) {

@@ -4,6 +4,8 @@ import { notFound, redirect } from "next/navigation";
 
 import ReviewsClient from "./ReviewsClient";
 
+export const dynamic = "force-dynamic";
+
 interface SupplyReviewsPageProps {
   params: Promise<{
     supplyId: string;

@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import SettingsClient from "./SettingsClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function SettingsPage() {
   const baseUser = await getServerUser();
 

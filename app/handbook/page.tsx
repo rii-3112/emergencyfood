@@ -7,6 +7,8 @@ import {
 import { redirect } from "next/navigation";
 import HandbookClient from "./_components/HandbookClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function HandbookPage() {
   const user = await getServerUser();
   if (!user) {

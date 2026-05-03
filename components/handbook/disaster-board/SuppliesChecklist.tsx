@@ -11,9 +11,9 @@ import {
   PET_TYPE_EMOJIS,
   PET_TYPE_LABELS,
 } from "@/types/handbook";
+import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
 
 import { getSupplyDraftFromHandbookChecklistItem } from "@/utils/checklistSupplyDraft";
 import { DEFAULT_TEAM_STOCK_DAYS, UI_CONSTANTS } from "@/utils/constants";

@@ -4,6 +4,8 @@ import { adminDb } from "@/utils/firebase/admin";
 import { redirect } from "next/navigation";
 import SupplyListView from "./_components/SupplyListView";
 
+export const dynamic = "force-dynamic";
+
 export default async function SupplyListPage() {
   const user = await getServerUser();
 

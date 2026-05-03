@@ -6,6 +6,8 @@ import SupplyAddForm, {
   SupplyAddFormFallback,
 } from "./_components/SupplyAddForm";
 
+export const dynamic = "force-dynamic";
+
 export default async function SupplyAddPage() {
   const user = await getServerUser();
   if (!user) {
