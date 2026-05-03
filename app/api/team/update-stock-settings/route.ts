@@ -63,8 +63,7 @@ export async function POST(req: Request) {
 
     const teamData = teamDoc.data();
     const previousStock =
-      teamData?.stockSettings &&
-      typeof teamData.stockSettings === "object"
+      teamData?.stockSettings && typeof teamData.stockSettings === "object"
         ? (teamData.stockSettings as Partial<TeamStockSettings>)
         : undefined;
 
@@ -112,9 +111,7 @@ export async function POST(req: Request) {
               enabled: stockSettings.notifications.enabled !== false,
               criticalStock:
                 stockSettings.notifications.criticalStock !== false,
-              lowStock: stockSettings.notifications.lowStock !== false,
               expiryNear: stockSettings.notifications.expiryNear !== false,
-              weeklyReport: !!stockSettings.notifications.weeklyReport,
             },
           }
         : {}),

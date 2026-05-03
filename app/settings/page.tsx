@@ -2,6 +2,7 @@ import { getServerUser } from "@/utils/auth/server";
 import { fetchTeamFromDB } from "@/utils/data/server";
 import { adminDb } from "@/utils/firebase/admin";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
 import SettingsClient from "./SettingsClient";
 
 export default async function SettingsPage() {
@@ -28,7 +29,15 @@ export default async function SettingsPage() {
       <h1 className='text-3xl font-bold mb-6 text-black border-b border-gray-300 pb-4'>
         設定
       </h1>
-      <SettingsClient user={user} initialTeam={team} />
+      <Suspense
+        fallback={
+          <div className='bg-white rounded-lg shadow-md border border-gray-300 p-6 text-gray-600 text-sm'>
+            読み込み中...
+          </div>
+        }
+      >
+        <SettingsClient user={user} initialTeam={team} />
+      </Suspense>
     </div>
   );
 }

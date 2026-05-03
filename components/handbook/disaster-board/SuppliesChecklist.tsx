@@ -13,9 +13,11 @@ import {
 } from "@/types/handbook";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
 
 import { getSupplyDraftFromHandbookChecklistItem } from "@/utils/checklistSupplyDraft";
-import { DEFAULT_TEAM_STOCK_DAYS } from "@/utils/constants";
+import { DEFAULT_TEAM_STOCK_DAYS, UI_CONSTANTS } from "@/utils/constants";
+import { db } from "@/utils/firebase";
 import {
   compositionTotal,
   effectiveDetailedCompositionFlag,
@@ -225,15 +227,13 @@ export default function SuppliesChecklist({
   const [notifyCriticalStock, setNotifyCriticalStock] = useState(
     initialTeamData?.stockSettings?.notifications?.criticalStock !== false
   );
-  const [notifyLowStock, setNotifyLowStock] = useState(
-    initialTeamData?.stockSettings?.notifications?.lowStock !== false
-  );
   const [notifyExpiryNear, setNotifyExpiryNear] = useState(
     initialTeamData?.stockSettings?.notifications?.expiryNear !== false
   );
-  const [notifyWeeklyReport, setNotifyWeeklyReport] = useState(
-    initialTeamData?.stockSettings?.notifications?.weeklyReport || false
-  );
+  const [lineLinkStatus, setLineLinkStatus] = useState<
+    "loading" | "linked" | "unlinked"
+  >("loading");
+  const [showLineRequiredModal, setShowLineRequiredModal] = useState(false);
   const [isSettingsExpanded, setIsSettingsExpanded] = useState(false);
 
   const [message, setMessage] = useState<{
@@ -245,6 +245,77 @@ export default function SuppliesChecklist({
   const autoSaveChecklistTimerRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
+
+  const refreshLineLinkStatus = useCallback(async () => {
+    if (!user?.uid) {
+      setLineLinkStatus("unlinked");
+      return;
+    }
+    setLineLinkStatus("loading");
+    try {
+      const snap = await getDoc(doc(db, "users", user.uid));
+      const id =
+        snap.exists() && snap.data()?.lineUserId
+          ? String(snap.data().lineUserId)
+          : null;
+      setLineLinkStatus(id ? "linked" : "unlinked");
+    } catch {
+      setLineLinkStatus("unlinked");
+    }
+  }, [user?.uid]);
+
+  useEffect(() => {
+    void refreshLineLinkStatus();
+  }, [refreshLineLinkStatus]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        void refreshLineLinkStatus();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [refreshLineLinkStatus]);
+
+  const handleNotificationsEnabledChange = (checked: boolean) => {
+    if (!checked) {
+      setNotificationsEnabled(false);
+      return;
+    }
+    if (lineLinkStatus === "unlinked") {
+      setShowLineRequiredModal(true);
+      return;
+    }
+    if (lineLinkStatus === "loading") {
+      void (async () => {
+        if (!user?.uid) {
+          setLineLinkStatus("unlinked");
+          setShowLineRequiredModal(true);
+          return;
+        }
+        try {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          const id =
+            snap.exists() && snap.data()?.lineUserId
+              ? String(snap.data()?.lineUserId)
+              : null;
+          if (!id) {
+            setLineLinkStatus("unlinked");
+            setShowLineRequiredModal(true);
+          } else {
+            setLineLinkStatus("linked");
+            setNotificationsEnabled(true);
+          }
+        } catch {
+          setLineLinkStatus("unlinked");
+          setShowLineRequiredModal(true);
+        }
+      })();
+      return;
+    }
+    setNotificationsEnabled(true);
+  };
 
   useEffect(() => {
     checklistsRef.current = checklists;
@@ -374,9 +445,7 @@ export default function SuppliesChecklist({
       setCatCount(stock.catCount ?? 0);
       setNotificationsEnabled(stock.notifications?.enabled !== false);
       setNotifyCriticalStock(stock.notifications?.criticalStock !== false);
-      setNotifyLowStock(stock.notifications?.lowStock !== false);
       setNotifyExpiryNear(stock.notifications?.expiryNear !== false);
-      setNotifyWeeklyReport(stock.notifications?.weeklyReport ?? false);
     }
   }, [initialTeamData]);
 
@@ -870,9 +939,7 @@ export default function SuppliesChecklist({
             notifications: {
               enabled: notificationsEnabled,
               criticalStock: notifyCriticalStock,
-              lowStock: notifyLowStock,
               expiryNear: notifyExpiryNear,
-              weeklyReport: notifyWeeklyReport,
             },
             needsSanitarySupplies,
           },
@@ -1188,7 +1255,9 @@ export default function SuppliesChecklist({
                 <input
                   type='checkbox'
                   checked={notificationsEnabled}
-                  onChange={(e) => setNotificationsEnabled(e.target.checked)}
+                  onChange={(e) =>
+                    handleNotificationsEnabledChange(e.target.checked)
+                  }
                   className='rounded'
                 />
                 <span className='text-sm font-medium text-gray-700'>
@@ -1213,36 +1282,12 @@ export default function SuppliesChecklist({
                   <label className='flex items-center gap-2'>
                     <input
                       type='checkbox'
-                      checked={notifyLowStock}
-                      onChange={(e) => setNotifyLowStock(e.target.checked)}
-                      className='rounded'
-                    />
-                    <span className='text-sm text-gray-600'>
-                      在庫不足の通知
-                    </span>
-                  </label>
-
-                  <label className='flex items-center gap-2'>
-                    <input
-                      type='checkbox'
                       checked={notifyExpiryNear}
                       onChange={(e) => setNotifyExpiryNear(e.target.checked)}
                       className='rounded'
                     />
                     <span className='text-sm text-gray-600'>
                       賞味期限が近い通知
-                    </span>
-                  </label>
-
-                  <label className='flex items-center gap-2'>
-                    <input
-                      type='checkbox'
-                      checked={notifyWeeklyReport}
-                      onChange={(e) => setNotifyWeeklyReport(e.target.checked)}
-                      className='rounded'
-                    />
-                    <span className='text-sm text-gray-600'>
-                      週次レポートの通知
                     </span>
                   </label>
                 </div>
@@ -1427,6 +1472,45 @@ export default function SuppliesChecklist({
           </div>
         </div>
       ))}
+      {showLineRequiredModal && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-slate-500/35 backdrop-blur-sm p-4'>
+          <div
+            className='bg-white rounded-lg p-6 max-w-md w-full shadow-lg'
+            role='dialog'
+            aria-modal='true'
+            aria-labelledby='handbook-line-required-title'
+          >
+            <h3
+              id='handbook-line-required-title'
+              className='text-lg font-semibold text-gray-900 mb-2'
+            >
+              LINE連携が必要です
+            </h3>
+            <p className='text-sm text-gray-600 mb-6'>
+              通知はLINEでお知らせします。先にLINEアカウントを連携してください。
+            </p>
+            <div className='flex flex-col-reverse sm:flex-row sm:justify-end gap-2'>
+              <button
+                type='button'
+                onClick={() => setShowLineRequiredModal(false)}
+                className='w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors'
+              >
+                閉じる
+              </button>
+              <button
+                type='button'
+                onClick={() => {
+                  setShowLineRequiredModal(false);
+                  router.push("/settings?tab=line");
+                }}
+                className='w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors'
+              >
+                {UI_CONSTANTS.LINE_NOTIFICATION_SETTINGS}へ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

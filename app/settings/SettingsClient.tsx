@@ -4,7 +4,8 @@ import LineAccountLinker from "@/components/settings/LineAccountLinker";
 import LogoutSection from "@/components/settings/LogoutSection";
 import TeamSettings from "@/components/settings/TeamSettings";
 import { UI_CONSTANTS } from "@/utils/constants";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import type { Team } from "@/types";
 
@@ -23,11 +24,35 @@ interface SettingsClientProps {
 
 type SettingsTab = "line" | "account" | "team" | "logout";
 
+const SETTINGS_TABS: SettingsTab[] = ["line", "account", "team", "logout"];
+
+function isSettingsTab(value: string | null): value is SettingsTab {
+  return value !== null && SETTINGS_TABS.includes(value as SettingsTab);
+}
+
 export default function SettingsClient({
   user,
   initialTeam,
 }: SettingsClientProps) {
-  const [activeTab, setActiveTab] = useState<SettingsTab>("line");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const tabFromUrl = searchParams.get("tab");
+
+  const [activeTab, setActiveTab] = useState<SettingsTab>(() =>
+    isSettingsTab(tabFromUrl) ? tabFromUrl : "line"
+  );
+
+  useEffect(() => {
+    if (isSettingsTab(tabFromUrl)) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl]);
+
+  const selectTab = (id: SettingsTab) => {
+    setActiveTab(id);
+    router.replace(`${pathname}?tab=${id}`, { scroll: false });
+  };
 
   const tabs = [
     {
@@ -75,7 +100,7 @@ export default function SettingsClient({
                 ? "bg-black text-white border-b-2 border-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => selectTab(tab.id)}
           >
             {tab.label}
           </button>

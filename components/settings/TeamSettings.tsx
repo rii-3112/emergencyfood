@@ -1,10 +1,13 @@
 "use client";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
 
 import CreateTeamForm from "@/components/teams/CreateTeamForm";
 import { useAuth, useTeam } from "@/hooks";
 import type { AppUser, Team } from "@/types";
+import { db } from "@/utils/firebase";
 import {
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
@@ -100,17 +103,48 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
   const [notifyCriticalStock, setNotifyCriticalStock] = useState(
     team?.stockSettings?.notifications?.criticalStock !== false
   );
-  const [notifyLowStock, setNotifyLowStock] = useState(
-    team?.stockSettings?.notifications?.lowStock !== false
-  );
   const [notifyExpiryNear, setNotifyExpiryNear] = useState(
     team?.stockSettings?.notifications?.expiryNear !== false
   );
-  const [notifyWeeklyReport, setNotifyWeeklyReport] = useState(
-    team?.stockSettings?.notifications?.weeklyReport || false
-  );
+
+  const [lineLinkStatus, setLineLinkStatus] = useState<
+    "loading" | "linked" | "unlinked"
+  >("loading");
+  const [showLineRequiredModal, setShowLineRequiredModal] = useState(false);
 
   const profileGender = user.gender ?? undefined;
+
+  const refreshLineLinkStatus = useCallback(async () => {
+    if (!firebaseUser?.uid) {
+      setLineLinkStatus("unlinked");
+      return;
+    }
+    setLineLinkStatus("loading");
+    try {
+      const snap = await getDoc(doc(db, "users", firebaseUser.uid));
+      const id =
+        snap.exists() && snap.data()?.lineUserId
+          ? String(snap.data().lineUserId)
+          : null;
+      setLineLinkStatus(id ? "linked" : "unlinked");
+    } catch {
+      setLineLinkStatus("unlinked");
+    }
+  }, [firebaseUser?.uid]);
+
+  useEffect(() => {
+    void refreshLineLinkStatus();
+  }, [refreshLineLinkStatus]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        void refreshLineLinkStatus();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [refreshLineLinkStatus]);
 
   const [needsSanitarySupplies, setNeedsSanitarySupplies] = useState(() =>
     resolveNeedsSanitarySuppliesForForm(team ?? null, profileGender)
@@ -122,6 +156,45 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
     infant: infantCount,
     elderly: elderlyCount,
   });
+
+  const handleNotificationsEnabledChange = (checked: boolean) => {
+    if (!checked) {
+      setNotificationsEnabled(false);
+      return;
+    }
+    if (lineLinkStatus === "unlinked") {
+      setShowLineRequiredModal(true);
+      return;
+    }
+    if (lineLinkStatus === "loading") {
+      void (async () => {
+        if (!firebaseUser?.uid) {
+          setLineLinkStatus("unlinked");
+          setShowLineRequiredModal(true);
+          return;
+        }
+        try {
+          const snap = await getDoc(doc(db, "users", firebaseUser.uid));
+          const id =
+            snap.exists() && snap.data()?.lineUserId
+              ? String(snap.data()?.lineUserId)
+              : null;
+          if (!id) {
+            setLineLinkStatus("unlinked");
+            setShowLineRequiredModal(true);
+          } else {
+            setLineLinkStatus("linked");
+            setNotificationsEnabled(true);
+          }
+        } catch {
+          setLineLinkStatus("unlinked");
+          setShowLineRequiredModal(true);
+        }
+      })();
+      return;
+    }
+    setNotificationsEnabled(true);
+  };
 
   // チーム設定が更新されたらstateを同期
   useEffect(() => {
@@ -146,12 +219,8 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
       setNotifyCriticalStock(
         team.stockSettings.notifications?.criticalStock !== false
       );
-      setNotifyLowStock(team.stockSettings.notifications?.lowStock !== false);
       setNotifyExpiryNear(
         team.stockSettings.notifications?.expiryNear !== false
-      );
-      setNotifyWeeklyReport(
-        team.stockSettings.notifications?.weeklyReport || false
       );
     }
   }, [team, profileGender]);
@@ -364,9 +433,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
             notifications: {
               enabled: notificationsEnabled,
               criticalStock: notifyCriticalStock,
-              lowStock: notifyLowStock,
               expiryNear: notifyExpiryNear,
-              weeklyReport: notifyWeeklyReport,
             },
             needsSanitarySupplies,
           },
@@ -815,7 +882,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
             <div className='space-y-3 bg-white p-3 rounded border border-gray-200'>
               <div>
                 <label className='block text-sm text-gray-600 mb-1'>
-                  👨 大人（18-64歳）
+                  大人（18-64歳）
                 </label>
                 <div className='flex items-center gap-2'>
                   <input
@@ -834,7 +901,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
               <div>
                 <label className='block text-sm text-gray-600 mb-1'>
-                  👦 子供（6-17歳）
+                  子供（6-17歳）
                 </label>
                 <div className='flex items-center gap-2'>
                   <input
@@ -853,7 +920,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
               <div>
                 <label className='block text-sm text-gray-600 mb-1'>
-                  👶 乳幼児（0-5歳）
+                  乳幼児（0-5歳）
                 </label>
                 <div className='flex items-center gap-2'>
                   <input
@@ -872,7 +939,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
               <div>
                 <label className='block text-sm text-gray-600 mb-1'>
-                  👴 高齢者（65歳以上）
+                  高齢者（65歳以上）
                 </label>
                 <div className='flex items-center gap-2'>
                   <input
@@ -901,7 +968,9 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
               <input
                 type='checkbox'
                 checked={notificationsEnabled}
-                onChange={(e) => setNotificationsEnabled(e.target.checked)}
+                onChange={(e) =>
+                  handleNotificationsEnabledChange(e.target.checked)
+                }
                 className='rounded'
               />
               <span className='text-sm font-medium text-gray-700'>
@@ -924,16 +993,6 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                 <label className='flex items-center gap-2 text-sm'>
                   <input
                     type='checkbox'
-                    checked={notifyLowStock}
-                    onChange={(e) => setNotifyLowStock(e.target.checked)}
-                    className='rounded'
-                  />
-                  <span className='text-gray-700'>在庫が少ない時の警告</span>
-                </label>
-
-                <label className='flex items-center gap-2 text-sm'>
-                  <input
-                    type='checkbox'
                     checked={notifyExpiryNear}
                     onChange={(e) => setNotifyExpiryNear(e.target.checked)}
                     className='rounded'
@@ -941,21 +1000,19 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                   <span className='text-gray-700'>賞味期限接近の通知</span>
                 </label>
 
-                <label className='flex items-center gap-2 text-sm'>
-                  <input
-                    type='checkbox'
-                    checked={notifyWeeklyReport}
-                    onChange={(e) => setNotifyWeeklyReport(e.target.checked)}
-                    className='rounded'
-                  />
-                  <span className='text-gray-700'>
-                    週次レポート（毎週日曜日）
-                  </span>
-                </label>
-
-                <p className='text-xs text-gray-500 mt-2'>
-                  ※ 通知はブラウザの通知機能を使用します
-                </p>
+                <div className='text-xs text-gray-500 mt-2 space-y-1'>
+                  <p>※ 通知はLINEアプリの通知機能を使用します</p>
+                  <p>
+                    LINEで受け取るには、
+                    <Link
+                      href='/settings?tab=line'
+                      className='text-blue-600 hover:underline font-medium mx-0.5'
+                    >
+                      {UI_CONSTANTS.LINE_NOTIFICATION_SETTINGS}
+                    </Link>
+                    タブでアカウント連携してください。
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -965,7 +1022,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
             disabled={updatingStockSettings || !canManageAdmins}
             className='w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'
           >
-            {updatingStockSettings ? "保存中..." : "💾 設定を保存"}
+            {updatingStockSettings ? "保存中..." : "設定を保存"}
           </button>
 
           {!canManageAdmins && (
@@ -1001,6 +1058,46 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
           </div>
         </div>
       </div>
+
+      {showLineRequiredModal && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-slate-500/35 backdrop-blur-sm p-4'>
+          <div
+            className='bg-white rounded-lg p-6 max-w-md w-full shadow-lg'
+            role='dialog'
+            aria-modal='true'
+            aria-labelledby='line-required-title'
+          >
+            <h3
+              id='line-required-title'
+              className='text-lg font-semibold text-gray-900 mb-2'
+            >
+              LINE連携が必要です
+            </h3>
+            <p className='text-sm text-gray-600 mb-6'>
+              通知はLINEでお知らせします。先にLINEアカウントを連携してください。
+            </p>
+            <div className='flex flex-col-reverse sm:flex-row sm:justify-end gap-2'>
+              <button
+                type='button'
+                onClick={() => setShowLineRequiredModal(false)}
+                className='w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors'
+              >
+                閉じる
+              </button>
+              <button
+                type='button'
+                onClick={() => {
+                  setShowLineRequiredModal(false);
+                  router.push("/settings?tab=line");
+                }}
+                className='w-full sm:w-auto px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors'
+              >
+                {UI_CONSTANTS.LINE_NOTIFICATION_SETTINGS}へ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* チーム作成モーダル */}
       {showCreateModal && (

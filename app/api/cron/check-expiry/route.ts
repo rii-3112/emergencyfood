@@ -12,6 +12,9 @@ const lineConfig = {
 };
 const lineClient = new Client(lineConfig);
 
+/** 同一チームへのLINE再送までの最短間隔（cronが1日複数回でも連投しにくくする） */
+const LINE_ALERT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
+
 export async function POST(req: Request) {
   try {
     const cronSecret = req.headers.get("x-cron-secret");
@@ -20,7 +23,6 @@ export async function POST(req: Request) {
     }
 
     const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
     const teamsSnapshot = await adminDb.collection("teams").get();
 
@@ -29,12 +31,6 @@ export async function POST(req: Request) {
         teamName: string;
         lineUserIds: string[];
         outOfStock: Array<{ name: string; id: string }>;
-        lowStock: Array<{
-          name: string;
-          quantity: number;
-          unit: string;
-          id: string;
-        }>;
         expiryNear: Array<{
           name: string;
           expiryDate: string;
@@ -42,8 +38,6 @@ export async function POST(req: Request) {
           id: string;
           expiryType: string;
         }>;
-        autoArchivedCount: number;
-        lastNotifiedAt?: Timestamp;
       };
     } = {};
 
@@ -51,20 +45,25 @@ export async function POST(req: Request) {
       const teamData = teamDoc.data();
       const teamId = teamDoc.id;
       const stockSettings = teamData.stockSettings;
+      const notifications = stockSettings?.notifications;
 
-      if (!stockSettings?.notifications?.enabled) {
+      if (!notifications?.enabled) {
         continue;
       }
 
-      if (!stockSettings?.notifications?.weeklyReport) {
+      const criticalOn = notifications.criticalStock !== false;
+      const expiryOn = notifications.expiryNear !== false;
+      if (!criticalOn && !expiryOn) {
         continue;
       }
 
-      const lastNotifiedAt = teamData.lastWeeklyReportAt;
+      const lastNotifiedAt = teamData.lastWeeklyReportAt as
+        | Timestamp
+        | undefined;
       if (
         lastNotifiedAt &&
         now.getTime() - lastNotifiedAt.toDate().getTime() <
-          7 * 24 * 60 * 60 * 1000
+          LINE_ALERT_COOLDOWN_MS
       ) {
         continue;
       }
@@ -95,12 +94,6 @@ export async function POST(req: Request) {
         .get();
 
       const outOfStock: Array<{ name: string; id: string }> = [];
-      const lowStock: Array<{
-        name: string;
-        quantity: number;
-        unit: string;
-        id: string;
-      }> = [];
       const expiryNear: Array<{
         name: string;
         expiryDate: string;
@@ -113,39 +106,18 @@ export async function POST(req: Request) {
         const supply = doc.data();
         const supplyId = doc.id;
 
-        if (
-          stockSettings.notifications.criticalStock ||
-          stockSettings.notifications.lowStock
-        ) {
+        if (criticalOn) {
           const stockStatus = calculateStockStatus(
             { ...supply, id: supplyId } as any,
             stockSettings
           );
 
-          if (
-            stockStatus.status === "out" &&
-            stockSettings.notifications.criticalStock
-          ) {
+          if (stockStatus.status === "out") {
             outOfStock.push({ name: supply.name, id: supplyId });
-          } else if (
-            (stockStatus.status === "critical" ||
-              stockStatus.status === "low") &&
-            stockSettings.notifications.lowStock
-          ) {
-            lowStock.push({
-              name: supply.name,
-              quantity: supply.quantity,
-              unit: supply.unit,
-              id: supplyId,
-            });
           }
         }
 
-        if (
-          stockSettings.notifications.expiryNear &&
-          supply.quantity > 0 &&
-          supply.expiryDate
-        ) {
+        if (expiryOn && supply.quantity > 0 && supply.expiryDate) {
           const expiryType = getExpiryType(supply.category);
 
           if (expiryType.type === "noExpiry") {
@@ -174,31 +146,14 @@ export async function POST(req: Request) {
         }
       });
 
-      const historySnapshot = await adminDb
-        .collection("supply_history")
-        .where("teamId", "==", teamId)
-        .where("archivedBy", "==", "system")
-        .where("archivedAt", ">=", sevenDaysAgo.toISOString())
-        .get();
-
-      const autoArchivedCount = historySnapshot.size;
-
-      if (
-        outOfStock.length > 0 ||
-        lowStock.length > 0 ||
-        expiryNear.length > 0 ||
-        autoArchivedCount > 0
-      ) {
+      if (outOfStock.length > 0 || expiryNear.length > 0) {
         teamNotifications[teamId] = {
           teamName: teamData.name,
           lineUserIds,
           outOfStock,
-          lowStock,
           expiryNear: expiryNear.sort(
             (a, b) => a.remainingDays - b.remainingDays
           ),
-          autoArchivedCount,
-          lastNotifiedAt: teamData.lastWeeklyReportAt,
         };
       }
     }
@@ -208,16 +163,9 @@ export async function POST(req: Request) {
 
     for (const teamId in teamNotifications) {
       const notification = teamNotifications[teamId];
-      const {
-        teamName,
-        lineUserIds,
-        outOfStock,
-        lowStock,
-        expiryNear,
-        autoArchivedCount,
-      } = notification;
+      const { teamName, lineUserIds, outOfStock, expiryNear } = notification;
 
-      let messageText = `【SonaBase 週次レポート】\nグループ: ${teamName}\n\n`;
+      let messageText = `【SonaBase 備蓄アラート】\nグループ: ${teamName}\n\n`;
 
       if (outOfStock.length > 0) {
         messageText += `━━━━━━━━━━━━━━━\n`;
@@ -227,19 +175,6 @@ export async function POST(req: Request) {
           messageText += `• ${item.name}\n`;
         });
         messageText += `\nすぐに買い足してください！\n\n`;
-      }
-
-      if (lowStock.length > 0) {
-        messageText += `━━━━━━━━━━━━━━━\n`;
-        messageText += `⚡ 在庫少ない (${lowStock.length}件)\n`;
-        messageText += `━━━━━━━━━━━━━━━\n`;
-        lowStock.slice(0, MAX_ITEMS_TO_SHOW).forEach((item) => {
-          messageText += `• ${item.name} (残り${item.quantity}${item.unit})\n`;
-        });
-        if (lowStock.length > MAX_ITEMS_TO_SHOW) {
-          messageText += `... 他${lowStock.length - MAX_ITEMS_TO_SHOW}件\n`;
-        }
-        messageText += `\n早めの買い足しをおすすめします\n\n`;
       }
 
       if (expiryNear.length > 0) {
@@ -259,13 +194,6 @@ export async function POST(req: Request) {
           messageText += `... 他${expiryNear.length - MAX_ITEMS_TO_SHOW}件\n`;
         }
         messageText += `\n`;
-      }
-
-      if (autoArchivedCount > 0) {
-        messageText += `━━━━━━━━━━━━━━━\n`;
-        messageText += `📚 自動履歴化\n`;
-        messageText += `━━━━━━━━━━━━━━━\n`;
-        messageText += `在庫0個が30日続いた${autoArchivedCount}件を履歴に移動しました\n\n`;
       }
 
       messageText += `━━━━━━━━━━━━━━━\n`;
@@ -313,6 +241,7 @@ export async function POST(req: Request) {
       teamsToUpdateNotifiedAt.forEach((teamId) => {
         const teamDocRef = adminDb.collection("teams").doc(teamId);
         batch.update(teamDocRef, {
+          // フィールド名は後方互換のため維持（最終LINEアラート送信時刻）
           lastWeeklyReportAt: FieldValue.serverTimestamp(),
         });
       });
@@ -321,7 +250,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(
       {
-        message: "Weekly report completed and notifications sent.",
+        message: "Stock/expiry alerts completed.",
         teamsSent: teamsToUpdateNotifiedAt.length,
       },
       { status: 200 }
