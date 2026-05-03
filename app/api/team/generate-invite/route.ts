@@ -1,5 +1,5 @@
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
-import { v4 as uuidv4 } from "uuid";
 
 import { adminAuth, adminDb } from "@/utils/firebase/admin";
 
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const inviteCode = uuidv4().split("-")[0].toUpperCase();
+    const inviteCode = randomUUID().split("-")[0].toUpperCase();
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);
