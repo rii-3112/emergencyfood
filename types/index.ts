@@ -12,6 +12,8 @@ export interface AppUser extends BaseFormData {
   uid: string;
   email: string;
   displayName?: string | null;
+  /** 備蓄おすすめ（生理用品など）用途。Firestore users / サーバー側で付与することがある */
+  gender?: string | null;
   teamId?: string | null;
   teams?: string[];
   activeTeamId?: string | null;
@@ -48,7 +50,12 @@ export interface TeamMember {
 }
 
 // 備蓄管理設定
-export type AgeGroup = "adult" | "child" | "infant" | "elderly";
+export type AgeGroup =
+  | "household_shared"
+  | "adult"
+  | "child"
+  | "infant"
+  | "elderly";
 
 export interface HouseholdComposition {
   adult: number; // 大人（18-64歳）
@@ -60,15 +67,13 @@ export interface HouseholdComposition {
 export interface NotificationSettings {
   enabled: boolean; // 通知機能の有効化
   criticalStock: boolean; // 在庫切れ・緊急警告
-  lowStock: boolean; // 在庫少ない警告
   expiryNear: boolean; // 賞味期限接近警告
-  weeklyReport: boolean; // 週次レポート
 }
 
 export interface TeamStockSettings {
   // 簡易設定（後方互換性のため残す）
   householdSize: number; // 家族の人数（合計）
-  stockDays: number; // 目標備蓄日数（デフォルト: 7日）
+  stockDays: number; // 目標備蓄日数（初期表示: 3日)
   hasPets: boolean; // ペットの有無
   dogCount?: number; // 犬の数
   catCount?: number; // 猫の数
@@ -82,6 +87,9 @@ export interface TeamStockSettings {
 
   // 備蓄レベル設定
   stockLevel?: "beginner" | "standard" | "advanced"; // 備蓄レベル
+
+  /** 生理用品などを備蓄リストの推奨に含める世帯。未設定時はログインアカウントが男性のみ除外など従来挙動。 */
+  needsSanitarySupplies?: boolean;
 
   updatedAt?: string; // 更新日時
 }

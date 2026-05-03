@@ -1,7 +1,7 @@
 // components/auth/LoginForm.tsx
 "use client";
 import { saveAuthTokenToCookie } from "@/utils/auth/cookies";
-import { ERROR_MESSAGES } from "@/utils/constants";
+import { APP_ROUTES, ERROR_MESSAGES } from "@/utils/constants";
 import { auth, db } from "@/utils/firebase";
 import {
   GoogleAuthProvider,
@@ -57,7 +57,7 @@ export default function LoginForm() {
     }
 
     if (claimTeamId) {
-      router.push("/supplies/list");
+      router.push(APP_ROUTES.HOME);
     } else {
       router.push("/settings?tab=team");
     }

@@ -1,7 +1,8 @@
 // utils/stockCalculator.ts
 
 import type { Supply, TeamStockSettings } from "@/types";
-import { getRecommendation } from "./stockRecommendations";
+import { DEFAULT_TEAM_STOCK_DAYS } from "@/utils/constants";
+import { getApplicableStockRecommendationCategories, getRecommendation } from "./stockRecommendations";
 
 export interface StockStatus {
   recommended: number; // 推奨在庫量
@@ -12,15 +13,23 @@ export interface StockStatus {
   priority: "high" | "medium" | "low";
   message: string; // ユーザーへのメッセージ
   dailyConsumption: number; // 1日あたりの消費量
+  consumptionDayBasedHint?: boolean;
 }
 
 export function getDefaultSettings(): TeamStockSettings {
   return {
     householdSize: 1,
-    stockDays: 7,
+    stockDays: DEFAULT_TEAM_STOCK_DAYS,
     hasPets: false,
     dogCount: 0,
     catCount: 0,
+    useDetailedComposition: true,
+    composition: {
+      adult: 1,
+      child: 0,
+      infant: 0,
+      elderly: 0,
+    },
   };
 }
 
@@ -47,6 +56,49 @@ export function calculateStockStatus(
       priority: "low",
       message: "",
       dailyConsumption: 0,
+      consumptionDayBasedHint: false,
+    };
+  }
+
+  const legacyGasCategoryStoveBody =
+    recommendation.category === "カセットコンロ・ガスボンベ" &&
+    /\(本体\)|（本体）|コンロ\s*本体/u.test(supply.name ?? "");
+
+  const householdTargetRaw =
+    recommendation.householdUnitTarget ??
+    (legacyGasCategoryStoveBody ? 1 : undefined);
+
+  if (householdTargetRaw != null) {
+    const recommended = Math.max(Math.round(householdTargetRaw), 1);
+    const needToBuy = Math.max(0, recommended - supply.quantity);
+    let status: StockStatus["status"];
+    let priority: StockStatus["priority"];
+    let message: string;
+
+    if (supply.quantity === 0) {
+      status = "out";
+      priority = "high";
+      message = `在庫がありません。世帯向けに${recommended}${supply.unit}ほどあると安心です`;
+    } else if (needToBuy > 0) {
+      status = "below-recommended";
+      priority = "medium";
+      message = `世帯向けの目安は${recommended}${supply.unit}です（あと${needToBuy}${supply.unit}）`;
+    } else {
+      status = "sufficient";
+      priority = "low";
+      message = `世帯向けの目標を満たしています`;
+    }
+
+    return {
+      recommended,
+      current: supply.quantity,
+      status,
+      daysRemaining: 0,
+      needToBuy,
+      priority,
+      message,
+      dailyConsumption: 0,
+      consumptionDayBasedHint: false,
     };
   }
 
@@ -127,15 +179,74 @@ export function calculateStockStatus(
     priority,
     message,
     dailyConsumption,
+    consumptionDayBasedHint: true,
+  };
+}
+
+/** カテゴリのみ不足一覧に使う（数量0のときの算出と同一ロジック） */
+const CATEGORY_TARGET_PREVIEW_DUMMY = "__category_target_preview__";
+
+/**
+ * 「このカテゴリはまだ未登録」のときに、備蓄設定に基づく目標量の目安を返す。
+ * 不足カテゴリリストで「およそどれだけ欲しいか」を表示する用途。
+ */
+export function getCategoryStockTargetPreview(
+  category: string,
+  settings?: TeamStockSettings | null
+): {
+  recommended: number;
+  unit: string;
+  headline: string;
+} | null {
+  const recommendation = getRecommendation(category);
+  if (!recommendation) return null;
+
+  const status = calculateStockStatus(
+    {
+      id: CATEGORY_TARGET_PREVIEW_DUMMY,
+      name: "",
+      quantity: 0,
+      expiryDate: "",
+      isArchived: false,
+      category,
+      unit: recommendation.unit,
+      registeredAt: { seconds: 0, nanoseconds: 0 },
+      teamId: "",
+      uid: "",
+    },
+    settings
+  );
+
+  const { recommended, needToBuy } = status;
+  const unit = recommendation.unit;
+
+  if (recommended <= 0) {
+    return null;
+  }
+
+  if (status.consumptionDayBasedHint === false) {
+    return {
+      recommended,
+      unit,
+      headline: `目標まであと ${needToBuy}${unit}`,
+    };
+  }
+
+  return {
+    recommended,
+    unit,
+    headline: `目標まであとおよそ ${needToBuy}${unit}`,
   };
 }
 
 /**
  * 複数の備蓄品の状況を集計
+ * 達成率はカテゴリごとに1つの目標量を立て、手持ち合算を min(合算, 目標) で足す（未登録カテゴリも分母に含む）。
  */
 export function aggregateStockStatus(
   supplies: Supply[],
-  settings?: TeamStockSettings | null
+  settings?: TeamStockSettings | null,
+  viewerGender?: string | null
 ): {
   total: number;
   out: number;
@@ -145,8 +256,8 @@ export function aggregateStockStatus(
   sufficient: number;
   overallPercentage: number;
 } {
-  let totalRecommended = 0;
-  let totalCurrent = 0;
+  const activeSupplies = supplies.filter((s) => !s.isArchived);
+
   const statusCount = {
     out: 0,
     critical: 0,
@@ -155,11 +266,8 @@ export function aggregateStockStatus(
     sufficient: 0,
   };
 
-  supplies.forEach((supply) => {
+  activeSupplies.forEach((supply) => {
     const status = calculateStockStatus(supply, settings);
-    totalRecommended += status.recommended;
-    totalCurrent += status.current;
-
     switch (status.status) {
       case "out":
         statusCount.out++;
@@ -179,13 +287,32 @@ export function aggregateStockStatus(
     }
   });
 
+  const scoredCategories = getApplicableStockRecommendationCategories(
+    settings,
+    viewerGender
+  );
+
+  let totalTarget = 0;
+  let totalAchieved = 0;
+  for (const category of scoredCategories) {
+    const preview = getCategoryStockTargetPreview(category, settings);
+    if (!preview || preview.recommended <= 0) continue;
+
+    const onHand = activeSupplies
+      .filter((s) => s.category === category)
+      .reduce((sum, s) => sum + s.quantity, 0);
+
+    totalTarget += preview.recommended;
+    totalAchieved += Math.min(onHand, preview.recommended);
+  }
+
   const overallPercentage =
-    totalRecommended > 0
-      ? Math.round((totalCurrent / totalRecommended) * 100)
-      : 100;
+    totalTarget > 0
+      ? Math.round((totalAchieved / totalTarget) * 100)
+      : 0;
 
   return {
-    total: supplies.length,
+    total: activeSupplies.length,
     ...statusCount,
     overallPercentage,
   };

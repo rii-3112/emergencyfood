@@ -89,5 +89,6 @@ export interface SupplyFormProps extends BaseFormProps {
   uid: string | null;
   teamId: string | null;
   supplyId?: string;
-  initialData?: SupplyFormData;
+  /** add: 入力の事前選択 / edit: 既存データ（未指定キーは初期値で補完） */
+  initialData?: Partial<SupplyFormData>;
 }

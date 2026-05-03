@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useState } from "react";
 
 import type { Supply, TeamStockSettings } from "@/types";
-import { aggregateStockStatus } from "@/utils/stockCalculator";
+import { DEFAULT_TEAM_STOCK_DAYS } from "@/utils/constants";
+import {
+  aggregateStockStatus,
+  getCategoryStockTargetPreview,
+} from "@/utils/stockCalculator";
 import {
   getMissingCategoriesByPriority,
   getProgress,
@@ -15,12 +19,31 @@ interface MissingCategoriesAlertProps {
   supplies: Supply[];
   teamId: string;
   teamStockSettings?: TeamStockSettings;
+  /** アカウント設定の性別*/
+  viewerGender?: string | null;
+}
+
+function MissingCategoryTargetHint({
+  category,
+  settings,
+}: {
+  category: string;
+  settings?: TeamStockSettings;
+}) {
+  const preview = getCategoryStockTargetPreview(category, settings);
+  if (!preview) return null;
+  return (
+    <div className='mt-2 rounded-md bg-sky-50 border border-sky-100 px-2 py-2 text-xs sm:text-sm text-sky-950'>
+      <p className='font-semibold'>{preview.headline}</p>
+    </div>
+  );
 }
 
 export function MissingCategoriesAlert({
   supplies,
   teamId,
   teamStockSettings,
+  viewerGender,
 }: MissingCategoriesAlertProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const userSupplies = supplies.map((s) => ({
@@ -28,13 +51,18 @@ export function MissingCategoriesAlert({
     quantity: s.quantity,
   }));
 
-  const derivedDays = teamStockSettings?.stockDays || 14;
+  const derivedDays = teamStockSettings?.stockDays ?? DEFAULT_TEAM_STOCK_DAYS;
   const missing = getMissingCategoriesByPriority(
     userSupplies,
-    teamStockSettings
+    teamStockSettings,
+    viewerGender
   );
-  const progress = getProgress(userSupplies);
-  const aggregate = aggregateStockStatus(supplies, teamStockSettings);
+  const progress = getProgress(userSupplies, teamStockSettings, viewerGender);
+  const aggregate = aggregateStockStatus(
+    supplies,
+    teamStockSettings,
+    viewerGender
+  );
   const totalMissing =
     missing.essential.length +
     missing.important.length +
@@ -100,6 +128,9 @@ export function MissingCategoriesAlert({
                 {progress.stockedCategories}/{progress.totalCategories}
                 カテゴリ）
               </p>
+              <p className='text-xs text-gray-600 mt-1'>
+                展開するとカテゴリごとに、いまの家族・備蓄日数から見た推奨量を表示します。
+              </p>
             </div>
           </div>
           <div className='flex items-center gap-2'>
@@ -145,6 +176,10 @@ export function MissingCategoriesAlert({
                           <p className='font-semibold text-gray-900'>
                             {rec.category}
                           </p>
+                          <MissingCategoryTargetHint
+                            category={rec.category}
+                            settings={teamStockSettings}
+                          />
                           <div className='mt-2'>
                             <p className='text-xs text-gray-500 font-semibold mb-1'>
                               推奨商品例:
@@ -193,6 +228,10 @@ export function MissingCategoriesAlert({
                           <p className='text-sm text-gray-600 mt-1'>
                             {rec.description}
                           </p>
+                          <MissingCategoryTargetHint
+                            category={rec.category}
+                            settings={teamStockSettings}
+                          />
                           <div className='mt-2'>
                             <p className='text-xs text-gray-500 font-semibold mb-1'>
                               推奨商品例:
@@ -241,6 +280,10 @@ export function MissingCategoriesAlert({
                           <p className='text-sm text-gray-600 mt-1'>
                             {rec.description}
                           </p>
+                          <MissingCategoryTargetHint
+                            category={rec.category}
+                            settings={teamStockSettings}
+                          />
                           <div className='mt-2'>
                             <p className='text-xs text-gray-500 font-semibold mb-1'>
                               推奨商品例:

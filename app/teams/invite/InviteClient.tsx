@@ -1,6 +1,6 @@
 "use client";
 import { useAuth } from "@/hooks";
-import { ERROR_MESSAGES } from "@/utils/constants";
+import { APP_ROUTES, ERROR_MESSAGES } from "@/utils/constants";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -88,7 +88,7 @@ export default function InviteClient() {
 
       await user.getIdToken(true);
 
-      router.push("/supplies/list");
+      router.push(APP_ROUTES.HOME);
       router.refresh();
     } catch (err) {
       setError(

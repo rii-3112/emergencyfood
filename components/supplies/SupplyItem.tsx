@@ -461,6 +461,7 @@ export default function SupplyItem({
                 推奨: {stockStatus.recommended}
                 {supply.unit}
                 {teamStockSettings &&
+                  stockStatus.consumptionDayBasedHint !== false &&
                   ` (${teamStockSettings.householdSize}人・${teamStockSettings.stockDays}日分)`}
               </p>
             )}
@@ -478,7 +479,8 @@ export default function SupplyItem({
                 <p className='text-xs mt-1'>
                   目標まであと{stockStatus.needToBuy}
                   {supply.unit}
-                  {stockStatus.daysRemaining > 0 &&
+                  {stockStatus.consumptionDayBasedHint !== false &&
+                    stockStatus.daysRemaining > 0 &&
                     ` (現在: 約${Math.floor(stockStatus.daysRemaining)}日分)`}
                 </p>
               )}

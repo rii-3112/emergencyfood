@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 import { useAuth, useTeam } from "@/hooks";
-import { ERROR_MESSAGES } from "@/utils/constants";
+import { APP_ROUTES, ERROR_MESSAGES } from "@/utils/constants";
 
 interface CreateTeamFormProps {
   onClose?: () => void;
@@ -45,11 +45,11 @@ export default function CreateTeamForm({ onClose }: CreateTeamFormProps) {
             onClose();
           }, 500);
         } else {
-          router.push(`/supplies/list?teamId=${result.teamId}`);
+          router.push(`${APP_ROUTES.HOME}?teamId=${result.teamId}`);
           router.refresh();
         }
       } else {
-        router.replace("/supplies/list");
+        router.replace(APP_ROUTES.HOME);
       }
     } catch (_error: unknown) {
       let msg: string = ERROR_MESSAGES.UNKNOWN_ERROR;

@@ -1,5 +1,6 @@
 import { getServerUser } from "@/utils/auth/server";
 import { fetchSuppliesFromDB, fetchTeamFromDB } from "@/utils/data/server";
+import { adminDb } from "@/utils/firebase/admin";
 import { redirect } from "next/navigation";
 import SupplyListView from "./_components/SupplyListView";
 
@@ -19,6 +20,14 @@ export default async function SupplyListPage() {
     fetchTeamFromDB(user.teamId),
   ]);
 
+  let viewerGender: string | undefined;
+  try {
+    const snap = await adminDb.collection("users").doc(user.uid).get();
+    viewerGender = snap.data()?.gender as string | undefined;
+  } catch {
+    /* 未取得時は未設定扱い */
+  }
+
   return (
     <div className='container mx-auto py-8 min-h-screen'>
       <header className='mb-8 border-gray-300 border-b pb-4'>
@@ -29,7 +38,7 @@ export default async function SupplyListPage() {
       <SupplyListView
         initialSupplies={supplies}
         initialTeam={team}
-        user={user}
+        user={{ ...user, gender: viewerGender }}
       />
     </div>
   );
