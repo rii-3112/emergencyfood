@@ -43,7 +43,8 @@ cd emergencyfood
 npm install
 ```
 
-ルートに `.env.local` を用意してから、Auth 用テーブルを作成します（`db:push` は `.env.local` の Turso 設定を読みます）。
+ルートに `.env.local` を用意してから、Auth 用テーブルを作成します（`db:push` は `.env.local`
+の Turso 設定を読みます）。
 
 ```bash
 npm run db:push

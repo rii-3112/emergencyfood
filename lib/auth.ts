@@ -76,8 +76,7 @@ export const auth = betterAuth({
             uid: createdUser.id,
             email: createdUser.email,
             displayName: createdUser.name,
-            teamId:
-              (createdUser as { teamId?: string | null }).teamId ?? null,
+            teamId: (createdUser as { teamId?: string | null }).teamId ?? null,
           });
         },
       },

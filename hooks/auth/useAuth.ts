@@ -15,7 +15,11 @@ interface UseAuthReturn {
 }
 
 export const useAuth = (requireAuth = false): UseAuthReturn => {
-  const { data: session, isPending, error: sessionError } = authClient.useSession();
+  const {
+    data: session,
+    isPending,
+    error: sessionError,
+  } = authClient.useSession();
 
   const sessionUser = session?.user;
   const user: AppUser | null = useMemo(() => {
@@ -38,9 +42,7 @@ export const useAuth = (requireAuth = false): UseAuthReturn => {
 
   const error =
     sessionError?.message ||
-    (requireAuth && !isPending && !user
-      ? ERROR_MESSAGES.UNAUTHORIZED
-      : null);
+    (requireAuth && !isPending && !user ? ERROR_MESSAGES.UNAUTHORIZED : null);
 
   const logout = async () => {
     await authClient.signOut();

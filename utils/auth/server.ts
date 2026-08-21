@@ -96,4 +96,3 @@ export async function syncUserLineUserId(
     .doc(uid)
     .set({ lineUserId }, { merge: true });
 }
-
