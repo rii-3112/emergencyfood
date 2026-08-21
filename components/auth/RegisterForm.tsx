@@ -1,16 +1,13 @@
-// components/auth/RegisterForm.tsx
 "use client";
-import { saveAuthTokenToCookie } from "@/utils/auth/cookies";
-import { API_ENDPOINTS, ERROR_MESSAGES } from "@/utils/constants";
-import { auth, db } from "@/utils/firebase";
-import {
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-} from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+
+import { authClient } from "@/lib/auth-client";
+import { ERROR_MESSAGES } from "@/utils/constants";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
+
+async function ensureUserDoc() {
+  await fetch("/api/actions/ensure-user", { method: "POST" });
+}
 
 export default function RegisterForm() {
   const [email, setEmail] = useState("");
@@ -22,85 +19,25 @@ export default function RegisterForm() {
   const searchParams = useSearchParams();
   const inviteCode = useMemo(() => searchParams.get("invite"), [searchParams]);
 
-  // Googleで登録
+  const profileQuery = inviteCode
+    ? `?invite=${encodeURIComponent(inviteCode)}`
+    : "";
+
   const handleGoogleRegister = async () => {
     setError(null);
     setIsLoading(true);
-
     try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: "select_account",
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: `/auth/register/profile${profileQuery}`,
       });
-
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      if (user) {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (userDocSnap.exists()) {
-          router.push("/auth/login");
-          return;
-        }
-
-        await setDoc(userDocRef, {
-          email: user.email,
-          teamId: null,
-        });
-
-        const idToken = await user.getIdToken();
-        const res = await fetch(API_ENDPOINTS.SET_CUSTOM_CLAIMS, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            uid: user.uid,
-            teamId: null,
-            idToken: idToken,
-          }),
-        });
-
-        if (!res.ok) {
-          setError("登録処理に失敗しました");
-          return;
-        }
-
-        await user.getIdToken(true);
-        saveAuthTokenToCookie(user);
-
-        const profileQuery = inviteCode
-          ? `?invite=${encodeURIComponent(inviteCode)}`
-          : "";
-        router.push(`/auth/register/profile${profileQuery}`);
-      }
     } catch (_error: unknown) {
-      if (_error instanceof Error && "code" in _error) {
-        switch (_error.code) {
-          case "auth/popup-closed-by-user":
-            setError("登録がキャンセルされました");
-            break;
-          case "auth/popup-blocked":
-            setError(
-              "ポップアップがブロックされました。ブラウザの設定を確認してください。"
-            );
-            break;
-          case "auth/account-exists-with-different-credential":
-            setError("このメールアドレスは既に別の方法で登録されています");
-            break;
-          default:
-            setError("Google登録に失敗しました");
-            break;
-        }
-      } else {
-        setError("Google登録に失敗しました");
-      }
-    } finally {
+      console.error("Google register error:", _error);
+      setError("Google登録に失敗しました");
       setIsLoading(false);
     }
   };
 
-  // メール/パスワードで登録
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -113,54 +50,26 @@ export default function RegisterForm() {
     setIsLoading(true);
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
+      const { error: signUpError } = await authClient.signUp.email({
         email,
-        password
-      );
-      if (userCredential.user) {
-        await setDoc(doc(db, "users", userCredential.user.uid), {
-          email: email,
-          teamId: null,
-        });
+        password,
+        name: email.split("@")[0] || "ユーザー",
+      });
 
-        const idToken = await userCredential.user.getIdToken();
-        const res = await fetch(API_ENDPOINTS.SET_CUSTOM_CLAIMS, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            uid: userCredential.user.uid,
-            teamId: null,
-            idToken: idToken,
-          }),
-        });
-        if (!res.ok) {
-          setError("クレームの同期に失敗しました");
-          return;
-        }
-        await userCredential.user.getIdToken(true);
-
-        saveAuthTokenToCookie(userCredential.user);
-
-        const profileQuery = inviteCode
-          ? `?invite=${encodeURIComponent(inviteCode)}`
-          : "";
-        router.push(`/auth/register/profile${profileQuery}`);
-      }
-    } catch (_error: unknown) {
-      if (_error instanceof Error && "code" in _error) {
-        if (_error.code === "auth/email-already-in-use") {
+      if (signUpError) {
+        if (signUpError.message?.toLowerCase().includes("exists")) {
           setError(ERROR_MESSAGES.EMAIL_ALREADY_IN_USE);
-        } else if (_error.code === "auth/invalid-email") {
-          setError(ERROR_MESSAGES.INVALID_EMAIL);
-        } else if (_error.code === "auth/weak-password") {
-          setError(ERROR_MESSAGES.WEAK_PASSWORD);
         } else {
-          setError(ERROR_MESSAGES.REGISTRATION_FAILED);
+          setError(signUpError.message || ERROR_MESSAGES.REGISTRATION_FAILED);
         }
-      } else {
-        setError(ERROR_MESSAGES.REGISTRATION_FAILED);
+        return;
       }
+
+      await ensureUserDoc();
+      router.push(`/auth/register/profile${profileQuery}`);
+      router.refresh();
+    } catch (_error: unknown) {
+      setError(ERROR_MESSAGES.REGISTRATION_FAILED);
     } finally {
       setIsLoading(false);
     }
@@ -193,7 +102,6 @@ export default function RegisterForm() {
         </div>
       )}
 
-      {/* Googleで登録ボタン */}
       <button
         type='button'
         onClick={handleGoogleRegister}

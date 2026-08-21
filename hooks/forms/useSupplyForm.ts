@@ -144,12 +144,10 @@ export function useSupplyForm({
           return;
         }
 
-        const idToken = await user.getIdToken();
         const response = await fetch("/api/supplies", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
           },
           body: JSON.stringify({
             name,
@@ -199,14 +197,10 @@ export function useSupplyForm({
           return;
         }
 
-        const token = await user.getIdToken();
-        console.log("Update request:", { supplyId, updates });
-
         const response = await fetch("/api/actions/update-supply", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
             supplyId,

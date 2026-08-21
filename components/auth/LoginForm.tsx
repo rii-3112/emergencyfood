@@ -1,14 +1,7 @@
-// components/auth/LoginForm.tsx
 "use client";
-import { saveAuthTokenToCookie } from "@/utils/auth/cookies";
+
+import { authClient } from "@/lib/auth-client";
 import { APP_ROUTES, ERROR_MESSAGES } from "@/utils/constants";
-import { auth, db } from "@/utils/firebase";
-import {
-  GoogleAuthProvider,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-} from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
@@ -19,139 +12,58 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handlePostLogin = async (user: any) => {
-    saveAuthTokenToCookie(user);
-
-    let idTokenResult = await user.getIdTokenResult(true);
-    let claimTeamId: string | null = idTokenResult.claims.teamId as
-      | string
-      | null;
-
-    if (!claimTeamId) {
-      const userDocRef = doc(db, "users", user.uid);
-      const userDocSnap = await getDoc(userDocRef);
-      const firestoreTeamId: string | null = userDocSnap.exists()
-        ? userDocSnap.data().teamId
-        : null;
-
-      if (firestoreTeamId) {
-        const idToken = await user.getIdToken();
-        const res = await fetch("/api/setCustomClaims", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            uid: user.uid,
-            teamId: firestoreTeamId,
-            idToken,
-          }),
-        });
-
-        if (res.ok) {
-          await user.getIdToken(true);
-          idTokenResult = await user.getIdTokenResult();
-          claimTeamId = idTokenResult.claims.teamId as string | null;
-        }
-      } else {
-        // 既存ユーザーの互換性対応
-      }
+  const handlePostLogin = async () => {
+    await fetch("/api/actions/ensure-user", { method: "POST" });
+    const { data: session } = await authClient.getSession();
+    const user = session?.user;
+    if (!user) {
+      setError(ERROR_MESSAGES.LOGIN_FAILED);
+      return;
     }
 
-    if (claimTeamId) {
+    const teamId = (user as { teamId?: string | null }).teamId;
+    if (teamId) {
       router.push(APP_ROUTES.HOME);
     } else {
       router.push("/settings?tab=team");
     }
+    router.refresh();
   };
 
-  // Googleログイン
   const handleGoogleLogin = async () => {
     setError(null);
     setIsLoading(true);
-
     try {
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({
-        prompt: "select_account",
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/home",
       });
-
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      if (user) {
-        await handlePostLogin(user);
-      }
     } catch (_error: unknown) {
       console.error("Google login error:", _error);
-      if (_error instanceof Error && "code" in _error) {
-        switch (_error.code) {
-          case "auth/popup-closed-by-user":
-            setError("ログインがキャンセルされました");
-            break;
-          case "auth/popup-blocked":
-            setError(
-              "ポップアップがブロックされました。ブラウザの設定を確認してください。"
-            );
-            break;
-          case "auth/cancelled-popup-request":
-            setError("ログインがキャンセルされました");
-            break;
-          case "auth/network-request-failed":
-            setError(
-              "ネットワークエラーが発生しました。インターネット接続を確認してください。"
-            );
-            break;
-          default:
-            setError("Googleログインに失敗しました");
-            break;
-        }
-      } else {
-        setError("Googleログインに失敗しました");
-      }
-    } finally {
+      setError("Googleログインに失敗しました");
       setIsLoading(false);
     }
   };
 
-  // メール/パスワードログイン
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
+      const { error: signInError } = await authClient.signIn.email({
         email,
-        password
-      );
-      const user = userCredential.user;
+        password,
+      });
 
-      if (user) {
-        await handlePostLogin(user);
+      if (signInError) {
+        setError(ERROR_MESSAGES.INVALID_CREDENTIALS);
+        return;
       }
+
+      await handlePostLogin();
     } catch (_error: unknown) {
-      if (_error instanceof Error && "code" in _error) {
-        switch (_error.code) {
-          case "auth/invalid-email":
-            setError(ERROR_MESSAGES.INVALID_EMAIL);
-            break;
-          case "auth/user-disabled":
-            setError(ERROR_MESSAGES.USER_DISABLED);
-            break;
-          case "auth/user-not-found":
-          case "auth/wrong-password":
-            setError(ERROR_MESSAGES.INVALID_CREDENTIALS);
-            break;
-          case "auth/too-many-requests":
-            setError(ERROR_MESSAGES.TOO_MANY_REQUESTS);
-            break;
-          default:
-            setError(ERROR_MESSAGES.LOGIN_FAILED);
-            break;
-        }
-      } else {
-        setError(ERROR_MESSAGES.LOGIN_FAILED);
-      }
+      setError(ERROR_MESSAGES.LOGIN_FAILED);
     } finally {
       setIsLoading(false);
     }

@@ -70,12 +70,10 @@ export default function InviteClient() {
     setError(null);
 
     try {
-      const idToken = await user.getIdToken();
       const response = await fetch("/api/team/join-by-invite", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({ inviteCode }),
       });
@@ -85,8 +83,6 @@ export default function InviteClient() {
       if (!response.ok) {
         throw new Error(result.error || "チームへの参加に失敗しました");
       }
-
-      await user.getIdToken(true);
 
       router.push(APP_ROUTES.HOME);
       router.refresh();

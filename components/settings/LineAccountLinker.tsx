@@ -1,13 +1,12 @@
 //components/settings/LineAccountLinker.tsx
 "use client";
-import { getAuth } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { authClient } from "@/lib/auth-client";
 import type { AppUser } from "@/types";
 import { db } from "@/utils/firebase";
-import { setTeamIdClaim } from "@/utils/firebase/team-claims";
 
 interface LineAccountLinkerProps {
   currentUser: AppUser;
@@ -24,9 +23,7 @@ export default function LineAccountLinker({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
-  const _firebaseAuth = getAuth();
 
-  //firebaseに確認
   useEffect(() => {
     const fetchLineUserId = async () => {
       if (!currentUser?.uid) return;
@@ -36,6 +33,8 @@ export default function LineAccountLinker({
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
           setLineUserIdFromFirestore(userDocSnap.data()?.lineUserId || null);
+        } else if (currentUser.lineUserId) {
+          setLineUserIdFromFirestore(currentUser.lineUserId);
         }
       } catch (_e) {
         setError("ユーザー情報の取得に失敗しました。");
@@ -49,7 +48,6 @@ export default function LineAccountLinker({
     }
   }, [currentUser]);
 
-  //LINE連携
   const handleLinkLineAccount = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -65,13 +63,10 @@ export default function LineAccountLinker({
     }
 
     try {
-      const idToken = await currentUser.getIdToken();
-
       const response = await fetch("/api/actions/link-line-account", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({ authCode: lineAuthCode }),
       });
@@ -86,15 +81,13 @@ export default function LineAccountLinker({
         result.message || "LINEアカウントが正常に連携されました！"
       );
       setLineUserIdFromFirestore(result.lineUserId);
-
-      await currentUser.getIdToken(true);
+      await authClient.getSession();
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : "不明なエラー";
       setError(`LINEアカウントの連携に失敗しました: ${errorMessage}`);
     }
   };
 
-  //LINE連携解除
   const handleUnlinkLineAccount = async () => {
     setShowUnlinkConfirm(true);
   };
@@ -108,12 +101,10 @@ export default function LineAccountLinker({
       return;
     }
     try {
-      const idToken = await currentUser.getIdToken();
       const response = await fetch("/api/actions/unlink-line-account", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({ uid: currentUser.uid }),
       });
@@ -130,10 +121,7 @@ export default function LineAccountLinker({
         result.message || "LINEアカウントの連携を解除しました。"
       );
       setLineUserIdFromFirestore(null);
-
-      await currentUser.getIdToken(true);
-      await setTeamIdClaim();
-      await currentUser.getIdToken(true);
+      await authClient.getSession();
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : "不明なエラー";
       setError(`LINEアカウントの連携解除に失敗しました: ${errorMessage}`);

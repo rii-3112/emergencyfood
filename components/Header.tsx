@@ -54,12 +54,7 @@ export default function Header({
       if (!user || !isLoggedIn) return;
 
       try {
-        const idToken = await user.getIdToken();
-        const response = await fetch("/api/team/my-teams", {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
+        const response = await fetch("/api/team/my-teams");
 
         if (response.ok) {
           const data = await response.json();
@@ -79,19 +74,15 @@ export default function Header({
     if (!user) return;
 
     try {
-      const idToken = await user.getIdToken();
       const response = await fetch("/api/team/switch", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({ teamId: newTeamId }),
       });
 
       if (response.ok) {
-        // トークン更新
-        await user.getIdToken(true);
         setIsTeamMenuOpen(false);
         // ページ全体をリロード（状態を完全にリセット）
         window.location.href = APP_ROUTES.HOME;

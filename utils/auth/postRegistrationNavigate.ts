@@ -1,5 +1,3 @@
-import type { User } from "firebase/auth";
-
 import { API_ENDPOINTS, APP_ROUTES } from "@/utils/constants";
 
 type NavigateRouter = {
@@ -12,21 +10,15 @@ type NavigateRouter = {
  * 招待参加または既定の家族グループ作成へ進む。
  */
 export async function navigateAfterRegistrationProfile(
-  user: User,
   router: NavigateRouter,
   displayNameTrimmed: string,
   inviteCode: string | null
 ): Promise<void> {
   try {
-    const idToken = await user.getIdToken();
-
     if (inviteCode) {
       const joinResponse = await fetch("/api/team/join-by-invite", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ inviteCode }),
       });
 
@@ -40,10 +32,7 @@ export async function navigateAfterRegistrationProfile(
     } else {
       const teamResponse = await fetch(API_ENDPOINTS.CREATE_TEAM, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           teamName: `${displayNameTrimmed}の家族`,
           teamPassword: "",
@@ -53,7 +42,6 @@ export async function navigateAfterRegistrationProfile(
       const teamResult = await teamResponse.json();
 
       if (teamResponse.ok && teamResult.teamId) {
-        await user.getIdToken(true);
         router.push(APP_ROUTES.HOME);
         router.refresh();
       } else {
