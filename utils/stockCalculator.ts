@@ -2,7 +2,10 @@
 
 import type { Supply, TeamStockSettings } from "@/types";
 import { DEFAULT_TEAM_STOCK_DAYS } from "@/utils/constants";
-import { getApplicableStockRecommendationCategories, getRecommendation } from "./stockRecommendations";
+import {
+  getApplicableStockRecommendationCategories,
+  getRecommendation,
+} from "./stockRecommendations";
 
 export interface StockStatus {
   recommended: number; // 推奨在庫量
@@ -307,9 +310,7 @@ export function aggregateStockStatus(
   }
 
   const overallPercentage =
-    totalTarget > 0
-      ? Math.round((totalAchieved / totalTarget) * 100)
-      : 0;
+    totalTarget > 0 ? Math.round((totalAchieved / totalTarget) * 100) : 0;
 
   return {
     total: activeSupplies.length,
