@@ -45,6 +45,9 @@ next-env.d.ts
 # firebase
 serviceAccountKey.json
 
+# Better Auth local sqlite
+/data/
+
 extensions.json
 settings.json
 
