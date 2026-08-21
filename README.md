@@ -15,21 +15,25 @@
 
 ## 技術スタック
 
-| 領域           | 技術                                           |
-| -------------- | ---------------------------------------------- |
+| 領域 | 技術 |
+| --- | --- |
 | フロント / API | Next.js 15（App Router）、React 19、TypeScript |
-| スタイル       | Tailwind CSS 4                                 |
-| 認証・DB       | Firebase Auth、Cloud Firestore                 |
-| 通知           | LINE Messaging API                             |
-| デプロイ       | Vercel                                         |
-| 定期実行       | GitHub Actions（`/api/cron/check-expiry`）     |
+| スタイル | Tailwind CSS 4 |
+| 認証 | Better Auth（メール / Google） |
+| Auth DB | Turso（libSQL）無料枠 ※ローカルは `file:./data/auth.db` 可 |
+| アプリ DB | Cloud Firestore |
+| 通知 | LINE Messaging API |
+| デプロイ | Vercel |
+| 定期実行 | GitHub Actions（`/api/cron/check-expiry`） |
 
 ## セットアップ
 
 ### 前提
 
 - Node.js 18 以上
-- Firebase プロジェクト
+- Firebase プロジェクト（Firestore 用）
+- Auth 用 DB: ローカルファイル、または [Turso](https://turso.tech/) 無料 DB
+- （任意）Google OAuth クライアント（Google ログイン用）
 - （任意）LINE Messaging API チャネル
 
 ### 手順
@@ -38,9 +42,42 @@
 git clone <repository-url>
 cd emergencyfood
 npm install
+npm run db:push
 ```
 
-ルートに `.env.local` を用意し、Firebase・LINE・cron 用の環境変数を設定します。
+ルートに `.env.local` を用意します。
+
+```env
+# Better Auth
+BETTER_AUTH_SECRET=  # openssl rand -base64 32
+BETTER_AUTH_URL=http://localhost:3000
+
+# Auth DB（未設定時は file:./data/auth.db）
+# TURSO_DATABASE_URL=libsql://xxxx.turso.io
+# TURSO_AUTH_TOKEN=
+
+# Google OAuth（任意）
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=
+# Redirect URI: {BETTER_AUTH_URL}/api/auth/callback/google
+
+# Firebase（Firestore）
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+FIREBASE_PROJECT_ID=
+FIREBASE_CLIENT_EMAIL=
+FIREBASE_PRIVATE_KEY=
+
+# App / LINE / cron
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+LINE_CHANNEL_ACCESS_TOKEN=
+LINE_CHANNEL_SECRET=
+CRON_JOB_SECRET=
+```
 
 ```bash
 npm run dev
@@ -48,17 +85,23 @@ npm run dev
 
 [http://localhost:3000](http://localhost:3000) で確認できます。
 
+### 既存 Firebase Auth ユーザーについて
+
+認証は Better Auth に移行済みです。旧 Firebase Auth のログインは使えません。新規登録してください。  
+Firestore 上の旧 uid データは、必要に応じて新 uid へ手動で付け替えてください。
+
 ## スクリプト
 
-| コマンド             | 内容                                 |
-| -------------------- | ------------------------------------ |
-| `npm run dev`        | 開発サーバー（Turbopack）            |
-| `npm run build`      | 本番ビルド                           |
-| `npm run start`      | 本番サーバー起動                     |
-| `npm run lint`       | ESLint                               |
-| `npm run format`     | Prettier で整形                      |
-| `npm run type-check` | TypeScript 型チェック                |
-| `npm run check-all`  | 型・Lint・フォーマットをまとめて確認 |
+| コマンド | 内容 |
+| --- | --- |
+| `npm run dev` | 開発サーバー（Turbopack） |
+| `npm run build` | 本番ビルド |
+| `npm run start` | 本番サーバー起動 |
+| `npm run db:push` | Auth 用 DB スキーマを反映 |
+| `npm run lint` | ESLint |
+| `npm run format` | Prettier で整形 |
+| `npm run type-check` | TypeScript 型チェック |
+| `npm run check-all` | 型・Lint・フォーマットをまとめて確認 |
 
 ## 定期実行（LINE アラート）
 
@@ -74,9 +117,10 @@ npm run dev
 
 ```text
 app/                 # ページ・API Routes
+lib/                 # Better Auth / DB
 components/          # UI コンポーネント
 hooks/               # カスタムフック
-utils/               # Firebase・在庫計算・認証など
+utils/               # Firestore・在庫計算・認証ヘルパーなど
 types/               # 型定義
 .github/workflows/   # cron など
 ```
