@@ -1,5 +1,5 @@
 // app/api/cron/check-expiry/route.ts
-import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { adminDb } from "@/utils/firebase/admin";
 import { calculateStockStatus } from "@/utils/stockCalculator";
 import { getExpiryType } from "@/utils/stockRecommendations";
 import { Client } from "@line/bot-sdk";
@@ -71,10 +71,8 @@ export async function POST(req: Request) {
       const lineUserIds: string[] = [];
       for (const memberId of teamData.members || []) {
         try {
-          const userRecord = await adminAuth.getUser(memberId);
-          const lineUserId = userRecord.customClaims?.lineUserId as
-            | string
-            | undefined;
+          const userDoc = await adminDb.collection("users").doc(memberId).get();
+          const lineUserId = userDoc.data()?.lineUserId as string | undefined;
           if (lineUserId) {
             lineUserIds.push(lineUserId);
           }

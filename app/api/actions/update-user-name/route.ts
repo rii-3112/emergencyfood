@@ -1,17 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { auth } from "@/lib/auth";
+import { requireApiUser } from "@/utils/auth/server";
+import { adminDb } from "@/utils/firebase/admin";
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    const user = await requireApiUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    const userId = decodedToken.uid;
+    const userId = user.uid;
 
     const ALLOWED_GENDERS = ["male", "female", "prefer_not_to_say"] as const;
 
@@ -25,8 +25,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "表示名が必要です" }, { status: 400 });
     }
 
+    const trimmedName = displayName.trim();
+
     const firestoreUpdates: Record<string, string> = {
-      displayName: displayName.trim(),
+      displayName: trimmedName,
     };
 
     if (gender !== undefined) {
@@ -41,15 +43,9 @@ export async function POST(request: NextRequest) {
 
     await adminDb.collection("users").doc(userId).update(firestoreUpdates);
 
-    await adminAuth.updateUser(userId, {
-      displayName: displayName.trim(),
-    });
-
-    const userRecord = await adminAuth.getUser(userId);
-    const currentClaims = userRecord.customClaims || {};
-    await adminAuth.setCustomUserClaims(userId, {
-      ...currentClaims,
-      displayName: displayName.trim(),
+    await auth.api.updateUser({
+      body: { name: trimmedName },
+      headers: request.headers,
     });
 
     return NextResponse.json({

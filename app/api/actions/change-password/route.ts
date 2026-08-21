@@ -1,19 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { adminAuth } from "@/utils/firebase/admin";
+import { auth } from "@/lib/auth";
+import { requireApiUser } from "@/utils/auth/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    const user = await requireApiUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    const userId = decodedToken.uid;
-
-    const { newPassword } = await request.json();
+    const { newPassword, currentPassword } = await request.json();
 
     if (!newPassword || newPassword.length < 6) {
       return NextResponse.json(
@@ -22,9 +19,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await adminAuth.updateUser(userId, {
-      password: newPassword,
-    });
+    // Prefer changePassword when currentPassword is provided; otherwise
+    // use server-only setPassword for backward-compatible clients.
+    if (currentPassword) {
+      await auth.api.changePassword({
+        body: {
+          newPassword,
+          currentPassword,
+          revokeOtherSessions: true,
+        },
+        headers: request.headers,
+      });
+    } else {
+      await auth.api.setPassword({
+        body: { newPassword },
+        headers: request.headers,
+      });
+    }
 
     return NextResponse.json({
       success: true,

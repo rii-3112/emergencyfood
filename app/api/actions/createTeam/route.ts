@@ -2,29 +2,17 @@
 import type { Transaction } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { requireApiUser, syncUserTeamId } from "@/utils/auth/server";
+import { adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Authorization header missing or malformed" },
-        { status: 401 }
-      );
-    }
-    const idToken = authHeader.split("Bearer ")[1];
-    let decodedToken;
-    try {
-      decodedToken = await adminAuth.verifyIdToken(idToken);
-    } catch (_error) {
-      return NextResponse.json(
-        { error: "Invalid or expired ID token" },
-        { status: 403 }
-      );
+    const user = await requireApiUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const uid = decodedToken.uid;
+    const uid = user.uid;
     const { teamName, teamPassword } = await req.json();
 
     if (!teamName) {
@@ -82,11 +70,7 @@ export async function POST(req: Request) {
       }
     );
 
-    await adminAuth.setCustomUserClaims(uid, {
-      teamId: newTeamId,
-      email: decodedToken.email,
-      displayName: decodedToken.name || null,
-    });
+    await syncUserTeamId(uid, newTeamId);
 
     return NextResponse.json({
       message: `Team "${teamName}" created and you joined.`,
