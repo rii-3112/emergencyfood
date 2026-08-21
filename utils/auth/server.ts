@@ -5,6 +5,8 @@ import { eq } from "drizzle-orm";
 import { user as userTable } from "@/lib/auth-schema";
 import { db } from "@/lib/db";
 
+export { ensureFirestoreUser } from "@/utils/auth/firestore-user";
+
 export interface ServerUser {
   uid: string;
   email: string;
@@ -95,22 +97,3 @@ export async function syncUserLineUserId(
     .set({ lineUserId }, { merge: true });
 }
 
-/** Firestore users ドキュメントを確保 */
-export async function ensureFirestoreUser(params: {
-  uid: string;
-  email: string;
-  displayName?: string | null;
-  teamId?: string | null;
-}) {
-  const ref = adminDb.collection("users").doc(params.uid);
-  const snap = await ref.get();
-  if (!snap.exists) {
-    await ref.set({
-      email: params.email,
-      displayName: params.displayName ?? null,
-      teamId: params.teamId ?? null,
-      lineUserId: null,
-      createdAt: new Date().toISOString(),
-    });
-  }
-}

@@ -27,10 +27,24 @@ export default function RegisterForm() {
     setError(null);
     setIsLoading(true);
     try {
-      await authClient.signIn.social({
+      const { error: socialError } = await authClient.signIn.social({
         provider: "google",
         callbackURL: `/auth/register/profile${profileQuery}`,
       });
+      if (socialError) {
+        const message = socialError.message || "";
+        if (
+          socialError.status === 404 ||
+          message.toLowerCase().includes("provider")
+        ) {
+          setError(
+            "Googleログインが未設定です。.env.local に GOOGLE_CLIENT_ID と GOOGLE_CLIENT_SECRET を追加し、dev サーバーを再起動してください。"
+          );
+        } else {
+          setError(message || "Google登録に失敗しました");
+        }
+        setIsLoading(false);
+      }
     } catch (_error: unknown) {
       console.error("Google register error:", _error);
       setError("Google登録に失敗しました");

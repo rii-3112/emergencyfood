@@ -51,7 +51,7 @@ export default function Header({
 
   useEffect(() => {
     const fetchTeams = async () => {
-      if (!user || !isLoggedIn) return;
+      if (!user?.uid || !isLoggedIn) return;
 
       try {
         const response = await fetch("/api/team/my-teams");
@@ -68,7 +68,7 @@ export default function Header({
     };
 
     fetchTeams();
-  }, [user, isLoggedIn, teamId]);
+  }, [user?.uid, isLoggedIn, teamId]);
 
   const switchTeam = async (newTeamId: string) => {
     if (!user) return;

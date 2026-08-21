@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { auth } from "@/lib/auth";
-import { requireApiUser } from "@/utils/auth/server";
+import { ensureFirestoreUser, requireApiUser } from "@/utils/auth/server";
 import { adminDb } from "@/utils/firebase/admin";
 
 export async function POST(request: NextRequest) {
@@ -41,7 +41,17 @@ export async function POST(request: NextRequest) {
       firestoreUpdates.gender = gender;
     }
 
-    await adminDb.collection("users").doc(userId).update(firestoreUpdates);
+    await ensureFirestoreUser({
+      uid: userId,
+      email: user.email,
+      displayName: trimmedName,
+      teamId: user.teamId ?? null,
+    });
+
+    await adminDb
+      .collection("users")
+      .doc(userId)
+      .set(firestoreUpdates, { merge: true });
 
     await auth.api.updateUser({
       body: { name: trimmedName },
@@ -53,6 +63,7 @@ export async function POST(request: NextRequest) {
       message: "ユーザー名を更新しました",
     });
   } catch (_error) {
+    console.error("update-user-name error:", _error);
     return NextResponse.json(
       { error: "ユーザー名の更新に失敗しました" },
       { status: 500 }

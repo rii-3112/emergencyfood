@@ -43,6 +43,9 @@ export default function RegisterProfileClient() {
 
     async function ensureProfileGate() {
       try {
+        // Google OAuth はリダイレクト戻りのため、ここで Firestore ユーザーを確保
+        await fetch("/api/actions/ensure-user", { method: "POST" });
+
         const snap = await getDoc(doc(db, "users", uid));
         const data = snap.data();
         if (!cancelled && data?.gender) {

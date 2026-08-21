@@ -3,6 +3,7 @@
 import { authClient } from "@/lib/auth-client";
 import type { AppUser } from "@/types";
 import { API_ENDPOINTS, ERROR_MESSAGES } from "@/utils/constants";
+import { useMemo } from "react";
 
 interface UseAuthReturn {
   user: AppUser | null;
@@ -17,16 +18,23 @@ export const useAuth = (requireAuth = false): UseAuthReturn => {
   const { data: session, isPending, error: sessionError } = authClient.useSession();
 
   const sessionUser = session?.user;
-  const user: AppUser | null = sessionUser
-    ? {
-        uid: sessionUser.id,
-        email: sessionUser.email,
-        displayName: sessionUser.name,
-        teamId: (sessionUser as { teamId?: string | null }).teamId ?? null,
-        lineUserId:
-          (sessionUser as { lineUserId?: string | null }).lineUserId ?? null,
-      }
-    : null;
+  const user: AppUser | null = useMemo(() => {
+    if (!sessionUser) return null;
+    return {
+      uid: sessionUser.id,
+      email: sessionUser.email,
+      displayName: sessionUser.name,
+      teamId: (sessionUser as { teamId?: string | null }).teamId ?? null,
+      lineUserId:
+        (sessionUser as { lineUserId?: string | null }).lineUserId ?? null,
+    };
+  }, [
+    sessionUser?.id,
+    sessionUser?.email,
+    sessionUser?.name,
+    (sessionUser as { teamId?: string | null } | undefined)?.teamId,
+    (sessionUser as { lineUserId?: string | null } | undefined)?.lineUserId,
+  ]);
 
   const error =
     sessionError?.message ||

@@ -9,6 +9,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
 } from "react";
 
 interface AuthContextType {
@@ -38,6 +39,14 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
   const user = session?.user ?? null;
   const teamId = (user as { teamId?: string | null } | null)?.teamId ?? null;
+  const ensuredUserIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (isPending || !user?.id) return;
+    if (ensuredUserIdRef.current === user.id) return;
+    ensuredUserIdRef.current = user.id;
+    void fetch("/api/actions/ensure-user", { method: "POST" });
+  }, [isPending, user?.id]);
 
   useEffect(() => {
     if (isPending) return;

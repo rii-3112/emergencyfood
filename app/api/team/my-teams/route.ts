@@ -15,10 +15,11 @@ export async function GET(request: NextRequest) {
     const userDoc = await adminDb.collection("users").doc(uid).get();
 
     if (!userDoc.exists) {
-      return NextResponse.json(
-        { error: "User document not found" },
-        { status: 404 }
-      );
+      // Google 登録直後など、Firestore 未作成でもヘッダーが壊れないようにする
+      return NextResponse.json({
+        teams: [],
+        activeTeamId: null,
+      });
     }
 
     const userData = userDoc.data();
