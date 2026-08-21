@@ -2,7 +2,8 @@
 import { MissingCategoriesAlert } from "@/components/supplies/MissingCategoriesAlert";
 import SupplyItem from "@/components/supplies/SupplyItem";
 import type { SortOption, SortOrder } from "@/components/supplies/SupplySort";
-import { Button, Card } from "@/components/ui";
+import { Button, Card, Toast } from "@/components/ui";
+import { useToast } from "@/hooks";
 import type { Supply, Team } from "@/types";
 import { FOOD_CATEGORIES, FOOD_UNITS } from "@/utils/constants";
 import { sortSupplies } from "@/utils/sortSupplies";
@@ -28,6 +29,7 @@ export default function SupplyListView({
   initialTeam,
   user,
 }: SupplyListViewProps) {
+  const { toast, showToast } = useToast();
   const [sortBy, setSortBy] = useState<SortOption>("registeredAt");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const [supplies, setSupplies] = useState<Supply[]>(initialSupplies);
@@ -118,11 +120,11 @@ export default function SupplyListView({
         setShowEditModal(false);
       } else {
         const result = await response.json();
-        alert(result.error || "更新に失敗しました");
+        showToast(result.error || "更新に失敗しました", "error");
       }
     } catch (error) {
       console.error("Update error:", error);
-      alert("更新に失敗しました");
+      showToast("更新に失敗しました", "error");
     }
   };
 
@@ -455,6 +457,8 @@ export default function SupplyListView({
           </div>
         </div>
       )}
+
+      {toast && <Toast message={toast.message} variant={toast.variant} />}
     </>
   );
 }
