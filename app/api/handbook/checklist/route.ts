@@ -1,6 +1,7 @@
+import { requireApiUser } from "@/utils/auth/server";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { adminDb } from "@/utils/firebase/admin";
 
 interface HandbookChecklistData {
   checkedItemIds: string[];
@@ -13,14 +14,12 @@ interface HandbookChecklistData {
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    const user = await requireApiUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    const teamId = decodedToken.teamId as string;
+    const teamId = user.teamId as string;
 
     if (!teamId) {
       return NextResponse.json(
@@ -51,14 +50,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    const user = await requireApiUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    const teamId = decodedToken.teamId as string;
+    const teamId = user.teamId as string;
 
     if (!teamId) {
       return NextResponse.json(
@@ -74,7 +71,7 @@ export async function POST(request: NextRequest) {
         checkedItemIds: body.checkedItemIds || [],
         checkedPetItems: body.checkedPetItems || {},
         lastUpdated: new Date(),
-        lastUpdatedBy: decodedToken.name || decodedToken.email || "ユーザー",
+        lastUpdatedBy: user.displayName || user.email || "ユーザー",
       };
 
       await adminDb
@@ -106,7 +103,7 @@ export async function POST(request: NextRequest) {
       checkedItemIds: Array.from(checkedItemIds),
       checkedPetItems,
       lastUpdated: new Date(),
-      lastUpdatedBy: decodedToken.name || decodedToken.email || "ユーザー",
+      lastUpdatedBy: user.displayName || user.email || "ユーザー",
     };
 
     await adminDb

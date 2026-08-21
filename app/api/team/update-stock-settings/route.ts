@@ -1,30 +1,17 @@
+import { requireApiUser } from "@/utils/auth/server";
 import { NextResponse } from "next/server";
 
 import type { TeamStockSettings } from "@/types";
-import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Authorization header missing" },
-        { status: 401 }
-      );
+    const user = await requireApiUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    let decodedToken;
-    try {
-      decodedToken = await adminAuth.verifyIdToken(idToken);
-    } catch (_error) {
-      return NextResponse.json(
-        { error: "Invalid or expired ID token" },
-        { status: 403 }
-      );
-    }
-
-    const uid = decodedToken.uid;
+    const uid = user.uid;
     const { teamId, stockSettings } = await req.json();
 
     if (!teamId || !stockSettings) {

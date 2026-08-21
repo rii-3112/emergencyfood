@@ -40,7 +40,7 @@ export default function DisasterBoardCheckpoint({
   initialTeamData,
   user: _serverUser,
 }: DisasterBoardCheckpointProps) {
-  const { user: firebaseUser } = useAuth();
+  const { user: sessionUser } = useAuth();
   const [data, setData] = useState<DisasterBoardData>(
     initialData || defaultData
   );
@@ -49,19 +49,17 @@ export default function DisasterBoardCheckpoint({
   const [success, setSuccess] = useState<string | null>(null);
 
   const handleSave = async () => {
-    if (!firebaseUser || !initialTeamData) return;
+    if (!sessionUser || !initialTeamData) return;
 
     try {
       setSaving(true);
       setError(null);
       setSuccess(null);
 
-      const token = await firebaseUser.getIdToken();
       const response = await fetch("/api/disaster-board", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           teamId: initialTeamData.id,

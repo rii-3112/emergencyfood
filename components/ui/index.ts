@@ -13,6 +13,8 @@ export { ErrorMessage } from "./feedback/ErrorMessage";
 export type { ErrorMessageProps } from "./feedback/ErrorMessage";
 export { SuccessMessage } from "./feedback/SuccessMessage";
 export type { SuccessMessageProps } from "./feedback/SuccessMessage";
+export { Toast } from "./feedback/Toast";
+export type { ToastProps, ToastVariant } from "./feedback/Toast";
 
 // Layout Components
 export { Card } from "./layout/Card";

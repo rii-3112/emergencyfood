@@ -134,8 +134,6 @@ export const API_ENDPOINTS = {
   UNLINK_LINE: "/api/actions/unlink-line-account",
   UPDATE_USER_NAME: "/api/actions/update-user-name",
   CHANGE_PASSWORD: "/api/actions/change-password",
-  SET_TEAM_CLAIM: "/api/setTeamClaim",
-  SET_CUSTOM_CLAIMS: "/api/setCustomClaims",
 } as const;
 
 export const DEFAULT_TEAM_STOCK_DAYS = 3;

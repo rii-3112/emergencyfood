@@ -1,20 +1,19 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { requireApiUser } from "@/utils/auth/server";
+import { adminDb } from "@/utils/firebase/admin";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    const user = await requireApiUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    const userId = decodedToken.uid;
+    const userId = user.uid;
 
     const { teamId } = await params;
 
@@ -46,14 +45,15 @@ export async function GET(
 
     const memberIds = [...new Set([...teamData.members, ownerId])];
 
-    const userRecords = await Promise.all(
-      memberIds.map((id) => adminAuth.getUser(id))
+    const userDocs = await Promise.all(
+      memberIds.map((id) => adminDb.collection("users").doc(id).get())
     );
 
-    const members = userRecords
-      .filter((userRecord) => userRecord)
-      .map((userRecord) => {
-        const uid = userRecord.uid;
+    const members = userDocs
+      .filter((userDoc) => userDoc.exists)
+      .map((userDoc) => {
+        const uid = userDoc.id;
+        const userData = userDoc.data();
         let role: "owner" | "admin" | "member" = "member";
 
         if (uid === ownerId) {
@@ -64,8 +64,8 @@ export async function GET(
 
         return {
           uid,
-          email: userRecord.email,
-          displayName: userRecord.displayName || null,
+          email: userData?.email ?? null,
+          displayName: userData?.displayName || null,
           role,
         };
       })

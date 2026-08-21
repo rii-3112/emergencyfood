@@ -2,29 +2,17 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { requireApiUser, syncUserLineUserId } from "@/utils/auth/server";
+import { adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Authorization header missing or malformed" },
-        { status: 401 }
-      );
-    }
-    const idToken = authHeader.split("Bearer ")[1];
-    let decodedToken;
-    try {
-      decodedToken = await adminAuth.verifyIdToken(idToken);
-    } catch (_error) {
-      return NextResponse.json(
-        { error: "Invalid or expired ID token" },
-        { status: 403 }
-      );
+    const user = await requireApiUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const firebaseUid = decodedToken.uid;
+    const firebaseUid = user.uid;
 
     const userDocRef = adminDb.collection("users").doc(firebaseUid);
     const userDocSnap = await userDocRef.get();
@@ -41,9 +29,7 @@ export async function POST(req: Request) {
       lineLinkedAt: FieldValue.delete(),
     });
 
-    const newClaims = { ...decodedToken.claims };
-    delete newClaims.lineUserId;
-    await adminAuth.setCustomUserClaims(firebaseUid, newClaims);
+    await syncUserLineUserId(firebaseUid, null);
 
     return NextResponse.json({
       message: "LINE account unlinked successfully!",

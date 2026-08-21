@@ -1,7 +1,6 @@
 # SonaBase
 
-家族の防災情報をひとつの場所にまとめる Web アプリです。  
-備蓄品の管理を軸に、期限・在庫の通知や、非常時に確認したい情報（チェックリスト・ハザードマップ・災害用伝言板）をチーム（家族グループ）単位で扱えます。
+家族の防災情報をひとつの場所にまとめる Web アプリです。備蓄品の管理を軸に、期限・在庫の通知や、非常時に確認したい情報（チェックリスト・ハザードマップ・災害用伝言板）をチーム（家族グループ）単位で扱えます。
 
 個人開発リポジトリです。2025 技育博 Vol.3 に個人参加しました。
 
@@ -15,21 +14,25 @@
 
 ## 技術スタック
 
-| 領域           | 技術                                           |
-| -------------- | ---------------------------------------------- |
-| フロント / API | Next.js 15（App Router）、React 19、TypeScript |
-| スタイル       | Tailwind CSS 4                                 |
-| 認証・DB       | Firebase Auth、Cloud Firestore                 |
-| 通知           | LINE Messaging API                             |
-| デプロイ       | Vercel                                         |
-| 定期実行       | GitHub Actions（`/api/cron/check-expiry`）     |
+| 領域           | 技術                                                       |
+| -------------- | ---------------------------------------------------------- |
+| フロント / API | Next.js 15（App Router）、React 19、TypeScript             |
+| スタイル       | Tailwind CSS 4                                             |
+| 認証           | Better Auth（メール / Google）                             |
+| Auth DB        | Turso（libSQL）無料枠 ※ローカルは `file:./data/auth.db` 可 |
+| アプリ DB      | Cloud Firestore                                            |
+| 通知           | LINE Messaging API                                         |
+| デプロイ       | Vercel                                                     |
+| 定期実行       | GitHub Actions（`/api/cron/check-expiry`）                 |
 
 ## セットアップ
 
 ### 前提
 
 - Node.js 18 以上
-- Firebase プロジェクト
+- Firebase プロジェクト（Firestore 用）
+- Auth 用 DB: ローカルファイル、または [Turso](https://turso.tech/) 無料 DB
+- （任意）Google OAuth クライアント（Google ログイン用）
 - （任意）LINE Messaging API チャネル
 
 ### 手順
@@ -40,13 +43,19 @@ cd emergencyfood
 npm install
 ```
 
-ルートに `.env.local` を用意し、Firebase・LINE・cron 用の環境変数を設定します。
+ルートに `.env.local` を用意してから、Auth 用テーブルを作成します（`db:push` は `.env.local`
+の Turso 設定を読みます）。
 
 ```bash
+npm run db:push
 npm run dev
 ```
 
 [http://localhost:3000](http://localhost:3000) で確認できます。
+
+### 既存 Firebase Auth ユーザーについて
+
+認証は Better Auth に移行済みです。
 
 ## スクリプト
 
@@ -55,6 +64,7 @@ npm run dev
 | `npm run dev`        | 開発サーバー（Turbopack）            |
 | `npm run build`      | 本番ビルド                           |
 | `npm run start`      | 本番サーバー起動                     |
+| `npm run db:push`    | Auth 用 DB スキーマを反映            |
 | `npm run lint`       | ESLint                               |
 | `npm run format`     | Prettier で整形                      |
 | `npm run type-check` | TypeScript 型チェック                |
@@ -74,9 +84,10 @@ npm run dev
 
 ```text
 app/                 # ページ・API Routes
+lib/                 # Better Auth / DB
 components/          # UI コンポーネント
 hooks/               # カスタムフック
-utils/               # Firebase・在庫計算・認証など
+utils/               # Firestore・在庫計算・認証ヘルパーなど
 types/               # 型定義
 .github/workflows/   # cron など
 ```

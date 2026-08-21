@@ -331,17 +331,6 @@ export default function SuppliesChecklist({
         return false;
       }
 
-      const idToken = await user.getIdToken();
-      if (!idToken) {
-        if (!options.quiet) {
-          setMessage({
-            type: "error",
-            text: "認証トークンを取得できませんでした",
-          });
-        }
-        return false;
-      }
-
       const checkedItemIds = new Set<string>();
       snapshot.ageGroups.forEach((group) =>
         group.checkedItems.forEach((itemId) => checkedItemIds.add(itemId))
@@ -357,7 +346,6 @@ export default function SuppliesChecklist({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           checkedItemIds: Array.from(checkedItemIds),
@@ -798,11 +786,6 @@ export default function SuppliesChecklist({
       }
       setRegisteringSupplyItemId(itemId);
       try {
-        const idToken = await user.getIdToken();
-        if (!idToken) {
-          throw new Error("認証トークンを取得できませんでした");
-        }
-
         const draft = getSupplyDraftFromHandbookChecklistItem(
           itemId,
           displayName
@@ -812,7 +795,6 @@ export default function SuppliesChecklist({
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
           },
           body: JSON.stringify({
             teamId: initialTeamData.id,
@@ -910,16 +892,10 @@ export default function SuppliesChecklist({
 
     setUpdatingStockSettings(true);
     try {
-      const idToken = await user?.getIdToken();
-      if (!idToken) {
-        throw new Error("認証トークンを取得できませんでした");
-      }
-
       const response = await fetch("/api/team/update-stock-settings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           teamId: initialTeamData.id,

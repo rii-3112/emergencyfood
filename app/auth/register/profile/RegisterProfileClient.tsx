@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/auth/useAuth";
-import { saveAuthTokenToCookie } from "@/utils/auth/cookies";
+import { authClient } from "@/lib/auth-client";
 import { navigateAfterRegistrationProfile } from "@/utils/auth/postRegistrationNavigate";
 import {
   API_ENDPOINTS,
@@ -9,8 +9,7 @@ import {
   ERROR_MESSAGES,
   PROFILE_GENDER_OPTIONS,
 } from "@/utils/constants";
-import { auth, db } from "@/utils/firebase";
-import { updateProfile } from "firebase/auth";
+import { db } from "@/utils/firebase";
 import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -44,6 +43,9 @@ export default function RegisterProfileClient() {
 
     async function ensureProfileGate() {
       try {
+        // Google OAuth はリダイレクト戻りのため、ここで Firestore ユーザーを確保
+        await fetch("/api/actions/ensure-user", { method: "POST" });
+
         const snap = await getDoc(doc(db, "users", uid));
         const data = snap.data();
         if (!cancelled && data?.gender) {
@@ -92,22 +94,25 @@ export default function RegisterProfileClient() {
       return;
     }
 
-    const currentUser = auth.currentUser;
-    if (!currentUser) {
+    if (!user) {
       setError(ERROR_MESSAGES.UNAUTHORIZED);
       return;
     }
 
     setIsSubmitting(true);
     try {
-      await updateProfile(currentUser, { displayName: trimmed });
+      const { error: updateError } = await authClient.updateUser({
+        name: trimmed,
+      });
+      if (updateError) {
+        setError(ERROR_MESSAGES.NAME_UPDATE_FAILED);
+        return;
+      }
 
-      const idToken = await currentUser.getIdToken();
       const res = await fetch(API_ENDPOINTS.UPDATE_USER_NAME, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           displayName: trimmed,
@@ -125,15 +130,7 @@ export default function RegisterProfileClient() {
         return;
       }
 
-      await currentUser.getIdToken(true);
-      saveAuthTokenToCookie(currentUser);
-
-      await navigateAfterRegistrationProfile(
-        currentUser,
-        router,
-        trimmed,
-        inviteCode
-      );
+      await navigateAfterRegistrationProfile(router, trimmed, inviteCode);
     } catch {
       setError(ERROR_MESSAGES.UNKNOWN_ERROR);
     } finally {

@@ -1,7 +1,8 @@
+import { requireApiUser } from "@/utils/auth/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { adminDb } from "@/utils/firebase/admin";
 
 interface RouteParams {
   params: Promise<{
@@ -25,14 +26,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { supplyId } = await params;
 
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    const user = await requireApiUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    const teamId = decodedToken.teamId as string;
+    const teamId = user.teamId as string;
 
     if (!teamId) {
       return NextResponse.json(
@@ -73,15 +72,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const body = await request.json();
     const { content } = body;
 
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    const user = await requireApiUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    const uid = decodedToken.uid;
-    const teamId = decodedToken.teamId as string;
+    const uid = user.uid;
+    const teamId = user.teamId as string;
 
     if (!teamId) {
       return NextResponse.json(
@@ -120,16 +117,13 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       if (userDoc.exists) {
         const userData = userDoc.data();
         userName =
-          userData?.displayName ||
-          decodedToken.name ||
-          decodedToken.email ||
-          "ユーザー";
+          userData?.displayName || user.displayName || user.email || "ユーザー";
       } else {
-        userName = decodedToken.name || decodedToken.email || "ユーザー";
+        userName = user.displayName || user.email || "ユーザー";
       }
     } catch (error) {
       console.error("Failed to get user info:", error);
-      userName = decodedToken.email || "ユーザー";
+      userName = user.email || "ユーザー";
     }
 
     const reviewRef = await adminDb.collection("supplyReviews").add({
@@ -160,14 +154,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const { searchParams } = new URL(request.url);
     const reviewId = searchParams.get("reviewId");
 
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
+    const user = await requireApiUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
-    const uid = decodedToken.uid;
+    const uid = user.uid;
 
     if (!reviewId) {
       return NextResponse.json(

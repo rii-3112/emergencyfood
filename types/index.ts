@@ -18,14 +18,6 @@ export interface AppUser extends BaseFormData {
   teams?: string[];
   activeTeamId?: string | null;
   lineUserId?: string | null;
-  getIdToken: (forceRefresh?: boolean) => Promise<string>;
-  getIdTokenResult: (forceRefresh?: boolean) => Promise<{
-    claims: {
-      teamId?: string | null;
-      [key: string]: any;
-    };
-    [key: string]: any;
-  }>;
 }
 
 export interface Team extends BaseFormData {

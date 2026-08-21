@@ -230,12 +230,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
     if (!firebaseUser) return;
 
     try {
-      const idToken = await firebaseUser.getIdToken();
-      const response = await fetch("/api/team/my-teams", {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
+      const response = await fetch("/api/team/my-teams");
 
       if (response.ok) {
         const data = await response.json();
@@ -343,16 +338,10 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
     setMessage(null);
 
     try {
-      const idToken = await firebaseUser?.getIdToken();
-      if (!idToken) {
-        throw new Error("認証トークンを取得できませんでした");
-      }
-
       const response = await fetch("/api/actions/update-team-name", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           teamId: team.id,
@@ -404,16 +393,10 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
     setUpdatingStockSettings(true);
     try {
-      const idToken = await firebaseUser?.getIdToken();
-      if (!idToken) {
-        throw new Error("認証トークンを取得できませんでした");
-      }
-
       const response = await fetch("/api/team/update-stock-settings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           teamId: team.id,
@@ -476,16 +459,10 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
     setGeneratingInvite(true);
     try {
-      const idToken = await firebaseUser?.getIdToken();
-      if (!idToken) {
-        throw new Error("認証トークンを取得できませんでした");
-      }
-
       const response = await fetch("/api/team/generate-invite", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           teamId: team.id,

@@ -7,6 +7,8 @@ import {
   sortSupplyHistory,
   type HistorySortOption,
 } from "@/utils/supplyHistoryHelpers";
+import { Toast } from "@/components/ui";
+import { useToast } from "@/hooks";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -28,6 +30,7 @@ export default function SupplyHistoryView({
   user,
 }: SupplyHistoryViewProps) {
   const router = useRouter();
+  const { toast, showToast } = useToast();
   const [histories] = useState<SupplyHistory[]>(initialHistories);
   const [sortBy, setSortBy] = useState<HistorySortOption>("archivedAt");
   const sortOrder = "desc";
@@ -118,12 +121,14 @@ export default function SupplyHistoryView({
         throw new Error(result.error || "保存に失敗しました");
       }
 
-      alert("備蓄品を追加しました！");
+      showToast("備蓄品を追加しました！", "success");
       setShowRestockModal(false);
-      router.push("/supplies/list");
+      setTimeout(() => {
+        router.push("/supplies/list");
+      }, 800);
     } catch (error) {
       console.error("Restock error:", error);
-      alert("保存に失敗しました");
+      showToast("保存に失敗しました", "error");
     } finally {
       setRestocking(false);
     }
@@ -447,6 +452,8 @@ export default function SupplyHistoryView({
           </div>
         </div>
       )}
+
+      {toast && <Toast message={toast.message} variant={toast.variant} />}
     </>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { ErrorMessage } from "@/components/ui";
 import { getExpiryType } from "@/utils/stockRecommendations";
 import React, { useState } from "react";
 
@@ -24,6 +25,7 @@ export function RestockModal({
   const [quantity, setQuantity] = useState<number>(1);
   const [expiryDate, setExpiryDate] = useState<string>("");
   const [purchasePrice, setPurchasePrice] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const expiryType = getExpiryType(category);
   const expiryLabel = expiryType.label;
@@ -31,14 +33,15 @@ export function RestockModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
 
     if (quantity <= 0) {
-      alert("数量は1以上を入力してください");
+      setErrorMessage("数量は1以上を入力してください");
       return;
     }
 
     if (!expiryDate && isExpiryRequired) {
-      alert(`${expiryLabel}を入力してください`);
+      setErrorMessage(`${expiryLabel}を入力してください`);
       return;
     }
 
@@ -54,6 +57,8 @@ export function RestockModal({
         </h2>
 
         <form onSubmit={handleSubmit} className='space-y-4'>
+          {errorMessage && <ErrorMessage message={errorMessage} />}
+
           <div>
             <label
               className='block text-sm font-medium text-gray-700 mb-1'
@@ -69,7 +74,10 @@ export function RestockModal({
                 min={1}
                 type='number'
                 value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value) || 0)}
+                onChange={(e) => {
+                  setErrorMessage("");
+                  setQuantity(parseInt(e.target.value) || 0);
+                }}
               />
               <span className='text-gray-600'>{unit}</span>
             </div>
@@ -94,7 +102,10 @@ export function RestockModal({
               }
               type='date'
               value={expiryDate}
-              onChange={(e) => setExpiryDate(e.target.value)}
+              onChange={(e) => {
+                setErrorMessage("");
+                setExpiryDate(e.target.value);
+              }}
             />
           </div>
 

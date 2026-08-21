@@ -1,30 +1,18 @@
 // app/api/actions/restore-supply/route.ts
+import { requireApiUser } from "@/utils/auth/server";
 import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Authorization header missing or malformed" },
-        { status: 401 }
-      );
-    }
-    const idToken = authHeader.split("Bearer ")[1];
-    let decodedToken;
-    try {
-      decodedToken = await adminAuth.verifyIdToken(idToken);
-    } catch (_error) {
-      return NextResponse.json(
-        { error: "Invalid or expired ID token" },
-        { status: 403 }
-      );
+    const user = await requireApiUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const uid = decodedToken.uid;
+    const uid = user.uid;
     const { supplyId } = await req.json();
 
     if (!supplyId) {
@@ -47,7 +35,7 @@ export async function POST(req: Request) {
 
     if (
       existingSupplyData?.uid !== uid ||
-      existingSupplyData?.teamId !== decodedToken.teamId
+      existingSupplyData?.teamId !== user.teamId
     ) {
       return NextResponse.json(
         {

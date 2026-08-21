@@ -7,8 +7,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { RestockModal } from "@/components/supplies/RestockModal";
-import { ConfirmDialog } from "@/components/ui";
-import { useAuth, useClickOutside } from "@/hooks";
+import { ConfirmDialog, Toast } from "@/components/ui";
+import { useAuth, useClickOutside, useToast } from "@/hooks";
 import type { Supply, TeamStockSettings } from "@/types";
 import { UI_CONSTANTS } from "@/utils/constants";
 import { calculateStockStatus } from "@/utils/stockCalculator";
@@ -86,7 +86,7 @@ export default function SupplyItem({
   const [showRestockModal, setShowRestockModal] = useState(false);
   const [consuming, setConsuming] = useState(false);
   const [restocking, setRestocking] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const { toast, showToast } = useToast();
   const menuRef = useClickOutside(() => setShowMenu(false));
 
   const hasMultipleExpiries =
@@ -104,12 +104,10 @@ export default function SupplyItem({
     if (!user) return;
 
     try {
-      const idToken = await user.getIdToken();
       const res = await fetch("/api/actions/archive-to-history", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           supplyId: supply.id,
@@ -121,8 +119,7 @@ export default function SupplyItem({
         throw new Error(data.error || "履歴への移動に失敗しました");
       }
 
-      setToastMessage(`${supply.name} を履歴に移動しました`);
-      setTimeout(() => setToastMessage(null), 2000);
+      showToast(`${supply.name} を履歴に移動しました`, "success");
 
       setTimeout(() => {
         if (onRefetch) {
@@ -133,10 +130,10 @@ export default function SupplyItem({
       }, 300);
     } catch (error) {
       console.error("Archive to history error:", error);
-      setToastMessage(
-        error instanceof Error ? error.message : "履歴への移動に失敗しました"
+      showToast(
+        error instanceof Error ? error.message : "履歴への移動に失敗しました",
+        "error"
       );
-      setTimeout(() => setToastMessage(null), 3000);
     }
     setShowMenu(false);
   };
@@ -163,20 +160,17 @@ export default function SupplyItem({
   const handleConsume = async () => {
     if (!user) return;
     if (supply.quantity <= 0) {
-      setToastMessage("在庫がありません");
-      setTimeout(() => setToastMessage(null), 2000);
+      showToast("在庫がありません", "error");
       return;
     }
 
     try {
       setConsuming(true);
-      const idToken = await user.getIdToken();
 
       const res = await fetch("/api/actions/consume-supply", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           supplyId: supply.id,
@@ -190,10 +184,10 @@ export default function SupplyItem({
       }
 
       const data = await res.json();
-      setToastMessage(
-        `${supply.name} を 1${supply.unit} 使いました (残り ${data.remaining}${supply.unit})`
+      showToast(
+        `${supply.name} を 1${supply.unit} 使いました (残り ${data.remaining}${supply.unit})`,
+        "success"
       );
-      setTimeout(() => setToastMessage(null), 2000);
 
       setTimeout(() => {
         if (onRefetch) {
@@ -204,10 +198,10 @@ export default function SupplyItem({
       }, 300);
     } catch (error) {
       console.error("Consume error:", error);
-      setToastMessage(
-        error instanceof Error ? error.message : "消費に失敗しました"
+      showToast(
+        error instanceof Error ? error.message : "消費に失敗しました",
+        "error"
       );
-      setTimeout(() => setToastMessage(null), 3000);
     } finally {
       setConsuming(false);
     }
@@ -222,13 +216,11 @@ export default function SupplyItem({
 
     try {
       setRestocking(true);
-      const idToken = await user.getIdToken();
 
       const res = await fetch("/api/actions/restock-supply", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           supplyId: supply.id,
@@ -244,10 +236,10 @@ export default function SupplyItem({
       }
 
       const data = await res.json();
-      setToastMessage(
-        `${supply.name} を ${quantity}${supply.unit} 追加しました (合計 ${data.totalQuantity}${supply.unit})`
+      showToast(
+        `${supply.name} を ${quantity}${supply.unit} 追加しました (合計 ${data.totalQuantity}${supply.unit})`,
+        "success"
       );
-      setTimeout(() => setToastMessage(null), 3000);
       setShowRestockModal(false);
 
       setTimeout(() => {
@@ -259,10 +251,10 @@ export default function SupplyItem({
       }, 300);
     } catch (error) {
       console.error("Restock error:", error);
-      setToastMessage(
-        error instanceof Error ? error.message : "買い足しに失敗しました"
+      showToast(
+        error instanceof Error ? error.message : "買い足しに失敗しました",
+        "error"
       );
-      setTimeout(() => setToastMessage(null), 3000);
     } finally {
       setRestocking(false);
     }
@@ -544,14 +536,7 @@ export default function SupplyItem({
         />
       )}
 
-      {toastMessage && (
-        <div
-          className='fixed bottom-4 right-4 px-4 py-3 rounded-lg shadow-lg z-[9999] max-w-sm bg-gray-800 text-white text-sm'
-          style={{ zIndex: 9999 }}
-        >
-          {toastMessage}
-        </div>
-      )}
+      {toast && <Toast message={toast.message} variant={toast.variant} />}
     </>
   );
 }

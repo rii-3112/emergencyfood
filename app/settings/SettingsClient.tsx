@@ -65,27 +65,17 @@ export default function SettingsClient({
   ];
 
   const renderTabContent = () => {
-    const appUser = {
-      ...user,
-      getIdToken: async () => {
-        throw new Error("getIdToken not available in server context");
-      },
-      getIdTokenResult: async () => {
-        throw new Error("getIdTokenResult not available in server context");
-      },
-    };
-
     switch (activeTab) {
       case "line":
-        return <LineAccountLinker currentUser={appUser} />;
+        return <LineAccountLinker currentUser={user} />;
       case "account":
-        return <AccountSettings user={appUser} />;
+        return <AccountSettings user={user} />;
       case "team":
-        return <TeamSettings user={appUser} initialTeam={initialTeam} />;
+        return <TeamSettings user={user} initialTeam={initialTeam} />;
       case "logout":
         return <LogoutSection />;
       default:
-        return <LineAccountLinker currentUser={appUser} />;
+        return <LineAccountLinker currentUser={user} />;
     }
   };
 

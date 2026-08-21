@@ -1,28 +1,16 @@
 import { NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { requireApiUser, syncUserTeamId } from "@/utils/auth/server";
+import { adminDb } from "@/utils/firebase/admin";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Authorization header missing or malformed" },
-        { status: 401 }
-      );
-    }
-    const idToken = authHeader.split("Bearer ")[1];
-    let decodedToken;
-    try {
-      decodedToken = await adminAuth.verifyIdToken(idToken);
-    } catch (_error) {
-      return NextResponse.json(
-        { error: "Invalid or expired ID token" },
-        { status: 403 }
-      );
+    const user = await requireApiUser(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const uid = decodedToken.uid;
+    const uid = user.uid;
     const { teamName, teamPassword } = await req.json();
 
     if (!teamName || !teamPassword) {
@@ -86,12 +74,8 @@ export async function POST(req: Request) {
       transaction.update(teamDocRef, { members: [...currentTeamMembers, uid] });
     });
 
-    const userRecord = await adminAuth.getUser(uid);
-    await adminAuth.setCustomUserClaims(uid, {
-      teamId: foundTeamId,
-      email: userRecord.email,
-      displayName: userRecord.displayName || null,
-    });
+    await syncUserTeamId(uid, foundTeamId);
+
     return NextResponse.json({
       message: `Successfully joined team "${teamName}" and updated claims.`,
       teamId: foundTeamId,

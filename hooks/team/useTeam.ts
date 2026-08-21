@@ -1,4 +1,5 @@
 import type { AppUser, Team, TeamMember } from "@/types";
+import { authClient } from "@/lib/auth-client";
 import { API_ENDPOINTS, ERROR_MESSAGES } from "@/utils/constants";
 import { useEffect, useState } from "react";
 
@@ -32,41 +33,24 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const getTeamIdFromClaims = async () => {
-      if (!user) {
-        setTeamId(null);
-        setLoading(false);
-        return;
-      }
+    if (!user) {
+      setTeamId(null);
+      setCurrentTeamId(null);
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const idTokenResult = await user.getIdTokenResult(false);
-        const teamIdFromClaims =
-          (idTokenResult.claims.teamId as string | null) || null;
-        setTeamId(teamIdFromClaims);
-        setCurrentTeamId(teamIdFromClaims);
-      } catch (e) {
-        setError("チームIDの取得に失敗しました");
-        setTeamId(null);
-        setCurrentTeamId(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    getTeamIdFromClaims();
+    const nextTeamId = user.teamId ?? null;
+    setTeamId(nextTeamId);
+    setCurrentTeamId(nextTeamId);
+    setLoading(false);
   }, [user]);
 
   const fetchTeamInfo = async () => {
     if (!currentTeamId || !user) return;
 
     try {
-      const idToken = await user.getIdToken();
-      const response = await fetch(`/api/team/${currentTeamId}`, {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
+      const response = await fetch(`/api/team/${currentTeamId}`);
 
       if (!response.ok) {
         throw new Error(ERROR_MESSAGES.FAMILY_GROUP_FETCH_FAILED);
@@ -75,7 +59,7 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
       const teamData = await response.json();
       setTeam(teamData.team);
       setTeamMembers(teamData.members);
-    } catch (e) {
+    } catch (_e) {
       setError(ERROR_MESSAGES.FAMILY_GROUP_FETCH_FAILED);
     }
   };
@@ -84,12 +68,10 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
     if (!currentTeamId || !user) return;
 
     try {
-      const idToken = await user.getIdToken();
       const response = await fetch(API_ENDPOINTS.MIGRATE_TEAM_DATA, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           teamId: currentTeamId,
@@ -97,7 +79,6 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
       });
 
       if (!response.ok) {
-        const result = await response.json();
         return;
       }
 
@@ -105,7 +86,7 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
       if (result.migrated) {
         await fetchTeamInfo();
       }
-    } catch (e) {}
+    } catch (_e) {}
   };
 
   useEffect(() => {
@@ -119,12 +100,10 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
       throw new Error("ユーザーが認証されていません");
     }
 
-    const idToken = await user.getIdToken(true);
     const response = await fetch(API_ENDPOINTS.CREATE_TEAM, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
         teamName,
@@ -139,8 +118,9 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
     }
 
     if (result.teamId) {
-      await user.getIdToken(true);
+      await authClient.getSession();
       setTeamId(result.teamId);
+      setCurrentTeamId(result.teamId);
     }
 
     return result;
@@ -151,12 +131,10 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
       throw new Error("ユーザーが認証されていません");
     }
 
-    const idToken = await user.getIdToken();
     const response = await fetch(API_ENDPOINTS.JOIN_TEAM, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
         teamName,
@@ -170,6 +148,12 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
       throw new Error(result.error || "チームへの参加に失敗しました。");
     }
 
+    if (result.teamId) {
+      await authClient.getSession();
+      setTeamId(result.teamId);
+      setCurrentTeamId(result.teamId);
+    }
+
     return result;
   };
 
@@ -178,12 +162,10 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
       throw new Error("チームIDまたはユーザーが設定されていません");
     }
 
-    const idToken = await user.getIdToken();
     const response = await fetch(API_ENDPOINTS.ADD_ADMIN, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
         teamId: currentTeamId,
@@ -204,12 +186,10 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
       throw new Error("チームIDまたはユーザーが設定されていません");
     }
 
-    const idToken = await user.getIdToken();
     const response = await fetch(API_ENDPOINTS.REMOVE_ADMIN, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({
         teamId: currentTeamId,

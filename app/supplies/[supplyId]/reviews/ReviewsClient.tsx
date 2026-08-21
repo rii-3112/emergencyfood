@@ -23,7 +23,7 @@ export default function ReviewsClient({
   user,
   supplyName: _supplyName,
 }: ReviewsClientProps) {
-  const { user: firebaseUser } = useAuth();
+  const { user: sessionUser } = useAuth();
   const [reviewText, setReviewText] = useState("");
   const [reviews, setReviews] = useState<Review[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -33,15 +33,10 @@ export default function ReviewsClient({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const fetchReviews = useCallback(async () => {
-    if (!supplyId || !user.teamId || !firebaseUser) return;
+    if (!supplyId || !user.teamId || !sessionUser) return;
 
     try {
-      const idToken = await firebaseUser.getIdToken();
-      const response = await fetch(`/api/supplies/${supplyId}/reviews`, {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      });
+      const response = await fetch(`/api/supplies/${supplyId}/reviews`);
 
       if (response.ok) {
         const data = await response.json();
@@ -50,7 +45,7 @@ export default function ReviewsClient({
     } catch (error) {
       console.error("Failed to fetch reviews:", error);
     }
-  }, [supplyId, user.teamId, firebaseUser]);
+  }, [supplyId, user.teamId, sessionUser]);
 
   useEffect(() => {
     fetchReviews();
@@ -58,19 +53,17 @@ export default function ReviewsClient({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user?.uid || !user?.email || !firebaseUser) {
+    if (!user?.uid || !user?.email || !sessionUser) {
       setError(ERROR_MESSAGES.UNAUTHORIZED);
       return;
     }
     setError(null);
     setSubmitting(true);
     try {
-      const idToken = await firebaseUser.getIdToken();
       const response = await fetch(`/api/supplies/${supplyId}/reviews`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           content: reviewText,
@@ -100,18 +93,14 @@ export default function ReviewsClient({
   };
 
   const handleDeleteConfirm = async () => {
-    if (!user || !user.teamId || !reviewToDelete || !firebaseUser) return;
+    if (!user || !user.teamId || !reviewToDelete || !sessionUser) return;
 
     setDeletingReviewId(reviewToDelete);
     try {
-      const idToken = await firebaseUser.getIdToken();
       const response = await fetch(
         `/api/supplies/${supplyId}/reviews?reviewId=${reviewToDelete}`,
         {
           method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
         }
       );
 

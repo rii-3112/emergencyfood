@@ -4,5 +4,6 @@ export { useAuth } from "./auth/useAuth";
 export { useTeam } from "./team/useTeam";
 
 export { useClickOutside } from "./ui/useClickOutside";
+export { useToast } from "./ui/useToast";
 
 export { useSupplyForm } from "./forms/useSupplyForm";

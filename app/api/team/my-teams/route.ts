@@ -1,37 +1,25 @@
+import { requireApiUser } from "@/utils/auth/server";
 import { NextRequest, NextResponse } from "next/server";
 
-import { adminAuth, adminDb } from "@/utils/firebase/admin";
+import { adminDb } from "@/utils/firebase/admin";
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "Authorization header missing or malformed" },
-        { status: 401 }
-      );
+    const user = await requireApiUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const idToken = authHeader.split("Bearer ")[1];
-    let decodedToken;
-    try {
-      decodedToken = await adminAuth.verifyIdToken(idToken);
-    } catch (_error) {
-      return NextResponse.json(
-        { error: "Invalid or expired ID token" },
-        { status: 403 }
-      );
-    }
-
-    const uid = decodedToken.uid;
+    const uid = user.uid;
 
     const userDoc = await adminDb.collection("users").doc(uid).get();
 
     if (!userDoc.exists) {
-      return NextResponse.json(
-        { error: "User document not found" },
-        { status: 404 }
-      );
+      // Google 登録直後など、Firestore 未作成でもヘッダーが壊れないようにする
+      return NextResponse.json({
+        teams: [],
+        activeTeamId: null,
+      });
     }
 
     const userData = userDoc.data();
