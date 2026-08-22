@@ -21,7 +21,10 @@ export async function POST(req: Request) {
     return NextResponse.json(result);
   } catch (error: unknown) {
     if (isTeamServiceError(error)) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
     }
 
     const errorMessage =

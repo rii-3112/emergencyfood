@@ -129,10 +129,7 @@ export async function updateTeamPasswordHash(
   passwordHash: string,
   database: TeamDb = defaultDb
 ): Promise<void> {
-  await database
-    .update(team)
-    .set({ passwordHash })
-    .where(eq(team.id, teamId));
+  await database.update(team).set({ passwordHash }).where(eq(team.id, teamId));
 }
 
 export async function isTeamMember(
@@ -170,7 +167,9 @@ export async function listTeamsForUser(
 }
 
 export async function backfillTeamFromLegacy(
-  params: InsertTeamParams & { members: Array<{ userId: string; role: TeamRole }> },
+  params: InsertTeamParams & {
+    members: Array<{ userId: string; role: TeamRole }>;
+  },
   database: TeamDb = defaultDb
 ): Promise<TeamRecord> {
   const created = await insertTeam(params, database);

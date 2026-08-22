@@ -41,10 +41,7 @@ export interface JoinByInviteResult {
   teamId: string;
 }
 
-function assertInviteValid(invite: {
-  expiresAt: Date;
-  used: boolean;
-}): void {
+function assertInviteValid(invite: { expiresAt: Date; used: boolean }): void {
   if (invite.used) {
     throw new TeamServiceError("Invite code has already been used", 410);
   }
@@ -184,10 +181,7 @@ export async function joinTeamByInvite(
     });
   });
 
-  await insertTeamMember(
-    { teamId, userId: uid, role: "member" },
-    database
-  );
+  await insertTeamMember({ teamId, userId: uid, role: "member" }, database);
   await markInviteUsed(inviteCode, database);
   await syncUserTeamId(uid, teamId);
 

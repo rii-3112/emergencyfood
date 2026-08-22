@@ -1,11 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  findTeamByName,
+  insertTeam,
+  type TeamDb,
+} from "@/lib/repositories/team";
 import { TeamServiceError } from "@/lib/services/team-errors";
 import { createTeam, joinTeam } from "@/lib/services/team";
-import type { TeamDb } from "@/lib/repositories/team";
 import { createTestDb, seedTestUser } from "@/lib/test/db";
 import { hashTeamPassword } from "@/utils/auth/team-password";
-import { findTeamByName, insertTeam } from "@/lib/repositories/team";
 
 vi.mock("@/utils/firebase/admin", () => ({
   adminDb: {
@@ -124,7 +127,9 @@ describe("team service", () => {
 
     await expect(
       createTeam({ uid: "user-2", teamName: "Taken Name" }, teamDb)
-    ).rejects.toMatchObject({ status: 409 } satisfies Partial<TeamServiceError>);
+    ).rejects.toMatchObject({
+      status: 409,
+    } satisfies Partial<TeamServiceError>);
   });
 
   it("throws 401 for wrong password on Turso team", async () => {
@@ -161,6 +166,8 @@ describe("team service", () => {
         },
         teamDb
       )
-    ).rejects.toMatchObject({ status: 401 } satisfies Partial<TeamServiceError>);
+    ).rejects.toMatchObject({
+      status: 401,
+    } satisfies Partial<TeamServiceError>);
   });
 });

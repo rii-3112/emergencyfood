@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  findInviteByCode,
-  insertInvite,
-} from "@/lib/repositories/invite";
+import { findInviteByCode, insertInvite } from "@/lib/repositories/invite";
 import { insertTeam, type TeamDb } from "@/lib/repositories/team";
 import { createTestDb, seedTestUser } from "@/lib/test/db";
 import { hashTeamPassword } from "@/utils/auth/team-password";

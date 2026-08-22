@@ -44,7 +44,10 @@ export async function updateUserProfile(
     patch.gender = gender;
   }
 
-  await database.update(userTable).set(patch).where(eq(userTable.id, params.uid));
+  await database
+    .update(userTable)
+    .set(patch)
+    .where(eq(userTable.id, params.uid));
 
   const firestoreUpdates: Record<string, string> = {
     displayName: trimmedName,

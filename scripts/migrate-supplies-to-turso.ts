@@ -178,9 +178,7 @@ async function migrateHistory() {
 async function migrateReviews() {
   const firestore = getFirestore();
   const snapshot = await firestore.collection("supplyReviews").get();
-  console.log(
-    `${dryRun ? "[dry-run] " : ""}Found ${snapshot.size} review(s)`
-  );
+  console.log(`${dryRun ? "[dry-run] " : ""}Found ${snapshot.size} review(s)`);
 
   let migrated = 0;
   let skipped = 0;

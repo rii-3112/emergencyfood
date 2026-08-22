@@ -74,9 +74,7 @@ export function consumeFromOldestLots(
 } {
   const sorted = [...lots]
     .map((lot) => ({ ...lot }))
-    .sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
   let remaining = quantity;
   const consumedFrom: Array<{ date: string; quantity: number }> = [];
@@ -348,10 +346,7 @@ export async function updateSupplyFields(
   database?: TeamDb
 ) {
   if (!input.supplyId || !input.updates || typeof input.updates !== "object") {
-    throw new TeamServiceError(
-      "Supply ID and update data are required",
-      400
-    );
+    throw new TeamServiceError("Supply ID and update data are required", 400);
   }
 
   const supply = await findSupplyById(input.supplyId, database);
@@ -458,11 +453,7 @@ export async function archiveSupplyToHistory(
   }
   await assertTeamMember(supply.teamId, input.uid, database);
 
-  const reviews = await listReviewsBySupply(
-    supply.id,
-    supply.teamId,
-    database
-  );
+  const reviews = await listReviewsBySupply(supply.id, supply.teamId, database);
 
   const history = await upsertSupplyHistory(
     {
@@ -476,8 +467,7 @@ export async function archiveSupplyToHistory(
         ? [supply.purchaseLocation]
         : [],
       lastUsedDate:
-        supply.lastConsumedDate ||
-        supply.registeredAt.toISOString(),
+        supply.lastConsumedDate || supply.registeredAt.toISOString(),
       firstRegisteredDate: supply.registeredAt.toISOString(),
       hasReviews: reviews.length > 0,
       reviewCount: reviews.length,

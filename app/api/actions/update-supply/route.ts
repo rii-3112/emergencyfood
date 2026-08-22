@@ -27,9 +27,7 @@ export async function POST(req: Request) {
       );
     }
     const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "Failed to update supply item.";
+      error instanceof Error ? error.message : "Failed to update supply item.";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

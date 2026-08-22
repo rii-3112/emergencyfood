@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createTeam as createTeamService } from "@/lib/services/team";
-import {
-  isTeamServiceError,
-} from "@/lib/services/team-errors";
+import { isTeamServiceError } from "@/lib/services/team-errors";
 import { requireApiUser } from "@/utils/auth/server";
 
 export async function POST(req: Request) {
@@ -23,7 +21,10 @@ export async function POST(req: Request) {
     return NextResponse.json(result);
   } catch (error: unknown) {
     if (isTeamServiceError(error)) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
     }
 
     const errorMessage =

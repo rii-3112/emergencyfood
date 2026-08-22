@@ -61,10 +61,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       if (userDoc.exists) {
         const userData = userDoc.data();
         userName =
-          userData?.displayName ||
-          user.displayName ||
-          user.email ||
-          "ユーザー";
+          userData?.displayName || user.displayName || user.email || "ユーザー";
       } else {
         userName = user.displayName || user.email || "ユーザー";
       }

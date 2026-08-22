@@ -1,12 +1,15 @@
-import Database from "better-sqlite3";
-import { drizzle, type BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
+import BetterSqlite3 from "better-sqlite3";
+import {
+  drizzle,
+  type BetterSQLite3Database,
+} from "drizzle-orm/better-sqlite3";
 
 import * as schema from "@/lib/schema";
 
 export type TestDb = BetterSQLite3Database<typeof schema>;
 
-export function createTestDb(): { db: TestDb; sqlite: Database.Database } {
-  const sqlite = new Database(":memory:");
+export function createTestDb(): { db: TestDb; sqlite: BetterSqlite3.Database } {
+  const sqlite = new BetterSqlite3(":memory:");
   sqlite.exec(`
     CREATE TABLE \`user\` (
       \`id\` text PRIMARY KEY NOT NULL,

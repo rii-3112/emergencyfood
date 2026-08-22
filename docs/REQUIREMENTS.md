@@ -1,14 +1,15 @@
 # SonaBase 要件定義書
 
-> 本ドキュメントは `/Users/rii/Documents/develop/emergencyfood` の現行コードベースから逆引きした要件定義である。  
+> 本ドキュメントは `/Users/rii/Documents/develop/emergencyfood`
+> の現行コードベースから逆引きした要件定義である。  
 > 実装済みの挙動・データ構造・制約を正とし、将来の改修や受入テストのたたき台とする。
 
-| 項目 | 内容 |
-| --- | --- |
+| 項目         | 内容                                    |
+| ------------ | --------------------------------------- |
 | プロダクト名 | SonaBase（リポジトリ名: emergencyfood） |
-| 種別 | 家族向け防災 Web アプリ |
-| 本番 URL | https://www.sonabase.app |
-| 最終更新 | 2026-08-23（コードベース調査時点） |
+| 種別         | 家族向け防災 Web アプリ                 |
+| 本番 URL     | https://www.sonabase.app                |
+| 最終更新     | 2026-08-23（コードベース調査時点）      |
 
 ---
 
@@ -31,11 +32,11 @@
 本アプリの **ユーザーは Web アプリに登録・ログインした人のみ** である。  
 LINE 公式アカウントを友だち追加しただけでは SonaBase のユーザーにはならない。
 
-| ユーザー種別 | 説明 | 主なニーズ |
-| --- | --- | --- |
-| 世帯の管理者 | チーム作成者（owner）または admin | 家族構成に合わせた備蓄目標、メンバー招待、通知設定 |
-| 家族メンバー | チームに参加した登録ユーザー | 備蓄の登録・消費・補充、ハンドブックの参照・更新 |
-| （任意）LINE 連携済みユーザー | 上記ユーザーが LINE を紐づけた状態 | 在庫切れ・期限接近のプッシュ通知を LINE で受信 |
+| ユーザー種別                  | 説明                               | 主なニーズ                                         |
+| ----------------------------- | ---------------------------------- | -------------------------------------------------- |
+| 世帯の管理者                  | チーム作成者（owner）または admin  | 家族構成に合わせた備蓄目標、メンバー招待、通知設定 |
+| 家族メンバー                  | チームに参加した登録ユーザー       | 備蓄の登録・消費・補充、ハンドブックの参照・更新   |
+| （任意）LINE 連携済みユーザー | 上記ユーザーが LINE を紐づけた状態 | 在庫切れ・期限接近のプッシュ通知を LINE で受信     |
 
 **LINE の位置づけ**: 別ログイン手段ではなく、**既存ユーザー向けの通知チャネル** である。  
 Web でアカウントを持ち、設定画面から連携したメンバーにのみ cron 通知が届く。
@@ -68,17 +69,17 @@ Web でアカウントを持ち、設定画面から連携したメンバーに�
 
 ## 3. 用語定義
 
-| 用語 | 定義 |
-| --- | --- |
-| SonaBase ユーザー | メール or Google で Web アプリに登録し、Better Auth セッションを持つ人。Firestore `users/{uid}` が存在する |
-| チーム | 家族グループ。備蓄・ハンドブック・設定を共有する単位 |
-| アクティブチーム | ユーザーが現在操作対象とするチーム（`teamId` / `activeTeamId`） |
-| LINE 公式アカウント | 連携コード配信・在庫アラート送信用の Bot。**アプリのログイン主体ではない** |
-| LINE 連携 | SonaBase ユーザーが自分の LINE ID（`lineUserId`）をアカウントに紐づけること。設定 > LINE タブから行う |
-| 備蓄品 | `supplies` コレクションの在庫アイテム |
-| 履歴 | `supply_history` にアーカイブされた過去の備蓄統計 |
-| 備蓄日数 | 目標とする備蓄期間（3 / 7 / 14 / 30 日） |
-| ロット | `expiryDates[]` 内の「期限 + 数量」の単位 |
+| 用語                | 定義                                                                                                       |
+| ------------------- | ---------------------------------------------------------------------------------------------------------- |
+| SonaBase ユーザー   | メール or Google で Web アプリに登録し、Better Auth セッションを持つ人。Firestore `users/{uid}` が存在する |
+| チーム              | 家族グループ。備蓄・ハンドブック・設定を共有する単位                                                       |
+| アクティブチーム    | ユーザーが現在操作対象とするチーム（`teamId` / `activeTeamId`）                                            |
+| LINE 公式アカウント | 連携コード配信・在庫アラート送信用の Bot。**アプリのログイン主体ではない**                                 |
+| LINE 連携           | SonaBase ユーザーが自分の LINE ID（`lineUserId`）をアカウントに紐づけること。設定 > LINE タブから行う      |
+| 備蓄品              | `supplies` コレクションの在庫アイテム                                                                      |
+| 履歴                | `supply_history` にアーカイブされた過去の備蓄統計                                                          |
+| 備蓄日数            | 目標とする備蓄期間（3 / 7 / 14 / 30 日）                                                                   |
+| ロット              | `expiryDates[]` 内の「期限 + 数量」の単位                                                                  |
 
 ---
 
@@ -142,10 +143,10 @@ Web でアカウントを持ち、設定画面から連携したメンバーに�
 
 #### FR-TEAM-02 チーム参加
 
-| 方式 | 入力 | 備考 |
-| --- | --- | --- |
+| 方式              | 入力                 | 備考                         |
+| ----------------- | -------------------- | ---------------------------- |
 | 名前 + パスワード | チーム名、パスワード | 既参加時はアクティブ切替のみ |
-| 招待コード | 7 日有効のコード | 登録時 or `/teams/invite` |
+| 招待コード        | 7 日有効のコード     | 登録時 or `/teams/invite`    |
 
 #### FR-TEAM-03 複数チーム
 
@@ -154,29 +155,29 @@ Web でアカウントを持ち、設定画面から連携したメンバーに�
 
 #### FR-TEAM-04 ロールと権限
 
-| 操作 | owner | admin | member |
-| --- | --- | --- | --- |
-| チーム名変更 | ○ | ○ | × |
-| 備蓄・通知設定変更 | ○ | ○ | × |
-| 管理者追加/削除 | ○ | ○ | × |
-| owner 削除 | × | × | × |
-| 備蓄品登録・消費・補充 | ○ | ○ | ○ |
-| 備蓄品更新 | 登録者のみ | 登録者のみ | 登録者のみ |
-| 備蓄品削除 | ○（同一チーム） | ○ | ○ |
+| 操作                   | owner           | admin      | member     |
+| ---------------------- | --------------- | ---------- | ---------- |
+| チーム名変更           | ○               | ○          | ×          |
+| 備蓄・通知設定変更     | ○               | ○          | ×          |
+| 管理者追加/削除        | ○               | ○          | ×          |
+| owner 削除             | ×               | ×          | ×          |
+| 備蓄品登録・消費・補充 | ○               | ○          | ○          |
+| 備蓄品更新             | 登録者のみ      | 登録者のみ | 登録者のみ |
+| 備蓄品削除             | ○（同一チーム） | ○          | ○          |
 
 #### FR-TEAM-05 備蓄設定（TeamStockSettings）
 
-| 項目 | 制約・デフォルト |
-| --- | --- |
-| `householdSize` | 1〜50 |
-| `stockDays` | **3 / 7 / 14 / 30** のみ（初期 3） |
-| `stockLevel` | `beginner` / `standard` / `advanced` |
-| `composition` | adult / child / infant / elderly の人数 |
-| `hasPets`, `dogCount`, `catCount` | ペット備蓄計算用 |
-| `needsSanitarySupplies` | 生理用品推奨の明示設定 |
-| `notifications.enabled` | LINE 通知の ON/OFF |
-| `notifications.criticalStock` | 在庫切れ通知（デフォルト ON） |
-| `notifications.expiryNear` | 期限接近通知（デフォルト ON） |
+| 項目                              | 制約・デフォルト                        |
+| --------------------------------- | --------------------------------------- |
+| `householdSize`                   | 1〜50                                   |
+| `stockDays`                       | **3 / 7 / 14 / 30** のみ（初期 3）      |
+| `stockLevel`                      | `beginner` / `standard` / `advanced`    |
+| `composition`                     | adult / child / infant / elderly の人数 |
+| `hasPets`, `dogCount`, `catCount` | ペット備蓄計算用                        |
+| `needsSanitarySupplies`           | 生理用品推奨の明示設定                  |
+| `notifications.enabled`           | LINE 通知の ON/OFF                      |
+| `notifications.criticalStock`     | 在庫切れ通知（デフォルト ON）           |
+| `notifications.expiryNear`        | 期限接近通知（デフォルト ON）           |
 
 ---
 
@@ -210,15 +211,16 @@ Web でアカウントを持ち、設定画面から連携したメンバーに�
 
 #### FR-SUP-05 アーカイブ・履歴
 
-| 操作 | 結果 |
-| --- | --- |
-| 非表示（archive-supply） | `isArchived: true`、一覧から除外 |
-| リスト復元（restore-supply） | `isArchived: false` |
-| 履歴化（archive-to-history） | `supply_history` に統計集約 |
-| 履歴から復元 | 新規 supplies として再登録 |
-| 完全削除 | supplies + 関連データ削除 |
+| 操作                         | 結果                             |
+| ---------------------------- | -------------------------------- |
+| 非表示（archive-supply）     | `isArchived: true`、一覧から除外 |
+| リスト復元（restore-supply） | `isArchived: false`              |
+| 履歴化（archive-to-history） | `supply_history` に統計集約      |
+| 履歴から復元                 | 新規 supplies として再登録       |
+| 完全削除                     | supplies + 関連データ削除        |
 
-履歴マージ: 同一 `teamId` + `name` + `category` があれば `totalConsumed`, `reviewCount`, `purchaseLocations` を統合
+履歴マージ: 同一 `teamId` + `name` + `category` があれば `totalConsumed`, `reviewCount`,
+`purchaseLocations` を統合
 
 #### FR-SUP-06 レビュー
 
@@ -242,39 +244,39 @@ Web でアカウントを持ち、設定画面から連携したメンバーに�
 
 #### FR-STOCK-02 在庫ステータス
 
-| ステータス | 条件（概要） |
-| --- | --- |
-| `out` | 在庫 0 |
-| `critical` | 残日数 1 日未満相当 |
-| `low` | 残 3 日未満相当 |
-| `below-recommended` | 推奨量未満 |
-| `sufficient` | 推奨量以上 |
+| ステータス          | 条件（概要）        |
+| ------------------- | ------------------- |
+| `out`               | 在庫 0              |
+| `critical`          | 残日数 1 日未満相当 |
+| `low`               | 残 3 日未満相当     |
+| `below-recommended` | 推奨量未満          |
+| `sufficient`        | 推奨量以上          |
 
 #### FR-STOCK-03 カテゴリ別推奨フィルタ
 
-| カテゴリ | 表示条件 |
-| --- | --- |
-| おむつ・ベビー用品 | `composition.infant > 0` |
-| ペットフード | `hasPets === true` |
-| 生理用品 | `needsSanitarySupplies === true`、または未設定かつ閲覧者 gender ≠ `male` |
+| カテゴリ           | 表示条件                                                                 |
+| ------------------ | ------------------------------------------------------------------------ |
+| おむつ・ベビー用品 | `composition.infant > 0`                                                 |
+| ペットフード       | `hasPets === true`                                                       |
+| 生理用品           | `needsSanitarySupplies === true`、または未設定かつ閲覧者 gender ≠ `male` |
 
 #### FR-STOCK-04 期限警告（UI）
 
-| 定数 | 日数 |
-| --- | --- |
-| `NEAR_EXPIRY` | 30 日 |
-| `CRITICAL_EXPIRY` | 7 日 |
+| 定数              | 日数  |
+| ----------------- | ----- |
+| `NEAR_EXPIRY`     | 30 日 |
+| `CRITICAL_EXPIRY` | 7 日  |
 
 #### FR-STOCK-05 期限通知（cron / LINE）
 
 カテゴリ種別ごとの通知開始日:
 
-| 種別 | ラベル | 通知開始（日前） |
-| --- | --- | --- |
-| food | 賞味期限 | 30 |
-| medical | 消費期限 | 60 |
-| daily / other | 使用期限 | 90 |
-| noExpiry（「その他」等） | — | 通知なし |
+| 種別                     | ラベル   | 通知開始（日前） |
+| ------------------------ | -------- | ---------------- |
+| food                     | 賞味期限 | 30               |
+| medical                  | 消費期限 | 60               |
+| daily / other            | 使用期限 | 90               |
+| noExpiry（「その他」等） | —        | 通知なし         |
 
 cron の在庫切れ判定: `status === "out"` のみ（critical / low は LINE 対象外）
 
@@ -287,10 +289,10 @@ SonaBase に登録済みのユーザーが、任意で LINE を連携したう�
 
 #### 前提（ユーザーにならないケース）
 
-| 操作 | SonaBase ユーザーになるか |
-| --- | --- |
-| Web でメール / Google 登録 | **なる** |
-| LINE 公式アカウントを友だち追加のみ | **ならない**（連携コードが届くだけ） |
+| 操作                                     | SonaBase ユーザーになるか            |
+| ---------------------------------------- | ------------------------------------ |
+| Web でメール / Google 登録               | **なる**                             |
+| LINE 公式アカウントを友だち追加のみ      | **ならない**（連携コードが届くだけ） |
 | 友だち追加 + Web 登録 + 設定でコード入力 | **連携済みユーザー**（通知受信可能） |
 
 #### FR-LINE-01 アカウント連携（登録ユーザーのみ）
@@ -353,31 +355,31 @@ Firestore `disaster-boards/{teamId}` に保存:
 
 ### 4.8 設定画面（`/settings`）
 
-| タブ | 機能 |
-| --- | --- |
-| `line` | LINE 連携 / 解除 |
-| `account` | 表示名、性別、パスワード変更 |
-| `team` | チーム CRUD、招待、備蓄設定、通知、管理者 |
-| `logout` | ログアウト |
+| タブ      | 機能                                      |
+| --------- | ----------------------------------------- |
+| `line`    | LINE 連携 / 解除                          |
+| `account` | 表示名、性別、パスワード変更              |
+| `team`    | チーム CRUD、招待、備蓄設定、通知、管理者 |
+| `logout`  | ログアウト                                |
 
 ---
 
 ## 5. 画面一覧
 
-| パス | 認証 | teamId | 概要 |
-| --- | --- | --- | --- |
-| `/` | 不要 | — | ランディング（ログイン / 登録導線） |
-| `/auth/login` | 不要 | — | ログイン |
-| `/auth/register` | 不要 | — | 新規登録 |
-| `/auth/register/profile` | 要 | — | プロフィール完成 |
-| `/home` | 要 | 要 | 機能ハブ |
-| `/supplies/list` | 要 | 要 | 備蓄一覧 |
-| `/supplies/add` | 要 | 要 | 備蓄登録 |
-| `/supplies/history` | 要 | 要 | 履歴一覧 |
-| `/supplies/[id]/reviews` | 要 | 要 | レビュー |
-| `/handbook` | 要 | 要 | 防災ハンドブック |
-| `/settings` | 要 | 任意 | 各種設定 |
-| `/teams/invite` | — | — | 招待参加 UI |
+| パス                     | 認証 | teamId | 概要                                |
+| ------------------------ | ---- | ------ | ----------------------------------- |
+| `/`                      | 不要 | —      | ランディング（ログイン / 登録導線） |
+| `/auth/login`            | 不要 | —      | ログイン                            |
+| `/auth/register`         | 不要 | —      | 新規登録                            |
+| `/auth/register/profile` | 要   | —      | プロフィール完成                    |
+| `/home`                  | 要   | 要     | 機能ハブ                            |
+| `/supplies/list`         | 要   | 要     | 備蓄一覧                            |
+| `/supplies/add`          | 要   | 要     | 備蓄登録                            |
+| `/supplies/history`      | 要   | 要     | 履歴一覧                            |
+| `/supplies/[id]/reviews` | 要   | 要     | レビュー                            |
+| `/handbook`              | 要   | 要     | 防災ハンドブック                    |
+| `/settings`              | 要   | 任意   | 各種設定                            |
+| `/teams/invite`          | —    | —      | 招待参加 UI                         |
 
 ---
 
@@ -385,32 +387,32 @@ Firestore `disaster-boards/{teamId}` に保存:
 
 ### 6.1 Auth DB（Turso / SQLite — Better Auth）
 
-| テーブル | 用途 |
-| --- | --- |
-| `user` | 認証ユーザー（`team_id`, `line_user_id`, `gender` 拡張） |
-| `session` | セッション |
-| `account` | OAuth / パスワード（`issuer` + `account_id` で外部 ID） |
-| `verification` | OAuth state / メール検証 |
-| `team` | チーム ID・名前・password_hash（scrypt）・owner |
-| `team_member` | team_id, user_id, role（owner / admin / member） |
-| `invite` | 招待コード・team_id・expires_at・used |
-| `supply` | 備蓄品（expiry_dates JSON、FIFO 消費） |
-| `supply_history` | アーカイブ履歴 |
-| `supply_review` | 備蓄レビュー |
+| テーブル         | 用途                                                     |
+| ---------------- | -------------------------------------------------------- |
+| `user`           | 認証ユーザー（`team_id`, `line_user_id`, `gender` 拡張） |
+| `session`        | セッション                                               |
+| `account`        | OAuth / パスワード（`issuer` + `account_id` で外部 ID）  |
+| `verification`   | OAuth state / メール検証                                 |
+| `team`           | チーム ID・名前・password_hash（scrypt）・owner          |
+| `team_member`    | team_id, user_id, role（owner / admin / member）         |
+| `invite`         | 招待コード・team_id・expires_at・used                    |
+| `supply`         | 備蓄品（expiry_dates JSON、FIFO 消費）                   |
+| `supply_history` | アーカイブ履歴                                           |
+| `supply_review`  | 備蓄レビュー                                             |
 
 ### 6.2 Firestore コレクション
 
-| コレクション | docId | 主なフィールド |
-| --- | --- | --- |
-| `users` | uid | email, displayName, gender, teamId, teams[], activeTeamId, lineUserId（**gender / 所属は Turso を SoT に段階移行中**） |
-| `teams` | auto | name, members[], admins[], ownerId, stockSettings, lastWeeklyReportAt（**password は Turso**） |
-| `supplies` | auto | ~~移行中~~ → Turso `supply` が SoT |
-| `supplyReviews` | auto | ~~移行中~~ → Turso `supply_review` が SoT |
-| `supply_history` | auto | ~~移行中~~ → Turso `supply_history` が SoT |
-| `handbook-checklists` | teamId | checkedItemIds[], checkedPetItems{} |
-| `disaster-boards` | teamId | evacuationSites[], routes[], safetyMethods[], familyAgreements[] |
-| `invites` | inviteCode | ~~移行中~~ → Turso `invite` が SoT |
-| `lineAuthCodes` | lineUserId | code (6桁), expireAt (+5分) |
+| コレクション          | docId      | 主なフィールド                                                                                                         |
+| --------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `users`               | uid        | email, displayName, gender, teamId, teams[], activeTeamId, lineUserId（**gender / 所属は Turso を SoT に段階移行中**） |
+| `teams`               | auto       | name, members[], admins[], ownerId, stockSettings, lastWeeklyReportAt（**password は Turso**）                         |
+| `supplies`            | auto       | ~~移行中~~ → Turso `supply` が SoT                                                                                     |
+| `supplyReviews`       | auto       | ~~移行中~~ → Turso `supply_review` が SoT                                                                              |
+| `supply_history`      | auto       | ~~移行中~~ → Turso `supply_history` が SoT                                                                             |
+| `handbook-checklists` | teamId     | checkedItemIds[], checkedPetItems{}                                                                                    |
+| `disaster-boards`     | teamId     | evacuationSites[], routes[], safetyMethods[], familyAgreements[]                                                       |
+| `invites`             | inviteCode | ~~移行中~~ → Turso `invite` が SoT                                                                                     |
+| `lineAuthCodes`       | lineUserId | code (6桁), expireAt (+5分)                                                                                            |
 
 ### 6.3 データ同期ルール
 
@@ -424,54 +426,42 @@ Firestore `disaster-boards/{teamId}` に保存:
 
 ### 7.1 認証
 
-| メソッド | パス | 用途 |
-| --- | --- | --- |
-| * | `/api/auth/[...all]` | Better Auth ハンドラ |
+| メソッド | パス                 | 用途                 |
+| -------- | -------------------- | -------------------- |
+| \*       | `/api/auth/[...all]` | Better Auth ハンドラ |
 
 ### 7.2 ユーザー
 
-| POST | `/api/actions/ensure-user` | Firestore user 確保 |
-| POST | `/api/actions/update-user-name` | 表示名・gender 更新 |
-| POST | `/api/actions/change-password` | パスワード変更 |
-| POST | `/api/actions/link-line-account` | LINE 連携 |
-| POST | `/api/actions/unlink-line-account` | LINE 解除 |
+| POST | `/api/actions/ensure-user` | Firestore user 確保 | | POST | `/api/actions/update-user-name`
+| 表示名・gender 更新 | | POST | `/api/actions/change-password` | パスワード変更 | | POST |
+`/api/actions/link-line-account` | LINE 連携 | | POST | `/api/actions/unlink-line-account` |
+LINE 解除 |
 
 ### 7.3 チーム
 
-| POST | `/api/actions/createTeam` | 作成 |
-| POST | `/api/actions/joinTeam` | 名前+PW 参加 |
-| POST | `/api/team/join-by-invite` | 招待参加 |
-| POST | `/api/team/generate-invite` | 招待コード生成 |
-| GET | `/api/team/invite-info` | 招待情報（認証不要） |
-| GET | `/api/team/my-teams` | 所属一覧 |
-| GET | `/api/team/[teamId]` | 詳細 + メンバー |
-| POST | `/api/team/switch` | アクティブ切替 |
-| POST | `/api/team/update-stock-settings` | 備蓄・通知設定 |
-| POST | `/api/actions/update-team-name` | 名称変更 |
-| POST | `/api/actions/add-admin` / `remove-admin` | 管理者管理 |
-| POST | `/api/actions/migrate-team-data` | 旧形式移行 |
+| POST | `/api/actions/createTeam` | 作成 | | POST | `/api/actions/joinTeam` | 名前+PW 参加 | | POST
+| `/api/team/join-by-invite` | 招待参加 | | POST | `/api/team/generate-invite` | 招待コード生成 | |
+GET | `/api/team/invite-info` | 招待情報（認証不要） | | GET | `/api/team/my-teams` | 所属一覧 | |
+GET | `/api/team/[teamId]` | 詳細 + メンバー | | POST | `/api/team/switch` | アクティブ切替 | | POST
+| `/api/team/update-stock-settings` | 備蓄・通知設定 | | POST | `/api/actions/update-team-name`
+| 名称変更 | | POST | `/api/actions/add-admin` / `remove-admin` | 管理者管理 | | POST |
+`/api/actions/migrate-team-data` | 旧形式移行 |
 
 ### 7.4 備蓄品
 
-| POST | `/api/supplies` | 新規登録 |
-| GET | `/api/supplies/list` | 一覧 |
-| POST | `/api/actions/consume-supply` | 消費 |
-| POST | `/api/actions/restock-supply` | 補充 |
-| POST | `/api/actions/update-supply` | 更新 |
-| POST | `/api/actions/archive-supply` | 非表示 |
-| POST | `/api/actions/restore-supply` | リスト復元 |
-| POST | `/api/actions/archive-to-history` | 履歴化 |
-| POST | `/api/actions/restore-from-history` | 履歴から復元 |
-| POST | `/api/actions/delete-supply` | 完全削除 |
-| GET/POST/DELETE | `/api/supplies/[id]/reviews` | レビュー |
-| GET | `/api/supply-history` | 履歴一覧 |
+| POST | `/api/supplies` | 新規登録 | | GET | `/api/supplies/list` | 一覧 | | POST |
+`/api/actions/consume-supply` | 消費 | | POST | `/api/actions/restock-supply` | 補充 | | POST |
+`/api/actions/update-supply` | 更新 | | POST | `/api/actions/archive-supply` | 非表示 | | POST |
+`/api/actions/restore-supply` | リスト復元 | | POST | `/api/actions/archive-to-history` | 履歴化 | |
+POST | `/api/actions/restore-from-history` | 履歴から復元 | | POST | `/api/actions/delete-supply`
+| 完全削除 | | GET/POST/DELETE | `/api/supplies/[id]/reviews` | レビュー | | GET |
+`/api/supply-history` | 履歴一覧 |
 
 ### 7.5 ハンドブック / 外部
 
-| GET/POST | `/api/handbook/checklist` | チェックリスト |
-| GET/POST | `/api/disaster-board` | 災害用伝言板 |
-| POST | `/api/line/webhook` | LINE Webhook |
-| POST | `/api/cron/check-expiry` | 週次アラート |
+| GET/POST | `/api/handbook/checklist` | チェックリスト | | GET/POST | `/api/disaster-board`
+| 災害用伝言板 | | POST | `/api/line/webhook` | LINE Webhook | | POST | `/api/cron/check-expiry`
+| 週次アラート |
 
 ### 7.6 共通 API 要件
 
@@ -485,17 +475,17 @@ Firestore `disaster-boards/{teamId}` に保存:
 
 ### 8.1 技術スタック
 
-| 領域 | 技術 |
-| --- | --- |
-| フロント / API | Next.js 15（App Router）、React 19、TypeScript |
-| スタイル | Tailwind CSS 4 |
-| 認証 | Better Auth |
-| Auth DB | Turso（libSQL）/ ローカル SQLite — Auth テーブル + `team` / `team_member` |
-| アプリ DB | Cloud Firestore（段階的に Turso へ移行中） |
-| テスト | Vitest（`lib/` バックエンドのユニット・統合テスト） |
-| 通知 | LINE Messaging API |
-| デプロイ | Vercel |
-| 定期実行 | GitHub Actions |
+| 領域           | 技術                                                                      |
+| -------------- | ------------------------------------------------------------------------- |
+| フロント / API | Next.js 15（App Router）、React 19、TypeScript                            |
+| スタイル       | Tailwind CSS 4                                                            |
+| 認証           | Better Auth                                                               |
+| Auth DB        | Turso（libSQL）/ ローカル SQLite — Auth テーブル + `team` / `team_member` |
+| アプリ DB      | Cloud Firestore（段階的に Turso へ移行中）                                |
+| テスト         | Vitest（`lib/` バックエンドのユニット・統合テスト）                       |
+| 通知           | LINE Messaging API                                                        |
+| デプロイ       | Vercel                                                                    |
+| 定期実行       | GitHub Actions                                                            |
 
 ### 8.2 セキュリティ
 
@@ -509,7 +499,8 @@ Firestore `disaster-boards/{teamId}` に保存:
 
 ### 8.2.1 バックエンド構成・ネイティブ方針
 
-- **3 層**: `app/api`（薄い HTTP）→ `lib/services`（ビジネスロジック）→ `lib/repositories`（Drizzle / Turso）
+- **3 層**: `app/api`（薄い HTTP）→ `lib/services`（ビジネスロジック）→ `lib/repositories`（Drizzle
+  / Turso）
 - **API ファースト**: クライアント（Web / 将来 React Native）は DB に直接アクセスしない
 - **テスト**: `lib/` 配下のバックエンド追加時は Vitest で `*.test.ts` を同時に追加
 - **将来ネイティブ**: Expo（React Native）を想定。Web と API・型・純関数を共有
@@ -552,39 +543,40 @@ LINE_CHANNEL_SECRET
 
 ## 9. 受入条件（代表例）
 
-| ID | 条件 |
-| --- | --- |
-| AC-01 | メール登録 → プロフィール入力 → デフォルトチーム作成 → `/home` 到達 |
-| AC-02 | Google 登録 → OAuth コールバック → プロフィール入力 → チーム参加 |
-| AC-03 | 招待コード付き登録 → 指定チームに自動参加 |
-| AC-04 | 備蓄登録 → FIFO 消費 → 数量 0 で `zeroStockSince` 記録 |
-| AC-05 | 補充 → `zeroStockSince` クリア |
-| AC-06 | 在庫 0 の備蓄 → cron 実行 → LINE 通知（設定 ON・クールダウン外） |
-| AC-07 | 期限 30 日以内の食品 → cron / UI で警告 |
-| AC-08 | owner 以外が owner を管理者削除しようとして失敗 |
-| AC-09 | 未ログインで `/supplies/list` アクセス → ログインへリダイレクト |
+| ID    | 条件                                                                                         |
+| ----- | -------------------------------------------------------------------------------------------- |
+| AC-01 | メール登録 → プロフィール入力 → デフォルトチーム作成 → `/home` 到達                          |
+| AC-02 | Google 登録 → OAuth コールバック → プロフィール入力 → チーム参加                             |
+| AC-03 | 招待コード付き登録 → 指定チームに自動参加                                                    |
+| AC-04 | 備蓄登録 → FIFO 消費 → 数量 0 で `zeroStockSince` 記録                                       |
+| AC-05 | 補充 → `zeroStockSince` クリア                                                               |
+| AC-06 | 在庫 0 の備蓄 → cron 実行 → LINE 通知（設定 ON・クールダウン外）                             |
+| AC-07 | 期限 30 日以内の食品 → cron / UI で警告                                                      |
+| AC-08 | owner 以外が owner を管理者削除しようとして失敗                                              |
+| AC-09 | 未ログインで `/supplies/list` アクセス → ログインへリダイレクト                              |
 | AC-10 | **登録済みユーザー**が LINE 友だち追加 → 6 桁コード → 設定画面で連携完了 → `lineUserId` 保存 |
 
 ---
 
 ## 10. コードから読み取れる既知の制約・ギャップ
 
-要件として **現状の実装事実** として記載する。改修候補ではあるが、本ドキュメント時点では「仕様」として扱う。
+要件として **現状の実装事実**
+として記載する。改修候補ではあるが、本ドキュメント時点では「仕様」として扱う。
 
-| # | 内容 |
-| --- | --- |
-| GAP-01 | ~~チーム `password` は平文で Firestore に保存~~ → **解消**: Turso `team.password_hash`（scrypt） |
-| GAP-02 | ~~招待 `used` フラグは join 時に更新されない~~ → **解消**: Turso `invite.used` を join 時に更新 |
+| #      | 内容                                                                                                     |
+| ------ | -------------------------------------------------------------------------------------------------------- |
+| GAP-01 | ~~チーム `password` は平文で Firestore に保存~~ → **解消**: Turso `team.password_hash`（scrypt）         |
+| GAP-02 | ~~招待 `used` フラグは join 時に更新されない~~ → **解消**: Turso `invite.used` を join 時に更新          |
 | GAP-03 | ~~`delete-supply` のレビュー削除参照が誤コレクション~~ → **解消**: Turso `supply_review` を cascade 削除 |
-| GAP-04 | ハザードマップは永続化なし |
-| GAP-05 | Firebase Auth ユーザーは再登録が必要（旧 uid データは手動移行） |
-| GAP-06 | Google OAuth リダイレクト URI: `{BETTER_AUTH_URL}/api/auth/callback/google` |
+| GAP-04 | ハザードマップは永続化なし                                                                               |
+| GAP-05 | Firebase Auth ユーザーは再登録が必要（旧 uid データは手動移行）                                          |
+| GAP-06 | Google OAuth リダイレクト URI: `{BETTER_AUTH_URL}/api/auth/callback/google`                              |
 
 ---
 
 ## 11. 改訂履歴
 
-| 日付 | 内容 |
-| --- | --- |
-| 2026-08-23 | 初版（コードベース逆引き） |
+| 日付       | 内容                                                                                      |
+| ---------- | ----------------------------------------------------------------------------------------- |
+| 2026-08-23 | 初版（コードベース逆引き）                                                                |
 | 2026-08-23 | Phase 2–4: invite / user.gender / supplies・history・reviews を Turso へ移行、Vitest 拡充 |

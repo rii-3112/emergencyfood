@@ -12,7 +12,10 @@ import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 
 import { backfillTeamFromLegacy, findTeamById } from "../lib/repositories/team";
-import { hashTeamPassword, isTeamPasswordHashed } from "../utils/auth/team-password";
+import {
+  hashTeamPassword,
+  isTeamPasswordHashed,
+} from "../utils/auth/team-password";
 
 function loadEnvFile(filename: string) {
   const path = resolve(process.cwd(), filename);
@@ -95,7 +98,9 @@ async function main() {
     }
 
     if (!legacyPassword) {
-      console.log(`Skip ${doc.id} (${name}): no password field (already migrated?)`);
+      console.log(
+        `Skip ${doc.id} (${name}): no password field (already migrated?)`
+      );
       skipped++;
       continue;
     }

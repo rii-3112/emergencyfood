@@ -1,11 +1,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
-import {
-  supply,
-  supplyHistory,
-  supplyReview,
-} from "@/lib/app-schema";
+import { supply, supplyHistory, supplyReview } from "@/lib/app-schema";
 import { db as defaultDb } from "@/lib/db";
 import type { TeamDb } from "@/lib/repositories/team";
 import type { ExpiryInfo } from "@/types";
@@ -530,5 +526,7 @@ export async function deleteReviewsBySupply(
   supplyId: string,
   database: TeamDb = defaultDb
 ): Promise<void> {
-  await database.delete(supplyReview).where(eq(supplyReview.supplyId, supplyId));
+  await database
+    .delete(supplyReview)
+    .where(eq(supplyReview.supplyId, supplyId));
 }
