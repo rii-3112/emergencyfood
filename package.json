@@ -14,7 +14,10 @@
     "format:check": "prettier --check .",
     "type-check": "tsc --noEmit",
     "check-all": "npm run type-check && npm run lint && npm run format:check",
-    "db:push": "drizzle-kit push"
+    "db:push": "drizzle-kit push",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "migrate:teams-to-turso": "tsx scripts/migrate-teams-to-turso.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.1",
@@ -49,7 +52,9 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "prettier": "^3.2.5",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "tsx": "^4.20.4",
+    "vitest": "^3.2.4"
   },
   "overrides": {
     "@tootallnate/once": "^3.0.2",

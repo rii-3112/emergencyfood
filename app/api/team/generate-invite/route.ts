@@ -48,7 +48,6 @@ export async function POST(req: Request) {
       .set({
         teamId: teamId,
         teamName: teamName || teamData?.name || "",
-        teamPassword: teamData?.password || "",
         createdBy: uid,
         createdAt: new Date(),
         expiresAt: expiresAt,
