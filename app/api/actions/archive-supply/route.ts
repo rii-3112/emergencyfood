@@ -1,9 +1,8 @@
-// app/api/actions/archive-supply/route.ts
-import { requireApiUser } from "@/utils/auth/server";
-import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 
-import { adminDb } from "@/utils/firebase/admin";
+import { archiveSupply } from "@/lib/services/supply";
+import { isTeamServiceError } from "@/lib/services/team-errors";
+import { requireApiUser } from "@/utils/auth/server";
 
 export async function POST(req: Request) {
   try {
@@ -13,28 +12,22 @@ export async function POST(req: Request) {
     }
 
     const { supplyId } = await req.json();
+    const result = await archiveSupply({
+      uid: user.uid,
+      supplyId,
+    });
 
-    if (!supplyId) {
+    return NextResponse.json(result);
+  } catch (error: unknown) {
+    if (isTeamServiceError(error)) {
       return NextResponse.json(
-        { error: "Supply ID is required" },
-        { status: 400 }
+        { error: error.message },
+        { status: error.status }
       );
     }
-
-    const supplyDocRef = adminDb.collection("supplies").doc(supplyId);
-
-    await supplyDocRef.update({
-      isArchived: true,
-      archivedAt: FieldValue.serverTimestamp(),
-    });
-
-    return NextResponse.json({
-      message: `Supply item ${supplyId} archived successfully.`,
-    });
-  } catch (_error: unknown) {
     const errorMessage =
-      _error instanceof Error
-        ? _error?.message
+      error instanceof Error
+        ? error.message
         : "Failed to archive supply item.";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }

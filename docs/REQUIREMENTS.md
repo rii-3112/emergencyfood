@@ -387,25 +387,29 @@ Firestore `disaster-boards/{teamId}` に保存:
 
 | テーブル | 用途 |
 | --- | --- |
-| `user` | 認証ユーザー（`team_id`, `line_user_id` 拡張） |
+| `user` | 認証ユーザー（`team_id`, `line_user_id`, `gender` 拡張） |
 | `session` | セッション |
 | `account` | OAuth / パスワード（`issuer` + `account_id` で外部 ID） |
 | `verification` | OAuth state / メール検証 |
 | `team` | チーム ID・名前・password_hash（scrypt）・owner |
 | `team_member` | team_id, user_id, role（owner / admin / member） |
+| `invite` | 招待コード・team_id・expires_at・used |
+| `supply` | 備蓄品（expiry_dates JSON、FIFO 消費） |
+| `supply_history` | アーカイブ履歴 |
+| `supply_review` | 備蓄レビュー |
 
 ### 6.2 Firestore コレクション
 
 | コレクション | docId | 主なフィールド |
 | --- | --- | --- |
-| `users` | uid | email, displayName, gender, teamId, teams[], activeTeamId, lineUserId |
-| `teams` | auto | name, members[], admins[], ownerId, stockSettings, lastWeeklyReportAt（**password は Turso `team.password_hash` に移行。Firestore には保存しない**） |
-| `supplies` | auto | name, quantity, category, unit, expiryDate, expiryDates[], teamId, uid, isArchived |
-| `supplyReviews` | auto | supplyId, teamId, content, userId, userName |
-| `supply_history` | auto | name, category, totalConsumed, reviewCount, teamId, archivedBy |
+| `users` | uid | email, displayName, gender, teamId, teams[], activeTeamId, lineUserId（**gender / 所属は Turso を SoT に段階移行中**） |
+| `teams` | auto | name, members[], admins[], ownerId, stockSettings, lastWeeklyReportAt（**password は Turso**） |
+| `supplies` | auto | ~~移行中~~ → Turso `supply` が SoT |
+| `supplyReviews` | auto | ~~移行中~~ → Turso `supply_review` が SoT |
+| `supply_history` | auto | ~~移行中~~ → Turso `supply_history` が SoT |
 | `handbook-checklists` | teamId | checkedItemIds[], checkedPetItems{} |
 | `disaster-boards` | teamId | evacuationSites[], routes[], safetyMethods[], familyAgreements[] |
-| `invites` | inviteCode | teamId, expiresAt (+7日), used |
+| `invites` | inviteCode | ~~移行中~~ → Turso `invite` が SoT |
 | `lineAuthCodes` | lineUserId | code (6桁), expireAt (+5分) |
 
 ### 6.3 データ同期ルール
@@ -569,9 +573,9 @@ LINE_CHANNEL_SECRET
 
 | # | 内容 |
 | --- | --- |
-| GAP-01 | ~~チーム `password` は平文で Firestore に保存~~ → **解消**: Turso `team.password_hash`（scrypt）+ Firestore から password 削除 |
-| GAP-02 | 招待 `used` フラグは join 時に更新されない場合がある |
-| GAP-03 | `delete-supply` のレビュー削除参照が `reviews` コレクション名の可能性（実データは `supplyReviews`） |
+| GAP-01 | ~~チーム `password` は平文で Firestore に保存~~ → **解消**: Turso `team.password_hash`（scrypt） |
+| GAP-02 | ~~招待 `used` フラグは join 時に更新されない~~ → **解消**: Turso `invite.used` を join 時に更新 |
+| GAP-03 | ~~`delete-supply` のレビュー削除参照が誤コレクション~~ → **解消**: Turso `supply_review` を cascade 削除 |
 | GAP-04 | ハザードマップは永続化なし |
 | GAP-05 | Firebase Auth ユーザーは再登録が必要（旧 uid データは手動移行） |
 | GAP-06 | Google OAuth リダイレクト URI: `{BETTER_AUTH_URL}/api/auth/callback/google` |
@@ -583,4 +587,4 @@ LINE_CHANNEL_SECRET
 | 日付 | 内容 |
 | --- | --- |
 | 2026-08-23 | 初版（コードベース逆引き） |
-| 2026-08-23 | チーム password を Turso scrypt ハッシュ化、3 層バックエンド・Vitest・ネイティブ方針を追記 |
+| 2026-08-23 | Phase 2–4: invite / user.gender / supplies・history・reviews を Turso へ移行、Vitest 拡充 |

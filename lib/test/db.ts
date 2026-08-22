@@ -17,7 +17,8 @@ export function createTestDb(): { db: TestDb; sqlite: Database.Database } {
       \`created_at\` integer NOT NULL,
       \`updated_at\` integer NOT NULL,
       \`team_id\` text,
-      \`line_user_id\` text
+      \`line_user_id\` text,
+      \`gender\` text
     );
     CREATE UNIQUE INDEX \`user_email_unique\` ON \`user\` (\`email\`);
     CREATE TABLE \`team\` (
@@ -37,6 +38,69 @@ export function createTestDb(): { db: TestDb; sqlite: Database.Database } {
       PRIMARY KEY (\`team_id\`, \`user_id\`),
       FOREIGN KEY (\`team_id\`) REFERENCES \`team\`(\`id\`) ON UPDATE no action ON DELETE cascade,
       FOREIGN KEY (\`user_id\`) REFERENCES \`user\`(\`id\`) ON UPDATE no action ON DELETE cascade
+    );
+    CREATE TABLE \`invite\` (
+      \`code\` text PRIMARY KEY NOT NULL,
+      \`team_id\` text NOT NULL,
+      \`team_name\` text NOT NULL,
+      \`created_by\` text NOT NULL,
+      \`created_at\` integer NOT NULL,
+      \`expires_at\` integer NOT NULL,
+      \`used\` integer DEFAULT 0 NOT NULL,
+      FOREIGN KEY (\`team_id\`) REFERENCES \`team\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+      FOREIGN KEY (\`created_by\`) REFERENCES \`user\`(\`id\`) ON UPDATE no action ON DELETE no action
+    );
+    CREATE TABLE \`supply\` (
+      \`id\` text PRIMARY KEY NOT NULL,
+      \`team_id\` text NOT NULL,
+      \`uid\` text NOT NULL,
+      \`name\` text NOT NULL,
+      \`quantity\` integer NOT NULL,
+      \`expiry_date\` text NOT NULL,
+      \`expiry_dates\` text,
+      \`is_archived\` integer DEFAULT 0 NOT NULL,
+      \`category\` text NOT NULL,
+      \`unit\` text NOT NULL,
+      \`amount\` integer,
+      \`purchase_location\` text,
+      \`label\` text,
+      \`storage_location\` text,
+      \`registered_at\` integer NOT NULL,
+      \`last_consumed_date\` text,
+      \`consumption_count\` integer DEFAULT 0 NOT NULL,
+      \`zero_stock_since\` text,
+      \`updated_at\` integer,
+      FOREIGN KEY (\`team_id\`) REFERENCES \`team\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+      FOREIGN KEY (\`uid\`) REFERENCES \`user\`(\`id\`) ON UPDATE no action ON DELETE no action
+    );
+    CREATE TABLE \`supply_history\` (
+      \`id\` text PRIMARY KEY NOT NULL,
+      \`team_id\` text NOT NULL,
+      \`name\` text NOT NULL,
+      \`category\` text NOT NULL,
+      \`unit\` text NOT NULL,
+      \`total_consumed\` integer DEFAULT 0 NOT NULL,
+      \`average_stock\` integer DEFAULT 0 NOT NULL,
+      \`purchase_locations\` text DEFAULT '[]' NOT NULL,
+      \`last_used_date\` text,
+      \`first_registered_date\` text,
+      \`has_reviews\` integer DEFAULT 0 NOT NULL,
+      \`review_count\` integer DEFAULT 0 NOT NULL,
+      \`archived_at\` integer NOT NULL,
+      \`archived_by\` text NOT NULL,
+      FOREIGN KEY (\`team_id\`) REFERENCES \`team\`(\`id\`) ON UPDATE no action ON DELETE cascade
+    );
+    CREATE TABLE \`supply_review\` (
+      \`id\` text PRIMARY KEY NOT NULL,
+      \`supply_id\` text NOT NULL,
+      \`team_id\` text NOT NULL,
+      \`content\` text NOT NULL,
+      \`user_name\` text NOT NULL,
+      \`user_id\` text NOT NULL,
+      \`created_at\` integer NOT NULL,
+      FOREIGN KEY (\`supply_id\`) REFERENCES \`supply\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+      FOREIGN KEY (\`team_id\`) REFERENCES \`team\`(\`id\`) ON UPDATE no action ON DELETE cascade,
+      FOREIGN KEY (\`user_id\`) REFERENCES \`user\`(\`id\`) ON UPDATE no action ON DELETE no action
     );
   `);
 

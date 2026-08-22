@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { requireApiUser, syncUserTeamId } from "@/utils/auth/server";
-import { adminDb } from "@/utils/firebase/admin";
+import { isTeamServiceError } from "@/lib/services/team-errors";
+import { switchActiveTeam } from "@/lib/services/user";
+import { requireApiUser } from "@/utils/auth/server";
 
 export async function POST(req: Request) {
   try {
@@ -10,50 +11,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const uid = user.uid;
     const { teamId } = await req.json();
-
-    if (!teamId) {
+    const result = await switchActiveTeam(user.uid, teamId);
+    return NextResponse.json(result);
+  } catch (error: unknown) {
+    if (isTeamServiceError(error)) {
       return NextResponse.json(
-        { error: "Team ID is required" },
-        { status: 400 }
+        { error: error.message },
+        { status: error.status }
       );
     }
-
-    const userDocRef = adminDb.collection("users").doc(uid);
-    const userDoc = await userDocRef.get();
-
-    if (!userDoc.exists) {
-      return NextResponse.json(
-        { error: "User document not found" },
-        { status: 404 }
-      );
-    }
-
-    const userData = userDoc.data();
-    const userTeams = userData?.teams || [];
-
-    if (!userTeams.includes(teamId)) {
-      return NextResponse.json(
-        { error: "You are not a member of this team" },
-        { status: 403 }
-      );
-    }
-
-    await userDocRef.update({
-      activeTeamId: teamId,
-      teamId: teamId,
-    });
-
-    await syncUserTeamId(uid, teamId);
-
-    return NextResponse.json({
-      message: "Team switched successfully",
-      teamId: teamId,
-    });
-  } catch (_error: unknown) {
     const errorMessage =
-      _error instanceof Error ? _error.message : "Internal Server Error";
+      error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

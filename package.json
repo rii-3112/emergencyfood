@@ -17,7 +17,9 @@
     "db:push": "drizzle-kit push",
     "test": "vitest run",
     "test:watch": "vitest",
-    "migrate:teams-to-turso": "tsx scripts/migrate-teams-to-turso.ts"
+    "migrate:teams-to-turso": "tsx scripts/migrate-teams-to-turso.ts",
+    "migrate:invites-to-turso": "tsx scripts/migrate-invites-to-turso.ts",
+    "migrate:supplies-to-turso": "tsx scripts/migrate-supplies-to-turso.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.1",

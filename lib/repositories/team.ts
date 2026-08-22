@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
 import { db as defaultDb } from "@/lib/db";
 import { team, teamMember } from "@/lib/app-schema";
@@ -133,6 +133,40 @@ export async function updateTeamPasswordHash(
     .update(team)
     .set({ passwordHash })
     .where(eq(team.id, teamId));
+}
+
+export async function isTeamMember(
+  teamId: string,
+  userId: string,
+  database: TeamDb = defaultDb
+): Promise<boolean> {
+  const rows = await database
+    .select()
+    .from(teamMember)
+    .where(and(eq(teamMember.teamId, teamId), eq(teamMember.userId, userId)))
+    .limit(1);
+  return rows.length > 0;
+}
+
+export async function listTeamsForUser(
+  userId: string,
+  database: TeamDb = defaultDb
+): Promise<Array<{ id: string; name: string; role: TeamRole }>> {
+  const rows = await database
+    .select({
+      id: team.id,
+      name: team.name,
+      role: teamMember.role,
+    })
+    .from(teamMember)
+    .innerJoin(team, eq(teamMember.teamId, team.id))
+    .where(eq(teamMember.userId, userId));
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    role: row.role as TeamRole,
+  }));
 }
 
 export async function backfillTeamFromLegacy(

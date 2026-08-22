@@ -1,5 +1,11 @@
 import type { Supply, SupplyHistory, Team } from "@/types";
 import type { DisasterBoardData } from "@/types/forms";
+import {
+  findSupplyById,
+  listSuppliesByTeam,
+  listSupplyHistoryByTeam,
+} from "@/lib/repositories/supply";
+import { toApiSupply } from "@/lib/services/supply";
 import { adminDb } from "@/utils/firebase/admin";
 
 /**
@@ -37,36 +43,8 @@ export async function fetchSuppliesFromDB(
   isArchived: boolean = false
 ): Promise<Supply[]> {
   try {
-    const suppliesSnapshot = await adminDb
-      .collection("supplies")
-      .where("teamId", "==", teamId)
-      .where("isArchived", "==", isArchived)
-      .get();
-
-    const supplies: Supply[] = suppliesSnapshot.docs.map((doc) => {
-      const data = doc.data();
-      return convertTimestampsToDates({
-        id: doc.id,
-        ...data,
-      });
-    }) as Supply[];
-
-    const suppliesWithReviews = await Promise.all(
-      supplies.map(async (supply) => {
-        const reviewsSnapshot = await adminDb
-          .collection("supplyReviews")
-          .where("supplyId", "==", supply.id)
-          .where("teamId", "==", teamId)
-          .get();
-
-        return {
-          ...supply,
-          reviewCount: reviewsSnapshot.size,
-        };
-      })
-    );
-
-    return suppliesWithReviews;
+    const rows = await listSuppliesByTeam(teamId, isArchived);
+    return rows.map(toApiSupply);
   } catch (error) {
     console.error("Error fetching supplies:", error);
     return [];
@@ -103,22 +81,11 @@ export async function fetchSupplyByIdFromDB(
   supplyId: string
 ): Promise<Supply | null> {
   try {
-    const supplyDoc = await adminDb.collection("supplies").doc(supplyId).get();
-
-    if (!supplyDoc.exists) {
+    const record = await findSupplyById(supplyId);
+    if (!record || record.teamId !== teamId) {
       return null;
     }
-
-    const data = supplyDoc.data();
-
-    if (data?.teamId !== teamId) {
-      return null;
-    }
-
-    return convertTimestampsToDates({
-      id: supplyDoc.id,
-      ...data,
-    }) as Supply;
+    return toApiSupply(record);
   } catch (error) {
     console.error("Error fetching supply by ID:", error);
     return null;
@@ -165,23 +132,23 @@ export async function fetchHistoriesFromDB(
   teamId: string
 ): Promise<SupplyHistory[]> {
   try {
-    const historySnapshot = await adminDb
-      .collection("supply_history")
-      .where("teamId", "==", teamId)
-      .get();
-
-    const histories = historySnapshot.docs
-      .map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }))
-      .sort((a: any, b: any) => {
-        const dateA = new Date(a.archivedAt || 0).getTime();
-        const dateB = new Date(b.archivedAt || 0).getTime();
-        return dateB - dateA;
-      });
-
-    return convertTimestampsToDates(histories) as SupplyHistory[];
+    const rows = await listSupplyHistoryByTeam(teamId);
+    return rows.map((h) => ({
+      id: h.id,
+      name: h.name,
+      category: h.category,
+      unit: h.unit,
+      totalConsumed: h.totalConsumed,
+      averageStock: h.averageStock,
+      purchaseLocations: h.purchaseLocations,
+      lastUsedDate: h.lastUsedDate ?? "",
+      firstRegisteredDate: h.firstRegisteredDate ?? "",
+      hasReviews: h.hasReviews,
+      reviewCount: h.reviewCount,
+      archivedAt: h.archivedAt.toISOString(),
+      teamId: h.teamId,
+      archivedBy: h.archivedBy,
+    }));
   } catch (error) {
     console.error("Error fetching histories:", error);
     return [];

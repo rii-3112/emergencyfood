@@ -1,7 +1,8 @@
-import { requireApiUser } from "@/utils/auth/server";
 import { NextResponse } from "next/server";
 
-import { adminDb } from "@/utils/firebase/admin";
+import { listSupplies } from "@/lib/services/supply";
+import { isTeamServiceError } from "@/lib/services/team-errors";
+import { requireApiUser } from "@/utils/auth/server";
 
 export async function GET(req: Request) {
   try {
@@ -11,43 +12,22 @@ export async function GET(req: Request) {
     }
 
     const { searchParams } = new URL(req.url);
-    const teamId = searchParams.get("teamId");
+    const teamId = searchParams.get("teamId") ?? "";
     const isArchived = searchParams.get("isArchived") === "true";
 
-    if (!teamId) {
+    const result = await listSupplies(user.uid, teamId, isArchived);
+    return NextResponse.json(result);
+  } catch (error: unknown) {
+    console.error("Supplies list fetch error:", error);
+    if (isTeamServiceError(error)) {
       return NextResponse.json(
-        { error: "チームIDが必要です" },
-        { status: 400 }
+        { error: error.message },
+        { status: error.status }
       );
     }
-
-    const suppliesSnapshot = await adminDb
-      .collection("supplies")
-      .where("teamId", "==", teamId)
-      .where("isArchived", "==", isArchived)
-      .get();
-
-    const supplies = suppliesSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-
-    return NextResponse.json({
-      success: true,
-      supplies,
-    });
-  } catch (_error: unknown) {
-    console.error("Supplies list fetch error:", _error);
-    if (_error instanceof Error) {
-      return NextResponse.json(
-        { error: "備蓄品リストの取得に失敗しました" },
-        { status: 500 }
-      );
-    } else {
-      return NextResponse.json(
-        { error: "不明なエラーが発生しました" },
-        { status: 500 }
-      );
-    }
+    return NextResponse.json(
+      { error: "備蓄品リストの取得に失敗しました" },
+      { status: 500 }
+    );
   }
 }

@@ -67,6 +67,8 @@ npm run dev
 | `npm run db:push`    | Auth / アプリ DB スキーマを Turso に反映 |
 | `npm run test`       | Vitest（バックエンドユニットテスト）     |
 | `npm run migrate:teams-to-turso` | Firestore teams → Turso 移行（`--dry-run` 可） |
+| `npm run migrate:invites-to-turso` | Firestore invites → Turso 移行 |
+| `npm run migrate:supplies-to-turso` | Firestore supplies/history/reviews → Turso 移行 |
 | `npm run lint`       | ESLint                               |
 | `npm run format`     | Prettier で整形                      |
 | `npm run type-check` | TypeScript 型チェック                |
