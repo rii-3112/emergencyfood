@@ -1,5 +1,6 @@
 // hooks/index.ts
 export { useAuth } from "./auth/useAuth";
+export { useLinkedAccounts } from "./auth/useLinkedAccounts";
 
 export { useTeam } from "./team/useTeam";
 

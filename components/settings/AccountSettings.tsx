@@ -1,5 +1,5 @@
 "use client";
-import { useAuth } from "@/hooks";
+import { useAuth, useLinkedAccounts } from "@/hooks";
 import type { AppUser } from "@/types";
 import {
   ERROR_MESSAGES,
@@ -21,6 +21,8 @@ interface AccountSettingsProps {
 
 export default function AccountSettings({ user }: AccountSettingsProps) {
   const { updateUserName, changePassword, user: authUser } = useAuth();
+  const { hasPasswordAccount, loading: linkedAccountsLoading } =
+    useLinkedAccounts();
 
   const getDisplayName = () => {
     return user.displayName || user.email;
@@ -237,55 +239,57 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
           </button>
         </div>
       </div>
-      <div className='space-y-2'>
-        <label className='block text-sm font-medium text-gray-900'>
-          パスワード変更
-        </label>
-        {isChangingPassword ? (
-          <div className='space-y-3'>
-            <input
-              className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
-              placeholder='新しいパスワード（6文字以上）'
-              type='password'
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <input
-              className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
-              placeholder='新しいパスワード（確認）'
-              type='password'
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            <div className='flex gap-2'>
-              <button
-                className='px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50 transition-colors'
-                disabled={loading}
-                onClick={handlePasswordChange}
-              >
-                {loading ? UI_CONSTANTS.PROCESSING : UI_CONSTANTS.SAVE}
-              </button>
-              <button
-                className='px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors'
-                onClick={() => {
-                  setIsChangingPassword(false);
-                  setNewPassword("");
-                  setConfirmPassword("");
-                }}
-              >
-                {UI_CONSTANTS.CANCEL}
-              </button>
+      {!linkedAccountsLoading && hasPasswordAccount && (
+        <div className='space-y-2'>
+          <label className='block text-sm font-medium text-gray-900'>
+            パスワード変更
+          </label>
+          {isChangingPassword ? (
+            <div className='space-y-3'>
+              <input
+                className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
+                placeholder='新しいパスワード（6文字以上）'
+                type='password'
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <input
+                className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
+                placeholder='新しいパスワード（確認）'
+                type='password'
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <div className='flex gap-2'>
+                <button
+                  className='px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:opacity-50 transition-colors'
+                  disabled={loading}
+                  onClick={handlePasswordChange}
+                >
+                  {loading ? UI_CONSTANTS.PROCESSING : UI_CONSTANTS.SAVE}
+                </button>
+                <button
+                  className='px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors'
+                  onClick={() => {
+                    setIsChangingPassword(false);
+                    setNewPassword("");
+                    setConfirmPassword("");
+                  }}
+                >
+                  {UI_CONSTANTS.CANCEL}
+                </button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <button
-            className='px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors'
-            onClick={() => setIsChangingPassword(true)}
-          >
-            {UI_CONSTANTS.CHANGE_PASSWORD}
-          </button>
-        )}
-      </div>
+          ) : (
+            <button
+              className='px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition-colors'
+              onClick={() => setIsChangingPassword(true)}
+            >
+              {UI_CONSTANTS.CHANGE_PASSWORD}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

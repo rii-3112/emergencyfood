@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { auth } from "@/lib/auth";
-import { requireApiUser } from "@/utils/auth/server";
+import { requireApiUser, userHasPasswordAccount } from "@/utils/auth/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,6 +16,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: "パスワードは6文字以上である必要があります" },
         { status: 400 }
+      );
+    }
+
+    const hasPasswordAccount = await userHasPasswordAccount(user.uid);
+    if (!hasPasswordAccount) {
+      return NextResponse.json(
+        { error: "パスワードログインのアカウントではありません" },
+        { status: 403 }
       );
     }
 
