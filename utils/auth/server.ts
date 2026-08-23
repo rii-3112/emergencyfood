@@ -1,8 +1,8 @@
 import { auth } from "@/lib/auth";
 import { adminDb } from "@/utils/firebase/admin";
 import { headers } from "next/headers";
-import { eq } from "drizzle-orm";
-import { user as userTable } from "@/lib/auth-schema";
+import { and, eq } from "drizzle-orm";
+import { account as accountTable, user as userTable } from "@/lib/auth-schema";
 import { db } from "@/lib/db";
 
 export { ensureFirestoreUser } from "@/utils/auth/firestore-user";
@@ -82,6 +82,17 @@ export async function syncUserTeamId(uid: string, teamId: string | null) {
 }
 
 /** Better Auth + Firestore の lineUserId を同期 */
+export async function userHasPasswordAccount(userId: string): Promise<boolean> {
+  const credentialAccount = await db.query.account.findFirst({
+    where: and(
+      eq(accountTable.userId, userId),
+      eq(accountTable.providerId, "credential")
+    ),
+    columns: { id: true },
+  });
+  return Boolean(credentialAccount);
+}
+
 export async function syncUserLineUserId(
   uid: string,
   lineUserId: string | null

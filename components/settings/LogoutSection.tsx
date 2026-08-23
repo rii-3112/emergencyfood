@@ -2,11 +2,29 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useAuth } from "@/hooks";
+import { useAuth, useLinkedAccounts } from "@/hooks";
 import { UI_CONSTANTS } from "@/utils/constants";
+
+function getReLoginMessage(
+  hasPasswordAccount: boolean,
+  hasGoogleAccount: boolean
+): string {
+  if (hasPasswordAccount && hasGoogleAccount) {
+    return "再度ログインする際は、メールアドレスとパスワード、またはGoogleアカウントが使えます。";
+  }
+  if (hasGoogleAccount) {
+    return "再度ログインする際は、Googleアカウントが必要です。";
+  }
+  return "再度ログインする際は、メールアドレスとパスワードが必要です。";
+}
 
 export default function LogoutSection() {
   const { logout } = useAuth();
+  const {
+    hasPasswordAccount,
+    hasGoogleAccount,
+    loading: linkedAccountsLoading,
+  } = useLinkedAccounts();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -33,7 +51,9 @@ export default function LogoutSection() {
               ログアウトすると、現在のセッションが終了し、ログイン画面に戻ります。
             </p>
             <p className='mt-1'>
-              再度ログインする際は、メールアドレスとパスワードが必要です。
+              {linkedAccountsLoading
+                ? "再度ログイン方法は、ご利用中のアカウント設定に応じて表示されます。"
+                : getReLoginMessage(hasPasswordAccount, hasGoogleAccount)}
             </p>
           </div>
         </div>
