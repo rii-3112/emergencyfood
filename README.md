@@ -59,16 +59,20 @@ npm run dev
 
 ## スクリプト
 
-| コマンド             | 内容                                 |
-| -------------------- | ------------------------------------ |
-| `npm run dev`        | 開発サーバー（Turbopack）            |
-| `npm run build`      | 本番ビルド                           |
-| `npm run start`      | 本番サーバー起動                     |
-| `npm run db:push`    | Auth 用 DB スキーマを反映            |
-| `npm run lint`       | ESLint                               |
-| `npm run format`     | Prettier で整形                      |
-| `npm run type-check` | TypeScript 型チェック                |
-| `npm run check-all`  | 型・Lint・フォーマットをまとめて確認 |
+| コマンド                            | 内容                                            |
+| ----------------------------------- | ----------------------------------------------- |
+| `npm run dev`                       | 開発サーバー（Turbopack）                       |
+| `npm run build`                     | 本番ビルド                                      |
+| `npm run start`                     | 本番サーバー起動                                |
+| `npm run db:push`                   | Auth / アプリ DB スキーマを Turso に反映        |
+| `npm run test`                      | Vitest（バックエンドユニットテスト）            |
+| `npm run migrate:teams-to-turso`    | Firestore teams → Turso 移行（`--dry-run` 可）  |
+| `npm run migrate:invites-to-turso`  | Firestore invites → Turso 移行                  |
+| `npm run migrate:supplies-to-turso` | Firestore supplies/history/reviews → Turso 移行 |
+| `npm run lint`                      | ESLint                                          |
+| `npm run format`                    | Prettier で整形                                 |
+| `npm run type-check`                | TypeScript 型チェック                           |
+| `npm run check-all`                 | 型・Lint・フォーマットをまとめて確認            |
 
 ## 定期実行（LINE アラート）
 

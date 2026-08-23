@@ -1,8 +1,8 @@
-import { requireApiUser } from "@/utils/auth/server";
-import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 
-import { adminDb } from "@/utils/firebase/admin";
+import { createInvite } from "@/lib/services/invite";
+import { isTeamServiceError } from "@/lib/services/team-errors";
+import { requireApiUser } from "@/utils/auth/server";
 
 export async function POST(req: Request) {
   try {
@@ -11,57 +11,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const uid = user.uid;
     const { teamId, teamName } = await req.json();
-
-    if (!teamId) {
-      return NextResponse.json(
-        { error: "Team ID is required" },
-        { status: 400 }
-      );
-    }
-
-    const teamDoc = await adminDb.collection("teams").doc(teamId).get();
-
-    if (!teamDoc.exists) {
-      return NextResponse.json({ error: "Team not found" }, { status: 404 });
-    }
-
-    const teamData = teamDoc.data();
-    const members = teamData?.members || [];
-
-    if (!members.includes(uid)) {
-      return NextResponse.json(
-        { error: "You are not a member of this team" },
-        { status: 403 }
-      );
-    }
-
-    const inviteCode = randomUUID().split("-")[0].toUpperCase();
-
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7);
-
-    await adminDb
-      .collection("invites")
-      .doc(inviteCode)
-      .set({
-        teamId: teamId,
-        teamName: teamName || teamData?.name || "",
-        teamPassword: teamData?.password || "",
-        createdBy: uid,
-        createdAt: new Date(),
-        expiresAt: expiresAt,
-        used: false,
-      });
-
-    return NextResponse.json({
-      inviteCode: inviteCode,
-      expiresAt: expiresAt.toISOString(),
+    const result = await createInvite({
+      uid: user.uid,
+      teamId,
+      teamName,
     });
-  } catch (_error: unknown) {
+
+    return NextResponse.json(result);
+  } catch (error: unknown) {
+    if (isTeamServiceError(error)) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
+    }
     const errorMessage =
-      _error instanceof Error ? _error.message : "Internal Server Error";
+      error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

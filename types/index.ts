@@ -23,7 +23,6 @@ export interface AppUser extends BaseFormData {
 export interface Team extends BaseFormData {
   id: string;
   name: string;
-  password: string;
   members: string[];
   admins: string[];
   ownerId: string;

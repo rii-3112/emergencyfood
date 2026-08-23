@@ -1,10 +1,16 @@
 // app/api/cron/check-expiry/route.ts
-import { adminDb } from "@/utils/firebase/admin";
-import { calculateStockStatus } from "@/utils/stockCalculator";
-import { getExpiryType } from "@/utils/stockRecommendations";
+import { eq } from "drizzle-orm";
 import { Client } from "@line/bot-sdk";
 import { FieldValue, type Timestamp } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
+
+import { user as userTable } from "@/lib/auth-schema";
+import { db } from "@/lib/db";
+import { listSuppliesByTeam } from "@/lib/repositories/supply";
+import { toApiSupply } from "@/lib/services/supply";
+import { adminDb } from "@/utils/firebase/admin";
+import { calculateStockStatus } from "@/utils/stockCalculator";
+import { getExpiryType } from "@/utils/stockRecommendations";
 
 const lineConfig = {
   channelAccessToken: process.env.LINE_CHANNEL_ACCESS_TOKEN || "",
@@ -71,8 +77,20 @@ export async function POST(req: Request) {
       const lineUserIds: string[] = [];
       for (const memberId of teamData.members || []) {
         try {
-          const userDoc = await adminDb.collection("users").doc(memberId).get();
-          const lineUserId = userDoc.data()?.lineUserId as string | undefined;
+          const tursoUser = await db
+            .select({ lineUserId: userTable.lineUserId })
+            .from(userTable)
+            .where(eq(userTable.id, memberId))
+            .limit(1);
+          let lineUserId = tursoUser[0]?.lineUserId ?? null;
+          if (!lineUserId) {
+            const userDoc = await adminDb
+              .collection("users")
+              .doc(memberId)
+              .get();
+            lineUserId =
+              (userDoc.data()?.lineUserId as string | undefined) ?? null;
+          }
           if (lineUserId) {
             lineUserIds.push(lineUserId);
           }
@@ -85,11 +103,7 @@ export async function POST(req: Request) {
         continue;
       }
 
-      const suppliesSnapshot = await adminDb
-        .collection("supplies")
-        .where("teamId", "==", teamId)
-        .where("isArchived", "==", false)
-        .get();
+      const tursoSupplies = await listSuppliesByTeam(teamId, false);
 
       const outOfStock: Array<{ name: string; id: string }> = [];
       const expiryNear: Array<{
@@ -100,13 +114,12 @@ export async function POST(req: Request) {
         expiryType: string;
       }> = [];
 
-      suppliesSnapshot.docs.forEach((doc) => {
-        const supply = doc.data();
-        const supplyId = doc.id;
+      for (const supply of tursoSupplies) {
+        const supplyId = supply.id;
 
         if (criticalOn) {
           const stockStatus = calculateStockStatus(
-            { ...supply, id: supplyId } as any,
+            toApiSupply(supply) as any,
             stockSettings
           );
 
@@ -119,7 +132,7 @@ export async function POST(req: Request) {
           const expiryType = getExpiryType(supply.category);
 
           if (expiryType.type === "noExpiry") {
-            return;
+            continue;
           }
 
           const expiryDate = new Date(supply.expiryDate);
@@ -142,7 +155,7 @@ export async function POST(req: Request) {
             });
           }
         }
-      });
+      }
 
       if (outOfStock.length > 0 || expiryNear.length > 0) {
         teamNotifications[teamId] = {

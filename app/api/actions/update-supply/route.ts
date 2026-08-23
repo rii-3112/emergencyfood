@@ -1,9 +1,8 @@
-// app/api/actions/update-supply/route.ts
-import { requireApiUser } from "@/utils/auth/server";
-import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 
-import { adminDb } from "@/utils/firebase/admin";
+import { updateSupplyFields } from "@/lib/services/supply";
+import { isTeamServiceError } from "@/lib/services/team-errors";
+import { requireApiUser } from "@/utils/auth/server";
 
 export async function POST(req: Request) {
   try {
@@ -12,56 +11,23 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const uid = user.uid;
     const { supplyId, updates } = await req.json();
-
-    if (!supplyId || !updates || typeof updates !== "object") {
-      return NextResponse.json(
-        { error: "Supply ID and update data are required" },
-        { status: 400 }
-      );
-    }
-
-    const supplyDocRef = adminDb.collection("supplies").doc(supplyId);
-
-    const supplyDocSnap = await supplyDocRef.get();
-    if (!supplyDocSnap.exists) {
-      return NextResponse.json(
-        { error: "Supply item not found" },
-        { status: 404 }
-      );
-    }
-    const existingSupplyData = supplyDocSnap.data();
-
-    if (
-      existingSupplyData?.uid !== uid ||
-      existingSupplyData?.teamId !== user.teamId
-    ) {
-      return NextResponse.json(
-        {
-          error:
-            "Unauthorized: You do not own this supply item or belong to this team.",
-        },
-        { status: 403 }
-      );
-    }
-
-    await supplyDocRef.update({
-      ...updates,
-      updatedAt: FieldValue.serverTimestamp(),
+    const result = await updateSupplyFields({
+      uid: user.uid,
+      supplyId,
+      updates,
     });
 
-    return NextResponse.json({
-      message: `Supply item ${supplyId} updated successfully.`,
-    });
-  } catch (_error: unknown) {
+    return NextResponse.json(result);
+  } catch (error: unknown) {
+    if (isTeamServiceError(error)) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
+    }
     const errorMessage =
-      _error instanceof Error
-        ? _error.message
-        : "Failed to update supply item.";
-    if (errorMessage.includes("Unauthorized")) {
-      return NextResponse.json({ error: errorMessage }, { status: 403 });
-    }
+      error instanceof Error ? error.message : "Failed to update supply item.";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

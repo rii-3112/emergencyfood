@@ -33,7 +33,7 @@ loadEnvFile(".env.local");
 loadEnvFile(".env");
 
 export default defineConfig({
-  schema: "./lib/auth-schema.ts",
+  schema: ["./lib/auth-schema.ts", "./lib/app-schema.ts"],
   out: "./drizzle",
   dialect: "turso",
   dbCredentials: {
