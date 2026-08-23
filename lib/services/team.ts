@@ -3,9 +3,12 @@ import { randomUUID } from "crypto";
 
 import {
   backfillTeamFromLegacy,
+  filterExistingUserIds,
+  findTeamById,
   findTeamByName,
   insertTeam,
   insertTeamMember,
+  isTeamMember,
   teamNameExists,
   type TeamDb,
   type TeamRole,
@@ -14,6 +17,7 @@ import { TeamServiceError } from "@/lib/services/team-errors";
 import { syncUserTeamId } from "@/utils/auth/server";
 import {
   hashTeamPassword,
+  isTeamPasswordHashed,
   verifyTeamPassword,
 } from "@/utils/auth/team-password";
 import { adminDb } from "@/utils/firebase/admin";
@@ -235,6 +239,101 @@ async function syncTursoTeamMember(
     },
     database
   );
+}
+
+/**
+ * Firestore のみに存在するチームを Turso へ同期し、uid の membership を確保する。
+ * supply など Turso FK を要する書き込み前に呼ぶ。
+ */
+export async function ensureTursoTeamMembership(
+  teamId: string,
+  uid: string,
+  database?: TeamDb
+): Promise<void> {
+  if (await isTeamMember(teamId, uid, database)) return;
+
+  const existingTeam = await findTeamById(teamId, database);
+  if (existingTeam) {
+    await syncTursoTeamMember(teamId, uid, database);
+    return;
+  }
+
+  const teamDoc = await adminDb.collection("teams").doc(teamId).get();
+  if (!teamDoc.exists) {
+    throw new TeamServiceError("Team not found", 404);
+  }
+
+  const teamData = teamDoc.data() ?? {};
+  const name = teamData.name as string | undefined;
+  if (!name) {
+    throw new TeamServiceError("Invalid team data", 500);
+  }
+
+  const members = (teamData.members as string[] | undefined) ?? [];
+  if (!members.includes(uid)) {
+    throw new TeamServiceError("You are not a member of this team", 403);
+  }
+
+  const legacyPassword = teamData.password as string | undefined;
+  let passwordHash: string;
+  if (legacyPassword) {
+    passwordHash = isTeamPasswordHashed(legacyPassword)
+      ? legacyPassword
+      : await hashTeamPassword(legacyPassword);
+  } else {
+    passwordHash = await hashTeamPassword(`legacy-sync-${teamId}`);
+  }
+
+  const candidateOwnerId =
+    (teamData.ownerId as string | undefined) ??
+    (teamData.createdBy as string | undefined) ??
+    members[0] ??
+    uid;
+
+  const existingUserIds = await filterExistingUserIds(
+    [candidateOwnerId, uid, ...members],
+    database
+  );
+
+  if (!existingUserIds.has(uid)) {
+    throw new TeamServiceError("User not found", 500);
+  }
+
+  const ownerId = existingUserIds.has(candidateOwnerId)
+    ? candidateOwnerId
+    : uid;
+
+  await backfillTeamFromLegacy(
+    {
+      id: teamId,
+      name,
+      passwordHash,
+      ownerId,
+      createdBy:
+        (teamData.createdBy as string | undefined) &&
+        existingUserIds.has(teamData.createdBy as string)
+          ? (teamData.createdBy as string)
+          : ownerId,
+      members: members
+        .filter((userId) => existingUserIds.has(userId))
+        .map((userId) => ({
+          userId,
+          role: resolveMemberRole(userId, teamData),
+        })),
+    },
+    database
+  );
+
+  if (!(await isTeamMember(teamId, uid, database))) {
+    await insertTeamMember(
+      {
+        teamId,
+        userId: uid,
+        role: resolveMemberRole(uid, teamData),
+      },
+      database
+    );
+  }
 }
 
 export async function joinTeam(

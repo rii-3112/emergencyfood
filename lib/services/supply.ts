@@ -18,6 +18,7 @@ import {
   type SupplyRecord,
 } from "@/lib/repositories/supply";
 import { isTeamMember, type TeamDb } from "@/lib/repositories/team";
+import { ensureTursoTeamMembership } from "@/lib/services/team";
 import { TeamServiceError } from "@/lib/services/team-errors";
 import type { ExpiryInfo, Supply, SupplyHistory } from "@/types";
 import { adminDb } from "@/utils/firebase/admin";
@@ -29,13 +30,18 @@ async function assertTeamMember(
   uid: string,
   database?: TeamDb
 ): Promise<void> {
-  if (await isTeamMember(teamId, uid, database)) return;
+  const inTurso = await isTeamMember(teamId, uid, database);
+  if (inTurso) return;
 
   const teamDoc = await adminDb.collection("teams").doc(teamId).get();
   const members = (teamDoc.data()?.members as string[] | undefined) ?? [];
-  if (!members.includes(uid)) {
+  const inFirestore = members.includes(uid);
+  if (!inFirestore) {
     throw new TeamServiceError("You are not a member of this team", 403);
   }
+
+  // Firestore-only teams must be synced before Turso FK writes
+  await ensureTursoTeamMembership(teamId, uid, database);
 }
 
 function ensureLots(record: SupplyRecord): ExpiryInfo[] {

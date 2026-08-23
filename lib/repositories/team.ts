@@ -1,7 +1,8 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import { db as defaultDb } from "@/lib/db";
 import { team, teamMember } from "@/lib/app-schema";
+import { user } from "@/lib/auth-schema";
 
 export type TeamDb = typeof defaultDb;
 
@@ -143,6 +144,21 @@ export async function isTeamMember(
     .where(and(eq(teamMember.teamId, teamId), eq(teamMember.userId, userId)))
     .limit(1);
   return rows.length > 0;
+}
+
+export async function filterExistingUserIds(
+  userIds: string[],
+  database: TeamDb = defaultDb
+): Promise<Set<string>> {
+  const unique = [...new Set(userIds.filter(Boolean))];
+  if (unique.length === 0) return new Set();
+
+  const rows = await database
+    .select({ id: user.id })
+    .from(user)
+    .where(inArray(user.id, unique));
+
+  return new Set(rows.map((row) => row.id));
 }
 
 export async function listTeamsForUser(
