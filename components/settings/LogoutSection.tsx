@@ -20,8 +20,11 @@ function getReLoginMessage(
 
 export default function LogoutSection() {
   const { logout } = useAuth();
-  const { hasPasswordAccount, hasGoogleAccount, loading: linkedAccountsLoading } =
-    useLinkedAccounts();
+  const {
+    hasPasswordAccount,
+    hasGoogleAccount,
+    loading: linkedAccountsLoading,
+  } = useLinkedAccounts();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
