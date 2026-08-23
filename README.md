@@ -14,24 +14,22 @@
 
 ## 技術スタック
 
-| 領域           | 技術                                                       |
-| -------------- | ---------------------------------------------------------- |
-| フロント / API | Next.js 15（App Router）、React 19、TypeScript             |
-| スタイル       | Tailwind CSS 4                                             |
-| 認証           | Better Auth（メール / Google）                             |
-| Auth DB        | Turso（libSQL）無料枠 ※ローカルは `file:./data/auth.db` 可 |
-| アプリ DB      | Cloud Firestore                                            |
-| 通知           | LINE Messaging API                                         |
-| デプロイ       | Vercel                                                     |
-| 定期実行       | GitHub Actions（`/api/cron/check-expiry`）                 |
+| 領域           | 技術                                                              |
+| -------------- | ----------------------------------------------------------------- |
+| フロント / API | Next.js 15（App Router）、React 19、TypeScript                    |
+| スタイル       | Tailwind CSS 4                                                    |
+| 認証           | Better Auth（メール / Google）                                    |
+| DB             | Turso（libSQL）+ Drizzle ORM ※ローカルは `file:./data/auth.db` 可 |
+| 通知           | LINE Messaging API                                                |
+| デプロイ       | Vercel                                                            |
+| 定期実行       | GitHub Actions（`/api/cron/check-expiry`）                        |
 
 ## セットアップ
 
 ### 前提
 
 - Node.js 18 以上
-- Firebase プロジェクト（Firestore 用）
-- Auth 用 DB: ローカルファイル、または [Turso](https://turso.tech/) 無料 DB
+- [Turso](https://turso.tech/) 無料 DB、またはローカル SQLite ファイル
 - （任意）Google OAuth クライアント（Google ログイン用）
 - （任意）LINE Messaging API チャネル
 
@@ -43,7 +41,7 @@ cd emergencyfood
 npm install
 ```
 
-ルートに `.env.local` を用意してから、Auth 用テーブルを作成します（`db:push` は `.env.local`
+ルートに `.env.local` を用意してから、DB スキーマを反映します（`db:push` は `.env.local`
 の Turso 設定を読みます）。
 
 ```bash
@@ -53,26 +51,19 @@ npm run dev
 
 [http://localhost:3000](http://localhost:3000) で確認できます。
 
-### 既存 Firebase Auth ユーザーについて
-
-認証は Better Auth に移行済みです。
-
 ## スクリプト
 
-| コマンド                            | 内容                                            |
-| ----------------------------------- | ----------------------------------------------- |
-| `npm run dev`                       | 開発サーバー（Turbopack）                       |
-| `npm run build`                     | 本番ビルド                                      |
-| `npm run start`                     | 本番サーバー起動                                |
-| `npm run db:push`                   | Auth / アプリ DB スキーマを Turso に反映        |
-| `npm run test`                      | Vitest（バックエンドユニットテスト）            |
-| `npm run migrate:teams-to-turso`    | Firestore teams → Turso 移行（`--dry-run` 可）  |
-| `npm run migrate:invites-to-turso`  | Firestore invites → Turso 移行                  |
-| `npm run migrate:supplies-to-turso` | Firestore supplies/history/reviews → Turso 移行 |
-| `npm run lint`                      | ESLint                                          |
-| `npm run format`                    | Prettier で整形                                 |
-| `npm run type-check`                | TypeScript 型チェック                           |
-| `npm run check-all`                 | 型・Lint・フォーマットをまとめて確認            |
+| コマンド             | 内容                                 |
+| -------------------- | ------------------------------------ |
+| `npm run dev`        | 開発サーバー（Turbopack）            |
+| `npm run build`      | 本番ビルド                           |
+| `npm run start`      | 本番サーバー起動                     |
+| `npm run db:push`    | DB スキーマを Turso / ローカルに反映 |
+| `npm run test`       | Vitest（バックエンド単体テスト）     |
+| `npm run lint`       | ESLint                               |
+| `npm run format`     | Prettier で整形                      |
+| `npm run type-check` | TypeScript 型チェック                |
+| `npm run check-all`  | 型・Lint・フォーマットをまとめて確認 |
 
 ## 定期実行（LINE アラート）
 
@@ -88,10 +79,10 @@ npm run dev
 
 ```text
 app/                 # ページ・API Routes
-lib/                 # Better Auth / DB
+lib/                 # Better Auth / Drizzle スキーマ / サービス層
 components/          # UI コンポーネント
 hooks/               # カスタムフック
-utils/               # Firestore・在庫計算・認証ヘルパーなど
+utils/               # 在庫計算・認証ヘルパーなど
 types/               # 型定義
 .github/workflows/   # cron など
 ```

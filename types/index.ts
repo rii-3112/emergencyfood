@@ -12,7 +12,7 @@ export interface AppUser extends BaseFormData {
   uid: string;
   email: string;
   displayName?: string | null;
-  /** 備蓄おすすめ（生理用品など）用途。Firestore users / サーバー側で付与することがある */
+  /** 備蓄おすすめ（生理用品など）用途。Turso user / セッションで付与 */
   gender?: string | null;
   teamId?: string | null;
   teams?: string[];

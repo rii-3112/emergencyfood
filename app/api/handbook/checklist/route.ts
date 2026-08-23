@@ -1,16 +1,11 @@
 import { requireApiUser } from "@/utils/auth/server";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { adminDb } from "@/utils/firebase/admin";
-
-interface HandbookChecklistData {
-  checkedItemIds: string[];
-  checkedPetItems: { [petType: string]: string[] };
-  lastUpdated: Date;
-  lastUpdatedBy: string;
-  ageGroups?: any[];
-  pets?: any[];
-}
+import {
+  findHandbookChecklistByTeamId,
+  upsertHandbookChecklist,
+} from "@/lib/repositories/handbook";
+import { isTeamMember } from "@/lib/repositories/team";
 
 export async function GET(request: NextRequest) {
   try {
@@ -20,7 +15,6 @@ export async function GET(request: NextRequest) {
     }
 
     const teamId = user.teamId as string;
-
     if (!teamId) {
       return NextResponse.json(
         { error: "チームIDが必要です" },
@@ -28,16 +22,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const checklistDoc = await adminDb
-      .collection("handbook-checklists")
-      .doc(teamId)
-      .get();
-
-    if (!checklistDoc.exists) {
-      return NextResponse.json({ data: null });
-    }
-
-    const data = checklistDoc.data();
+    const data = await findHandbookChecklistByTeamId(teamId);
     return NextResponse.json({ data });
   } catch (error) {
     console.error("Handbook checklist fetch error:", error);
@@ -56,7 +41,6 @@ export async function POST(request: NextRequest) {
     }
 
     const teamId = user.teamId as string;
-
     if (!teamId) {
       return NextResponse.json(
         { error: "チームIDが必要です" },
@@ -64,20 +48,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!(await isTeamMember(teamId, user.uid))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+    }
+
     const body = await request.json();
+    const lastUpdatedBy = user.displayName || user.email || "ユーザー";
 
     if (body.checkedItemIds) {
-      const checklistData: HandbookChecklistData = {
+      await upsertHandbookChecklist(teamId, {
         checkedItemIds: body.checkedItemIds || [],
         checkedPetItems: body.checkedPetItems || {},
-        lastUpdated: new Date(),
-        lastUpdatedBy: user.displayName || user.email || "ユーザー",
-      };
-
-      await adminDb
-        .collection("handbook-checklists")
-        .doc(teamId)
-        .set(checklistData, { merge: true });
+        lastUpdatedBy,
+      });
 
       return NextResponse.json({
         success: true,
@@ -86,30 +69,24 @@ export async function POST(request: NextRequest) {
     }
 
     const checkedItemIds = new Set<string>();
-    body.ageGroups?.forEach((group: any) => {
+    body.ageGroups?.forEach((group: { checkedItems?: string[] }) => {
       group.checkedItems?.forEach((itemId: string) => {
         checkedItemIds.add(itemId);
       });
     });
 
-    const checkedPetItems: { [key: string]: string[] } = {};
-    body.pets?.forEach((pet: any) => {
+    const checkedPetItems: Record<string, string[]> = {};
+    body.pets?.forEach((pet: { petType: string; checkedItems?: string[] }) => {
       if (pet.checkedItems && pet.checkedItems.length > 0) {
         checkedPetItems[pet.petType] = pet.checkedItems;
       }
     });
 
-    const checklistData: HandbookChecklistData = {
+    await upsertHandbookChecklist(teamId, {
       checkedItemIds: Array.from(checkedItemIds),
       checkedPetItems,
-      lastUpdated: new Date(),
-      lastUpdatedBy: user.displayName || user.email || "ユーザー",
-    };
-
-    await adminDb
-      .collection("handbook-checklists")
-      .doc(teamId)
-      .set(checklistData, { merge: true });
+      lastUpdatedBy,
+    });
 
     return NextResponse.json({
       success: true,

@@ -1,14 +1,14 @@
 // app/api/cron/check-expiry/route.ts
 import { eq } from "drizzle-orm";
 import { Client } from "@line/bot-sdk";
-import { FieldValue, type Timestamp } from "firebase-admin/firestore";
 import { NextResponse } from "next/server";
 
 import { user as userTable } from "@/lib/auth-schema";
 import { db } from "@/lib/db";
 import { listSuppliesByTeam } from "@/lib/repositories/supply";
+import { listAllTeams, listTeamMemberIds } from "@/lib/repositories/team";
+import { markTeamNotified } from "@/lib/services/team";
 import { toApiSupply } from "@/lib/services/supply";
-import { adminDb } from "@/utils/firebase/admin";
 import { calculateStockStatus } from "@/utils/stockCalculator";
 import { getExpiryType } from "@/utils/stockRecommendations";
 
@@ -18,7 +18,6 @@ const lineConfig = {
 };
 const lineClient = new Client(lineConfig);
 
-/** 同一チームへのLINE再送までの最短間隔（cronが1日複数回でも連投しにくくする） */
 const LINE_ALERT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
 export async function POST(req: Request) {
@@ -29,8 +28,7 @@ export async function POST(req: Request) {
     }
 
     const now = new Date();
-
-    const teamsSnapshot = await adminDb.collection("teams").get();
+    const allTeams = await listAllTeams();
 
     const teamNotifications: {
       [teamId: string]: {
@@ -47,50 +45,36 @@ export async function POST(req: Request) {
       };
     } = {};
 
-    for (const teamDoc of teamsSnapshot.docs) {
-      const teamData = teamDoc.data();
-      const teamId = teamDoc.id;
-      const stockSettings = teamData.stockSettings;
+    for (const teamRecord of allTeams) {
+      const teamId = teamRecord.id;
+      const stockSettings = teamRecord.stockSettings;
       const notifications = stockSettings?.notifications;
 
-      if (!notifications?.enabled) {
-        continue;
-      }
+      if (!notifications?.enabled) continue;
 
       const criticalOn = notifications.criticalStock !== false;
       const expiryOn = notifications.expiryNear !== false;
-      if (!criticalOn && !expiryOn) {
-        continue;
-      }
+      if (!criticalOn && !expiryOn) continue;
 
-      const lastNotifiedAt = teamData.lastWeeklyReportAt as
-        | Timestamp
-        | undefined;
+      const lastNotifiedAt = teamRecord.lastWeeklyReportAt;
       if (
         lastNotifiedAt &&
-        now.getTime() - lastNotifiedAt.toDate().getTime() <
-          LINE_ALERT_COOLDOWN_MS
+        now.getTime() - lastNotifiedAt.getTime() < LINE_ALERT_COOLDOWN_MS
       ) {
         continue;
       }
 
+      const memberIds = await listTeamMemberIds(teamId);
       const lineUserIds: string[] = [];
-      for (const memberId of teamData.members || []) {
+
+      for (const memberId of memberIds) {
         try {
           const tursoUser = await db
             .select({ lineUserId: userTable.lineUserId })
             .from(userTable)
             .where(eq(userTable.id, memberId))
             .limit(1);
-          let lineUserId = tursoUser[0]?.lineUserId ?? null;
-          if (!lineUserId) {
-            const userDoc = await adminDb
-              .collection("users")
-              .doc(memberId)
-              .get();
-            lineUserId =
-              (userDoc.data()?.lineUserId as string | undefined) ?? null;
-          }
+          const lineUserId = tursoUser[0]?.lineUserId ?? null;
           if (lineUserId) {
             lineUserIds.push(lineUserId);
           }
@@ -99,12 +83,9 @@ export async function POST(req: Request) {
         }
       }
 
-      if (lineUserIds.length === 0) {
-        continue;
-      }
+      if (lineUserIds.length === 0) continue;
 
       const tursoSupplies = await listSuppliesByTeam(teamId, false);
-
       const outOfStock: Array<{ name: string; id: string }> = [];
       const expiryNear: Array<{
         name: string;
@@ -119,7 +100,7 @@ export async function POST(req: Request) {
 
         if (criticalOn) {
           const stockStatus = calculateStockStatus(
-            toApiSupply(supply) as any,
+            toApiSupply(supply) as Parameters<typeof calculateStockStatus>[0],
             stockSettings
           );
 
@@ -130,10 +111,7 @@ export async function POST(req: Request) {
 
         if (expiryOn && supply.quantity > 0 && supply.expiryDate) {
           const expiryType = getExpiryType(supply.category);
-
-          if (expiryType.type === "noExpiry") {
-            continue;
-          }
+          if (expiryType.type === "noExpiry") continue;
 
           const expiryDate = new Date(supply.expiryDate);
           const remainingTime = expiryDate.getTime() - now.getTime();
@@ -159,7 +137,7 @@ export async function POST(req: Request) {
 
       if (outOfStock.length > 0 || expiryNear.length > 0) {
         teamNotifications[teamId] = {
-          teamName: teamData.name,
+          teamName: teamRecord.name,
           lineUserIds,
           outOfStock,
           expiryNear: expiryNear.sort(
@@ -222,41 +200,14 @@ export async function POST(req: Request) {
             `Failed to send LINE notification to team ${teamId} (LINE ID: ${lineUserId}):`,
             lineError
           );
-          if (
-            lineError instanceof Error &&
-            "originalError" in lineError &&
-            lineError.originalError &&
-            typeof lineError.originalError === "object" &&
-            "response" in lineError.originalError &&
-            lineError.originalError.response &&
-            typeof lineError.originalError.response === "object" &&
-            "data" in lineError.originalError.response &&
-            lineError.originalError.response.data &&
-            typeof lineError.originalError.response.data === "object" &&
-            "message" in lineError.originalError.response.data &&
-            lineError.originalError.response.data.message ===
-              "User has not agreed to receive messages."
-          ) {
-            console.warn(
-              `User has not agreed to receive messages from your LINE official account.`
-            );
-          }
         }
       }
 
       teamsToUpdateNotifiedAt.push(teamId);
     }
 
-    if (teamsToUpdateNotifiedAt.length > 0) {
-      const batch = adminDb.batch();
-      teamsToUpdateNotifiedAt.forEach((teamId) => {
-        const teamDocRef = adminDb.collection("teams").doc(teamId);
-        batch.update(teamDocRef, {
-          // フィールド名は後方互換のため維持（最終LINEアラート送信時刻）
-          lastWeeklyReportAt: FieldValue.serverTimestamp(),
-        });
-      });
-      await batch.commit();
+    for (const teamId of teamsToUpdateNotifiedAt) {
+      await markTeamNotified(teamId, now);
     }
 
     return NextResponse.json(

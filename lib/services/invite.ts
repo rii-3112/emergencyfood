@@ -13,7 +13,6 @@ import {
 } from "@/lib/repositories/team";
 import { TeamServiceError } from "@/lib/services/team-errors";
 import { syncUserTeamId } from "@/utils/auth/server";
-import { adminDb } from "@/utils/firebase/admin";
 
 export interface CreateInviteInput {
   uid: string;
@@ -61,27 +60,15 @@ export async function createInvite(
   }
 
   const tursoTeam = await findTeamById(teamId, database);
-  const firestoreTeam = await adminDb.collection("teams").doc(teamId).get();
-
-  if (!tursoTeam && !firestoreTeam.exists) {
+  if (!tursoTeam) {
     throw new TeamServiceError("Team not found", 404);
   }
 
-  const isMember =
-    (await isTeamMember(teamId, uid, database)) ||
-    ((firestoreTeam.data()?.members as string[] | undefined) ?? []).includes(
-      uid
-    );
-
-  if (!isMember) {
+  if (!(await isTeamMember(teamId, uid, database))) {
     throw new TeamServiceError("You are not a member of this team", 403);
   }
 
-  const teamName =
-    input.teamName ||
-    tursoTeam?.name ||
-    (firestoreTeam.data()?.name as string | undefined) ||
-    "";
+  const teamName = input.teamName || tursoTeam.name;
 
   const inviteCode = randomUUID().split("-")[0].toUpperCase();
   const expiresAt = new Date();
@@ -144,44 +131,10 @@ export async function joinTeamByInvite(
 
   const { teamId, teamName } = invite;
 
-  await adminDb.runTransaction(async (transaction) => {
-    const userDocRef = adminDb.collection("users").doc(uid);
-    const teamDocRef = adminDb.collection("teams").doc(teamId);
+  if (!(await isTeamMember(teamId, uid, database))) {
+    await insertTeamMember({ teamId, userId: uid, role: "member" }, database);
+  }
 
-    const userDoc = await transaction.get(userDocRef);
-    const teamDoc = await transaction.get(teamDocRef);
-
-    if (!userDoc.exists) {
-      throw new TeamServiceError("User document not found.", 500);
-    }
-    if (!teamDoc.exists) {
-      throw new TeamServiceError("Team document not found.", 500);
-    }
-
-    const userData = userDoc.data();
-    const teamData = teamDoc.data();
-    const currentTeamMembers = teamData?.members || [];
-    const currentUserTeams = userData?.teams || [];
-
-    if (currentTeamMembers.includes(uid)) {
-      transaction.update(userDocRef, {
-        activeTeamId: teamId,
-        teamId,
-      });
-      return;
-    }
-
-    transaction.update(userDocRef, {
-      teams: [...currentUserTeams, teamId],
-      activeTeamId: teamId,
-      teamId,
-    });
-    transaction.update(teamDocRef, {
-      members: [...currentTeamMembers, uid],
-    });
-  });
-
-  await insertTeamMember({ teamId, userId: uid, role: "member" }, database);
   await markInviteUsed(inviteCode, database);
   await syncUserTeamId(uid, teamId);
 

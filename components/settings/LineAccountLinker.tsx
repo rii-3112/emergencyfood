@@ -1,12 +1,10 @@
 //components/settings/LineAccountLinker.tsx
 "use client";
-import { doc, getDoc } from "firebase/firestore";
 import React, { useEffect, useState } from "react";
 
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { authClient } from "@/lib/auth-client";
 import type { AppUser } from "@/types";
-import { db } from "@/utils/firebase";
 
 interface LineAccountLinkerProps {
   currentUser: AppUser;
@@ -15,38 +13,17 @@ interface LineAccountLinkerProps {
 export default function LineAccountLinker({
   currentUser,
 }: LineAccountLinkerProps) {
-  const [lineUserIdFromFirestore, setLineUserIdFromFirestore] = useState<
-    string | null
-  >(null);
+  const [lineUserId, setLineUserId] = useState<string | null>(
+    currentUser.lineUserId ?? null
+  );
   const [lineAuthCode, setLineAuthCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
 
   useEffect(() => {
-    const fetchLineUserId = async () => {
-      if (!currentUser?.uid) return;
-
-      try {
-        const userDocRef = doc(db, "users", currentUser.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          setLineUserIdFromFirestore(userDocSnap.data()?.lineUserId || null);
-        } else if (currentUser.lineUserId) {
-          setLineUserIdFromFirestore(currentUser.lineUserId);
-        }
-      } catch (_e) {
-        setError("ユーザー情報の取得に失敗しました。");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (currentUser) {
-      fetchLineUserId();
-    }
-  }, [currentUser]);
+    setLineUserId(currentUser.lineUserId ?? null);
+  }, [currentUser.lineUserId]);
 
   const handleLinkLineAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +57,7 @@ export default function LineAccountLinker({
       setSuccessMessage(
         result.message || "LINEアカウントが正常に連携されました！"
       );
-      setLineUserIdFromFirestore(result.lineUserId);
+      setLineUserId(result.lineUserId);
       await authClient.getSession();
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : "不明なエラー";
@@ -106,7 +83,6 @@ export default function LineAccountLinker({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ uid: currentUser.uid }),
       });
 
       const result = await response.json();
@@ -120,7 +96,7 @@ export default function LineAccountLinker({
       setSuccessMessage(
         result.message || "LINEアカウントの連携を解除しました。"
       );
-      setLineUserIdFromFirestore(null);
+      setLineUserId(null);
       await authClient.getSession();
     } catch (e: unknown) {
       const errorMessage = e instanceof Error ? e.message : "不明なエラー";
@@ -129,10 +105,6 @@ export default function LineAccountLinker({
       setShowUnlinkConfirm(false);
     }
   };
-
-  if (loading) {
-    return <div className='text-center py-8'>読み込み中...</div>;
-  }
 
   return (
     <div className='space-y-6'>
@@ -150,7 +122,7 @@ export default function LineAccountLinker({
         </div>
       )}
 
-      {lineUserIdFromFirestore ? (
+      {lineUserId ? (
         <div>
           <div className='flex items-start space-x-3'>
             <div className='flex-shrink-0'>

@@ -1,7 +1,7 @@
 import type { HouseholdComposition, TeamStockSettings } from "@/types";
 
 /**
- * Firestore の stockSettings を年齢別の人数へ正規化する。
+ * Turso の stockSettings を年齢別の人数へ正規化する。
  * 詳細フラグ省略時は詳細ありとして扱い、内訳が空なら householdSize を大人に読み替える。
  */
 export function resolveCompositionFromStockSettings(

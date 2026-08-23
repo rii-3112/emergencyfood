@@ -9,7 +9,6 @@ import {
 } from "@/lib/repositories/team";
 import { TeamServiceError } from "@/lib/services/team-errors";
 import { syncUserTeamId } from "@/utils/auth/server";
-import { adminDb } from "@/utils/firebase/admin";
 
 export type Gender = "male" | "female" | "prefer_not_to_say";
 
@@ -49,18 +48,6 @@ export async function updateUserProfile(
     .set(patch)
     .where(eq(userTable.id, params.uid));
 
-  const firestoreUpdates: Record<string, string> = {
-    displayName: trimmedName,
-  };
-  if (gender !== undefined) {
-    firestoreUpdates.gender = gender;
-  }
-
-  await adminDb
-    .collection("users")
-    .doc(params.uid)
-    .set(firestoreUpdates, { merge: true });
-
   return { displayName: trimmedName, gender };
 }
 
@@ -74,10 +61,7 @@ export async function getUserGender(
     .where(eq(userTable.id, uid))
     .limit(1);
 
-  if (rows[0]?.gender) return rows[0].gender;
-
-  const snap = await adminDb.collection("users").doc(uid).get();
-  return (snap.data()?.gender as string | undefined) ?? null;
+  return rows[0]?.gender ?? null;
 }
 
 export async function listMyTeams(
@@ -87,50 +71,18 @@ export async function listMyTeams(
 ) {
   const tursoTeams = await listTeamsForUser(uid, database);
 
-  if (tursoTeams.length > 0) {
-    const resolvedActive =
-      activeTeamId && tursoTeams.some((t) => t.id === activeTeamId)
-        ? activeTeamId
-        : (tursoTeams[0]?.id ?? null);
-
-    return {
-      teams: tursoTeams.map((t) => ({
-        id: t.id,
-        name: t.name,
-        isActive: t.id === resolvedActive,
-      })),
-      activeTeamId: resolvedActive,
-    };
-  }
-
-  // Firestore fallback during migration
-  const userDoc = await adminDb.collection("users").doc(uid).get();
-  if (!userDoc.exists) {
-    return { teams: [], activeTeamId: null };
-  }
-
-  const userData = userDoc.data();
-  const userTeams = (userData?.teams as string[] | undefined) || [];
-  const firestoreActive =
-    (userData?.activeTeamId as string | undefined) ||
-    (userData?.teamId as string | undefined) ||
-    null;
-
-  const teams = await Promise.all(
-    userTeams.map(async (teamId) => {
-      const teamDoc = await adminDb.collection("teams").doc(teamId).get();
-      if (!teamDoc.exists) return null;
-      return {
-        id: teamDoc.id,
-        name: (teamDoc.data()?.name as string | undefined) || "不明なチーム",
-        isActive: teamId === firestoreActive,
-      };
-    })
-  );
+  const resolvedActive =
+    activeTeamId && tursoTeams.some((t) => t.id === activeTeamId)
+      ? activeTeamId
+      : (tursoTeams[0]?.id ?? null);
 
   return {
-    teams: teams.filter((t): t is NonNullable<typeof t> => t !== null),
-    activeTeamId: firestoreActive,
+    teams: tursoTeams.map((t) => ({
+      id: t.id,
+      name: t.name,
+      isActive: t.id === resolvedActive,
+    })),
+    activeTeamId: resolvedActive,
   };
 }
 
@@ -143,24 +95,10 @@ export async function switchActiveTeam(
     throw new TeamServiceError("Team ID is required", 400);
   }
 
-  let allowed = await isTeamMember(teamId, uid, database);
-  if (!allowed) {
-    const userDoc = await adminDb.collection("users").doc(uid).get();
-    const userTeams = (userDoc.data()?.teams as string[] | undefined) || [];
-    allowed = userTeams.includes(teamId);
-  }
-
+  const allowed = await isTeamMember(teamId, uid, database);
   if (!allowed) {
     throw new TeamServiceError("You are not a member of this team", 403);
   }
-
-  await adminDb.collection("users").doc(uid).set(
-    {
-      activeTeamId: teamId,
-      teamId,
-    },
-    { merge: true }
-  );
 
   await syncUserTeamId(uid, teamId);
 

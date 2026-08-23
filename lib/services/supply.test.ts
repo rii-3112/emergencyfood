@@ -1,10 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
-
-vi.mock("@/utils/firebase/admin", () => ({
-  adminDb: {
-    collection: vi.fn(),
-  },
-}));
+import { describe, expect, it } from "vitest";
 
 import { consumeFromOldestLots } from "@/lib/services/supply";
 import type { ExpiryInfo } from "@/types";

@@ -1,15 +1,19 @@
-import { FieldValue, type Transaction } from "firebase-admin/firestore";
 import { randomUUID } from "crypto";
 
 import {
-  backfillTeamFromLegacy,
-  filterExistingUserIds,
   findTeamById,
   findTeamByName,
+  getMemberRole,
   insertTeam,
   insertTeamMember,
   isTeamMember,
+  listTeamMemberIds,
+  listTeamMembersWithUsers,
   teamNameExists,
+  updateMemberRole,
+  updateTeamLastWeeklyReportAt,
+  updateTeamName,
+  updateTeamStockSettings,
   type TeamDb,
   type TeamRole,
 } from "@/lib/repositories/team";
@@ -17,10 +21,9 @@ import { TeamServiceError } from "@/lib/services/team-errors";
 import { syncUserTeamId } from "@/utils/auth/server";
 import {
   hashTeamPassword,
-  isTeamPasswordHashed,
   verifyTeamPassword,
 } from "@/utils/auth/team-password";
-import { adminDb } from "@/utils/firebase/admin";
+import type { Team, TeamMember, TeamStockSettings } from "@/types";
 
 export interface CreateTeamInput {
   uid: string;
@@ -44,41 +47,20 @@ export interface JoinTeamResult {
   teamId: string;
 }
 
-async function firestoreTeamNameExists(teamName: string): Promise<boolean> {
-  const snapshot = await adminDb
-    .collection("teams")
-    .where("name", "==", teamName)
-    .limit(1)
-    .get();
-  return !snapshot.empty;
+function isOwnerOrAdmin(role: TeamRole | null): boolean {
+  return role === "owner" || role === "admin";
 }
 
-async function findFirestoreTeamByName(teamName: string) {
-  const snapshot = await adminDb
-    .collection("teams")
-    .where("name", "==", teamName)
-    .limit(1)
-    .get();
-
-  if (snapshot.empty) return null;
-
-  const doc = snapshot.docs[0];
-  return {
-    id: doc.id,
-    data: doc.data(),
-  };
-}
-
-function resolveMemberRole(
+async function requireTeamRole(
+  teamId: string,
   uid: string,
-  teamData: FirebaseFirestore.DocumentData
-): TeamRole {
-  const ownerId = teamData.ownerId as string;
-  const admins = (teamData.admins as string[] | undefined) ?? [];
-
-  if (uid === ownerId) return "owner";
-  if (admins.includes(uid)) return "admin";
-  return "member";
+  database?: TeamDb
+): Promise<TeamRole> {
+  const role = await getMemberRole(teamId, uid, database);
+  if (!role) {
+    throw new TeamServiceError("You are not a member of this team", 403);
+  }
+  return role;
 }
 
 export async function createTeam(
@@ -93,10 +75,6 @@ export async function createTeam(
   }
 
   if (await teamNameExists(trimmedName, database)) {
-    throw new TeamServiceError("Team name already exists", 409);
-  }
-
-  if (await firestoreTeamNameExists(trimmedName)) {
     throw new TeamServiceError("Team name already exists", 409);
   }
 
@@ -116,36 +94,6 @@ export async function createTeam(
     database
   );
 
-  const teamsRef = adminDb.collection("teams");
-
-  await adminDb.runTransaction(async (transaction: Transaction) => {
-    const userDocRef = adminDb.collection("users").doc(uid);
-    const userDoc = await transaction.get(userDocRef);
-
-    if (!userDoc.exists) {
-      throw new TeamServiceError("User document not found.", 500);
-    }
-
-    const userData = userDoc.data();
-    const currentTeams = userData?.teams || [];
-    const teamDocRef = teamsRef.doc(teamId);
-
-    transaction.set(teamDocRef, {
-      name: trimmedName,
-      members: [uid],
-      ownerId: uid,
-      admins: [uid],
-      createdAt: new Date(),
-      createdBy: uid,
-    });
-
-    transaction.update(userDocRef, {
-      teams: [...currentTeams, teamId],
-      activeTeamId: teamId,
-      teamId,
-    });
-  });
-
   await syncUserTeamId(uid, teamId);
 
   return {
@@ -160,180 +108,16 @@ async function verifyPasswordForJoin(
   database?: TeamDb
 ): Promise<{ teamId: string }> {
   const tursoTeam = await findTeamByName(teamName, database);
-
-  if (tursoTeam) {
-    const result = await verifyTeamPassword(
-      teamPassword,
-      tursoTeam.passwordHash
-    );
-    if (!result.matched) {
-      throw new TeamServiceError("Incorrect team name or password", 401);
-    }
-    return { teamId: tursoTeam.id };
-  }
-
-  const firestoreTeam = await findFirestoreTeamByName(teamName);
-  if (!firestoreTeam) {
+  if (!tursoTeam) {
     throw new TeamServiceError("Team not found", 404);
   }
 
-  const legacyPassword = firestoreTeam.data.password as string | undefined;
-  if (!legacyPassword) {
-    throw new TeamServiceError("Incorrect team name or password", 401);
-  }
-
-  const result = await verifyTeamPassword(teamPassword, legacyPassword);
+  const result = await verifyTeamPassword(teamPassword, tursoTeam.passwordHash);
   if (!result.matched) {
     throw new TeamServiceError("Incorrect team name or password", 401);
   }
 
-  const passwordHash = await hashTeamPassword(teamPassword);
-
-  const members = (firestoreTeam.data.members as string[] | undefined) ?? [];
-  const ownerId =
-    (firestoreTeam.data.ownerId as string | undefined) ??
-    (firestoreTeam.data.createdBy as string | undefined) ??
-    members[0];
-
-  if (!ownerId) {
-    throw new TeamServiceError("Invalid team data", 500);
-  }
-
-  await backfillTeamFromLegacy(
-    {
-      id: firestoreTeam.id,
-      name: teamName,
-      passwordHash,
-      ownerId,
-      createdBy:
-        (firestoreTeam.data.createdBy as string | undefined) ?? ownerId,
-      members: members.map((userId) => ({
-        userId,
-        role: resolveMemberRole(userId, firestoreTeam.data),
-      })),
-    },
-    database
-  );
-
-  await adminDb.collection("teams").doc(firestoreTeam.id).update({
-    password: FieldValue.delete(),
-  });
-
-  return { teamId: firestoreTeam.id };
-}
-
-async function syncTursoTeamMember(
-  teamId: string,
-  uid: string,
-  database?: TeamDb
-): Promise<void> {
-  const teamDoc = await adminDb.collection("teams").doc(teamId).get();
-  if (!teamDoc.exists) return;
-
-  const teamData = teamDoc.data() ?? {};
-  await insertTeamMember(
-    {
-      teamId,
-      userId: uid,
-      role: resolveMemberRole(uid, teamData),
-    },
-    database
-  );
-}
-
-/**
- * Firestore のみに存在するチームを Turso へ同期し、uid の membership を確保する。
- * supply など Turso FK を要する書き込み前に呼ぶ。
- */
-export async function ensureTursoTeamMembership(
-  teamId: string,
-  uid: string,
-  database?: TeamDb
-): Promise<void> {
-  if (await isTeamMember(teamId, uid, database)) return;
-
-  const existingTeam = await findTeamById(teamId, database);
-  if (existingTeam) {
-    await syncTursoTeamMember(teamId, uid, database);
-    return;
-  }
-
-  const teamDoc = await adminDb.collection("teams").doc(teamId).get();
-  if (!teamDoc.exists) {
-    throw new TeamServiceError("Team not found", 404);
-  }
-
-  const teamData = teamDoc.data() ?? {};
-  const name = teamData.name as string | undefined;
-  if (!name) {
-    throw new TeamServiceError("Invalid team data", 500);
-  }
-
-  const members = (teamData.members as string[] | undefined) ?? [];
-  if (!members.includes(uid)) {
-    throw new TeamServiceError("You are not a member of this team", 403);
-  }
-
-  const legacyPassword = teamData.password as string | undefined;
-  let passwordHash: string;
-  if (legacyPassword) {
-    passwordHash = isTeamPasswordHashed(legacyPassword)
-      ? legacyPassword
-      : await hashTeamPassword(legacyPassword);
-  } else {
-    passwordHash = await hashTeamPassword(`legacy-sync-${teamId}`);
-  }
-
-  const candidateOwnerId =
-    (teamData.ownerId as string | undefined) ??
-    (teamData.createdBy as string | undefined) ??
-    members[0] ??
-    uid;
-
-  const existingUserIds = await filterExistingUserIds(
-    [candidateOwnerId, uid, ...members],
-    database
-  );
-
-  if (!existingUserIds.has(uid)) {
-    throw new TeamServiceError("User not found", 500);
-  }
-
-  const ownerId = existingUserIds.has(candidateOwnerId)
-    ? candidateOwnerId
-    : uid;
-
-  await backfillTeamFromLegacy(
-    {
-      id: teamId,
-      name,
-      passwordHash,
-      ownerId,
-      createdBy:
-        (teamData.createdBy as string | undefined) &&
-        existingUserIds.has(teamData.createdBy as string)
-          ? (teamData.createdBy as string)
-          : ownerId,
-      members: members
-        .filter((userId) => existingUserIds.has(userId))
-        .map((userId) => ({
-          userId,
-          role: resolveMemberRole(userId, teamData),
-        })),
-    },
-    database
-  );
-
-  if (!(await isTeamMember(teamId, uid, database))) {
-    await insertTeamMember(
-      {
-        teamId,
-        userId: uid,
-        role: resolveMemberRole(uid, teamData),
-      },
-      database
-    );
-  }
+  return { teamId: tursoTeam.id };
 }
 
 export async function joinTeam(
@@ -353,49 +137,267 @@ export async function joinTeam(
     database
   );
 
-  await adminDb.runTransaction(async (transaction) => {
-    const userDocRef = adminDb.collection("users").doc(uid);
-    const teamDocRef = adminDb.collection("teams").doc(teamId);
+  if (!(await isTeamMember(teamId, uid, database))) {
+    await insertTeamMember({ teamId, userId: uid, role: "member" }, database);
+  }
 
-    const userDoc = await transaction.get(userDocRef);
-    const teamDocFromTransaction = await transaction.get(teamDocRef);
-
-    if (!userDoc.exists) {
-      throw new TeamServiceError("User document not found.", 500);
-    }
-    if (!teamDocFromTransaction.exists) {
-      throw new TeamServiceError("Team not found", 404);
-    }
-
-    const userData = userDoc.data();
-    const teamDataAfterTransaction = teamDocFromTransaction.data();
-
-    const currentTeamMembers = teamDataAfterTransaction?.members || [];
-    const currentUserTeams = userData?.teams || [];
-
-    if (currentTeamMembers.includes(uid)) {
-      transaction.update(userDocRef, {
-        activeTeamId: teamId,
-        teamId,
-      });
-      return;
-    }
-
-    transaction.update(userDocRef, {
-      teams: [...currentUserTeams, teamId],
-      activeTeamId: teamId,
-      teamId,
-    });
-    transaction.update(teamDocRef, {
-      members: [...currentTeamMembers, uid],
-    });
-  });
-
-  await syncTursoTeamMember(teamId, uid, database);
   await syncUserTeamId(uid, teamId);
 
   return {
     message: `Successfully joined team "${trimmedName}" and updated claims.`,
     teamId,
+  };
+}
+
+export async function getTeamDetail(
+  teamId: string,
+  requesterId: string,
+  database?: TeamDb
+): Promise<{ team: Team; members: TeamMember[] }> {
+  const teamRecord = await findTeamById(teamId, database);
+  if (!teamRecord) {
+    throw new TeamServiceError("チームが見つかりません", 404);
+  }
+
+  if (!(await isTeamMember(teamId, requesterId, database))) {
+    throw new TeamServiceError("このチームのメンバーではありません", 403);
+  }
+
+  const memberRows = await listTeamMembersWithUsers(teamId, database);
+  const memberIds = memberRows.map((m) => m.uid);
+  const admins = memberRows
+    .filter((m) => m.role === "owner" || m.role === "admin")
+    .map((m) => m.uid);
+
+  const team: Team = {
+    id: teamRecord.id,
+    name: teamRecord.name,
+    ownerId: teamRecord.ownerId,
+    createdAt: teamRecord.createdAt,
+    createdBy: teamRecord.createdBy,
+    members: memberIds,
+    admins,
+    stockSettings: teamRecord.stockSettings ?? undefined,
+  };
+
+  const members: TeamMember[] = memberRows.map((m) => ({
+    uid: m.uid,
+    email: m.email ?? "",
+    displayName: m.displayName,
+    role: m.role,
+  }));
+
+  return { team, members };
+}
+
+export async function updateTeamNameForUser(
+  params: { uid: string; teamId: string; newTeamName: string },
+  database?: TeamDb
+): Promise<{ teamName: string }> {
+  const trimmedName = params.newTeamName.trim();
+  if (trimmedName.length < 1 || trimmedName.length > 50) {
+    throw new TeamServiceError(
+      "Team name must be between 1 and 50 characters",
+      400
+    );
+  }
+
+  const role = await requireTeamRole(params.teamId, params.uid, database);
+  if (!isOwnerOrAdmin(role)) {
+    throw new TeamServiceError(
+      "Only team owners or admins can change the team name",
+      403
+    );
+  }
+
+  if (await teamNameExists(trimmedName, database)) {
+    const existing = await findTeamByName(trimmedName, database);
+    if (existing && existing.id !== params.teamId) {
+      throw new TeamServiceError("Team name already exists", 409);
+    }
+  }
+
+  await updateTeamName(params.teamId, trimmedName, database);
+  return { teamName: trimmedName };
+}
+
+export async function updateStockSettingsForUser(
+  params: {
+    uid: string;
+    teamId: string;
+    stockSettings: Partial<TeamStockSettings>;
+  },
+  database?: TeamDb
+): Promise<{ stockSettings: TeamStockSettings }> {
+  const role = await requireTeamRole(params.teamId, params.uid, database);
+  if (!isOwnerOrAdmin(role)) {
+    throw new TeamServiceError(
+      "Only team owners or admins can update stock settings",
+      403
+    );
+  }
+
+  const teamRecord = await findTeamById(params.teamId, database);
+  if (!teamRecord) {
+    throw new TeamServiceError("Team not found", 404);
+  }
+
+  const previousStock = teamRecord.stockSettings ?? undefined;
+  const incoming = params.stockSettings;
+
+  if (
+    typeof incoming.householdSize !== "number" ||
+    incoming.householdSize < 1 ||
+    incoming.householdSize > 50
+  ) {
+    throw new TeamServiceError("Household size must be between 1 and 50", 400);
+  }
+
+  if (
+    typeof incoming.stockDays !== "number" ||
+    ![3, 7, 14, 30].includes(incoming.stockDays)
+  ) {
+    throw new TeamServiceError("Stock days must be 3, 7, 14, or 30", 400);
+  }
+
+  const needsSanitaryResolved =
+    typeof incoming.needsSanitarySupplies === "boolean"
+      ? incoming.needsSanitarySupplies
+      : typeof previousStock?.needsSanitarySupplies === "boolean"
+        ? previousStock.needsSanitarySupplies
+        : undefined;
+
+  const settingsToSave: TeamStockSettings = {
+    householdSize: incoming.householdSize,
+    stockDays: incoming.stockDays,
+    hasPets: incoming.hasPets || false,
+    dogCount: incoming.dogCount || 0,
+    catCount: incoming.catCount || 0,
+    updatedAt: new Date().toISOString(),
+    ...(needsSanitaryResolved !== undefined
+      ? { needsSanitarySupplies: needsSanitaryResolved }
+      : {}),
+    ...(incoming.useDetailedComposition
+      ? {
+          useDetailedComposition: true,
+          composition: {
+            adult: Number(incoming.composition?.adult || 0),
+            child: Number(incoming.composition?.child || 0),
+            infant: Number(incoming.composition?.infant || 0),
+            elderly: Number(incoming.composition?.elderly || 0),
+          },
+        }
+      : {}),
+    ...(incoming.notifications
+      ? {
+          notifications: {
+            enabled: incoming.notifications.enabled !== false,
+            criticalStock: incoming.notifications.criticalStock !== false,
+            expiryNear: incoming.notifications.expiryNear !== false,
+          },
+        }
+      : {}),
+    ...(incoming.stockLevel ? { stockLevel: incoming.stockLevel } : {}),
+  };
+
+  await updateTeamStockSettings(params.teamId, settingsToSave, database);
+  return { stockSettings: settingsToSave };
+}
+
+export async function addTeamAdmin(
+  params: { uid: string; teamId: string; targetUserId: string },
+  database?: TeamDb
+): Promise<void> {
+  const role = await requireTeamRole(params.teamId, params.uid, database);
+  if (!isOwnerOrAdmin(role)) {
+    throw new TeamServiceError("管理者権限が必要です", 403);
+  }
+
+  const targetRole = await getMemberRole(
+    params.teamId,
+    params.targetUserId,
+    database
+  );
+  if (!targetRole) {
+    throw new TeamServiceError(
+      "指定されたユーザーはチームのメンバーではありません",
+      400
+    );
+  }
+  if (targetRole === "owner" || targetRole === "admin") {
+    throw new TeamServiceError("指定されたユーザーは既に管理者です", 400);
+  }
+
+  await updateMemberRole(params.teamId, params.targetUserId, "admin", database);
+}
+
+export async function removeTeamAdmin(
+  params: { uid: string; teamId: string; targetUserId: string },
+  database?: TeamDb
+): Promise<void> {
+  const role = await requireTeamRole(params.teamId, params.uid, database);
+  if (!isOwnerOrAdmin(role)) {
+    throw new TeamServiceError("管理者権限が必要です", 403);
+  }
+
+  const teamRecord = await findTeamById(params.teamId, database);
+  if (!teamRecord) {
+    throw new TeamServiceError("チームが見つかりません", 404);
+  }
+
+  if (params.targetUserId === teamRecord.ownerId) {
+    throw new TeamServiceError(
+      "オーナーを管理者から削除することはできません",
+      400
+    );
+  }
+
+  const targetRole = await getMemberRole(
+    params.teamId,
+    params.targetUserId,
+    database
+  );
+  if (targetRole !== "admin") {
+    throw new TeamServiceError("指定されたユーザーは管理者ではありません", 400);
+  }
+
+  await updateMemberRole(
+    params.teamId,
+    params.targetUserId,
+    "member",
+    database
+  );
+}
+
+export async function markTeamNotified(
+  teamId: string,
+  at: Date,
+  database?: TeamDb
+): Promise<void> {
+  await updateTeamLastWeeklyReportAt(teamId, at, database);
+}
+
+export async function buildTeamForApi(
+  teamId: string,
+  database?: TeamDb
+): Promise<Team | null> {
+  const teamRecord = await findTeamById(teamId, database);
+  if (!teamRecord) return null;
+
+  const memberRows = await listTeamMembersWithUsers(teamId, database);
+  const memberIds = await listTeamMemberIds(teamId, database);
+  const admins = memberRows
+    .filter((m) => m.role === "owner" || m.role === "admin")
+    .map((m) => m.uid);
+
+  return {
+    id: teamRecord.id,
+    name: teamRecord.name,
+    ownerId: teamRecord.ownerId,
+    createdAt: teamRecord.createdAt,
+    createdBy: teamRecord.createdBy,
+    members: memberIds,
+    admins,
+    stockSettings: teamRecord.stockSettings ?? undefined,
   };
 }

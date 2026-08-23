@@ -3,6 +3,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { db as defaultDb } from "@/lib/db";
 import { team, teamMember } from "@/lib/app-schema";
 import { user } from "@/lib/auth-schema";
+import type { TeamStockSettings } from "@/types";
 
 export type TeamDb = typeof defaultDb;
 
@@ -15,6 +16,8 @@ export interface TeamRecord {
   ownerId: string;
   createdAt: Date;
   createdBy: string;
+  stockSettings?: TeamStockSettings | null;
+  lastWeeklyReportAt?: Date | null;
 }
 
 export interface InsertTeamParams {
@@ -70,14 +73,7 @@ export async function findTeamByName(
   const row = rows[0];
   if (!row) return null;
 
-  return {
-    id: row.id,
-    name: row.name,
-    passwordHash: row.passwordHash,
-    ownerId: row.ownerId,
-    createdBy: row.createdBy,
-    createdAt: row.createdAt,
-  };
+  return mapTeamRow(row);
 }
 
 export async function findTeamById(
@@ -93,14 +89,7 @@ export async function findTeamById(
   const row = rows[0];
   if (!row) return null;
 
-  return {
-    id: row.id,
-    name: row.name,
-    passwordHash: row.passwordHash,
-    ownerId: row.ownerId,
-    createdBy: row.createdBy,
-    createdAt: row.createdAt,
-  };
+  return mapTeamRow(row);
 }
 
 export async function teamNameExists(
@@ -203,4 +192,156 @@ export async function backfillTeamFromLegacy(
   }
 
   return created;
+}
+
+function parseStockSettings(
+  raw: string | null | undefined
+): TeamStockSettings | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as TeamStockSettings;
+  } catch {
+    return null;
+  }
+}
+
+function mapTeamRow(row: typeof team.$inferSelect): TeamRecord {
+  return {
+    id: row.id,
+    name: row.name,
+    passwordHash: row.passwordHash,
+    ownerId: row.ownerId,
+    createdBy: row.createdBy,
+    createdAt: row.createdAt,
+    stockSettings: parseStockSettings(row.stockSettings),
+    lastWeeklyReportAt: row.lastWeeklyReportAt ?? null,
+  };
+}
+
+export async function listAllTeams(
+  database: TeamDb = defaultDb
+): Promise<TeamRecord[]> {
+  const rows = await database.select().from(team);
+  return rows.map(mapTeamRow);
+}
+
+export async function listTeamMemberIds(
+  teamId: string,
+  database: TeamDb = defaultDb
+): Promise<string[]> {
+  const rows = await database
+    .select({ userId: teamMember.userId })
+    .from(teamMember)
+    .where(eq(teamMember.teamId, teamId));
+  return rows.map((row) => row.userId);
+}
+
+export async function getMemberRole(
+  teamId: string,
+  userId: string,
+  database: TeamDb = defaultDb
+): Promise<TeamRole | null> {
+  const rows = await database
+    .select({ role: teamMember.role })
+    .from(teamMember)
+    .where(and(eq(teamMember.teamId, teamId), eq(teamMember.userId, userId)))
+    .limit(1);
+  return (rows[0]?.role as TeamRole | undefined) ?? null;
+}
+
+export async function updateMemberRole(
+  teamId: string,
+  userId: string,
+  role: TeamRole,
+  database: TeamDb = defaultDb
+): Promise<void> {
+  await database
+    .update(teamMember)
+    .set({ role })
+    .where(and(eq(teamMember.teamId, teamId), eq(teamMember.userId, userId)));
+}
+
+export async function updateTeamName(
+  teamId: string,
+  name: string,
+  database: TeamDb = defaultDb
+): Promise<void> {
+  await database.update(team).set({ name }).where(eq(team.id, teamId));
+}
+
+export async function updateTeamStockSettings(
+  teamId: string,
+  stockSettings: TeamStockSettings,
+  database: TeamDb = defaultDb
+): Promise<void> {
+  await database
+    .update(team)
+    .set({ stockSettings: JSON.stringify(stockSettings) })
+    .where(eq(team.id, teamId));
+}
+
+export async function updateTeamLastWeeklyReportAt(
+  teamId: string,
+  at: Date,
+  database: TeamDb = defaultDb
+): Promise<void> {
+  await database
+    .update(team)
+    .set({ lastWeeklyReportAt: at })
+    .where(eq(team.id, teamId));
+}
+
+export async function listTeamMembersWithUsers(
+  teamId: string,
+  database: TeamDb = defaultDb
+): Promise<
+  Array<{
+    uid: string;
+    email: string | null;
+    displayName: string | null;
+    role: TeamRole;
+  }>
+> {
+  const rows = await database
+    .select({
+      uid: teamMember.userId,
+      email: user.email,
+      displayName: user.name,
+      role: teamMember.role,
+    })
+    .from(teamMember)
+    .innerJoin(user, eq(teamMember.userId, user.id))
+    .where(eq(teamMember.teamId, teamId));
+
+  return rows.map((row) => ({
+    uid: row.uid,
+    email: row.email,
+    displayName: row.displayName,
+    role: row.role as TeamRole,
+  }));
+}
+
+export function toApiTeam(
+  record: TeamRecord,
+  memberIds: string[]
+): {
+  id: string;
+  name: string;
+  members: string[];
+  admins: string[];
+  ownerId: string;
+  createdAt: Date;
+  createdBy: string;
+  stockSettings?: TeamStockSettings;
+} {
+  return {
+    id: record.id,
+    name: record.name,
+    ownerId: record.ownerId,
+    createdAt: record.createdAt,
+    createdBy: record.createdBy,
+    members: memberIds,
+    admins: [],
+    stockSettings: record.stockSettings ?? undefined,
+  };
 }

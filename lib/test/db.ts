@@ -31,6 +31,8 @@ export function createTestDb(): { db: TestDb; sqlite: BetterSqlite3.Database } {
       \`owner_id\` text NOT NULL,
       \`created_at\` integer NOT NULL,
       \`created_by\` text NOT NULL,
+      \`stock_settings\` text,
+      \`last_weekly_report_at\` integer,
       FOREIGN KEY (\`owner_id\`) REFERENCES \`user\`(\`id\`) ON UPDATE no action ON DELETE no action
     );
     CREATE UNIQUE INDEX \`team_name_unique\` ON \`team\` (\`name\`);
@@ -104,6 +106,27 @@ export function createTestDb(): { db: TestDb; sqlite: BetterSqlite3.Database } {
       FOREIGN KEY (\`supply_id\`) REFERENCES \`supply\`(\`id\`) ON UPDATE no action ON DELETE cascade,
       FOREIGN KEY (\`team_id\`) REFERENCES \`team\`(\`id\`) ON UPDATE no action ON DELETE cascade,
       FOREIGN KEY (\`user_id\`) REFERENCES \`user\`(\`id\`) ON UPDATE no action ON DELETE no action
+    );
+    CREATE TABLE \`disaster_board\` (
+      \`team_id\` text PRIMARY KEY NOT NULL,
+      \`data\` text NOT NULL,
+      \`last_updated\` integer NOT NULL,
+      \`last_updated_by\` text NOT NULL,
+      FOREIGN KEY (\`team_id\`) REFERENCES \`team\`(\`id\`) ON UPDATE no action ON DELETE cascade
+    );
+    CREATE TABLE \`handbook_checklist\` (
+      \`team_id\` text PRIMARY KEY NOT NULL,
+      \`checked_item_ids\` text DEFAULT '[]' NOT NULL,
+      \`checked_pet_items\` text DEFAULT '{}' NOT NULL,
+      \`last_updated\` integer NOT NULL,
+      \`last_updated_by\` text NOT NULL,
+      FOREIGN KEY (\`team_id\`) REFERENCES \`team\`(\`id\`) ON UPDATE no action ON DELETE cascade
+    );
+    CREATE TABLE \`line_auth_code\` (
+      \`line_user_id\` text PRIMARY KEY NOT NULL,
+      \`code\` text NOT NULL,
+      \`expire_at\` integer NOT NULL,
+      \`created_at\` integer NOT NULL
     );
   `);
 

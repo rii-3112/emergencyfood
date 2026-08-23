@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 import { isTeamServiceError } from "@/lib/services/team-errors";
 import { updateUserProfile } from "@/lib/services/user";
-import { ensureFirestoreUser, requireApiUser } from "@/utils/auth/server";
+import { requireApiUser } from "@/utils/auth/server";
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,13 +17,6 @@ export async function POST(request: NextRequest) {
       displayName?: string;
       gender?: string;
     };
-
-    await ensureFirestoreUser({
-      uid: user.uid,
-      email: user.email,
-      displayName: displayName?.trim() || user.displayName || user.email,
-      teamId: user.teamId ?? null,
-    });
 
     await updateUserProfile({
       uid: user.uid,

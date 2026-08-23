@@ -7,7 +7,6 @@ import {
 } from "@/lib/services/supply";
 import { isTeamServiceError } from "@/lib/services/team-errors";
 import { requireApiUser } from "@/utils/auth/server";
-import { adminDb } from "@/utils/firebase/admin";
 
 interface RouteParams {
   params: Promise<{
@@ -55,20 +54,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    let userName = "ユーザー";
-    try {
-      const userDoc = await adminDb.collection("users").doc(user.uid).get();
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        userName =
-          userData?.displayName || user.displayName || user.email || "ユーザー";
-      } else {
-        userName = user.displayName || user.email || "ユーザー";
-      }
-    } catch (error) {
-      console.error("Failed to get user info:", error);
-      userName = user.email || "ユーザー";
-    }
+    const userName = user.displayName || user.email || "ユーザー";
 
     const result = await createSupplyReview({
       uid: user.uid,

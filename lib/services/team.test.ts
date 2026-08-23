@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   findTeamByName,
   insertTeam,
+  isTeamMember,
   type TeamDb,
 } from "@/lib/repositories/team";
 import { TeamServiceError } from "@/lib/services/team-errors";
@@ -10,64 +11,14 @@ import { createTeam, joinTeam } from "@/lib/services/team";
 import { createTestDb, seedTestUser } from "@/lib/test/db";
 import { hashTeamPassword } from "@/utils/auth/team-password";
 
-vi.mock("@/utils/firebase/admin", () => ({
-  adminDb: {
-    collection: vi.fn(),
-    runTransaction: vi.fn(),
-  },
-}));
-
 vi.mock("@/utils/auth/server", () => ({
   syncUserTeamId: vi.fn(),
 }));
 
-import { adminDb } from "@/utils/firebase/admin";
 import { syncUserTeamId } from "@/utils/auth/server";
 
 function asTeamDb(db: ReturnType<typeof createTestDb>["db"]): TeamDb {
   return db as unknown as TeamDb;
-}
-
-function mockFirestoreForCreate(uid: string, teamId: string) {
-  const userDoc = {
-    exists: true,
-    data: () => ({ teams: [] }),
-  };
-
-  const transaction = {
-    get: vi.fn().mockResolvedValue(userDoc),
-    set: vi.fn(),
-    update: vi.fn(),
-  };
-
-  const teamsRef = {
-    doc: vi.fn().mockReturnValue({ id: teamId }),
-  };
-
-  vi.mocked(adminDb.collection).mockImplementation((name: string) => {
-    if (name === "teams") {
-      return {
-        where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockReturnValue({
-            get: vi.fn().mockResolvedValue({ empty: true, docs: [] }),
-          }),
-        }),
-        doc: vi.fn().mockReturnValue({}),
-      } as never;
-    }
-    if (name === "users") {
-      return {
-        doc: vi.fn().mockReturnValue({}),
-      } as never;
-    }
-    return {} as never;
-  });
-
-  vi.mocked(adminDb.runTransaction).mockImplementation(async (fn) => {
-    return fn(transaction as never);
-  });
-
-  return { transaction, teamsRef };
 }
 
 describe("team service", () => {
@@ -75,12 +26,10 @@ describe("team service", () => {
     vi.clearAllMocks();
   });
 
-  it("creates team in Turso and Firestore without password field", async () => {
+  it("creates team in Turso", async () => {
     const { db } = createTestDb();
     const teamDb = asTeamDb(db);
     await seedTestUser(db, { id: "user-1" });
-
-    mockFirestoreForCreate("user-1", "ignored");
 
     const result = await createTeam(
       {
@@ -105,6 +54,7 @@ describe("team service", () => {
     const { db } = createTestDb();
     const teamDb = asTeamDb(db);
     await seedTestUser(db, { id: "user-1" });
+    await seedTestUser(db, { id: "user-2", email: "user-2@example.com" });
 
     await insertTeam(
       {
@@ -117,19 +67,42 @@ describe("team service", () => {
       teamDb
     );
 
-    vi.mocked(adminDb.collection).mockReturnValue({
-      where: vi.fn().mockReturnValue({
-        limit: vi.fn().mockReturnValue({
-          get: vi.fn().mockResolvedValue({ empty: true }),
-        }),
-      }),
-    } as never);
-
     await expect(
       createTeam({ uid: "user-2", teamName: "Taken Name" }, teamDb)
     ).rejects.toMatchObject({
       status: 409,
     } satisfies Partial<TeamServiceError>);
+  });
+
+  it("joins Turso team with correct password", async () => {
+    const { db } = createTestDb();
+    const teamDb = asTeamDb(db);
+    await seedTestUser(db, { id: "user-1" });
+    await seedTestUser(db, { id: "user-2", email: "user-2@example.com" });
+
+    await insertTeam(
+      {
+        id: "team-join",
+        name: "Join Target",
+        passwordHash: await hashTeamPassword("correct"),
+        ownerId: "user-1",
+        createdBy: "user-1",
+      },
+      teamDb
+    );
+
+    const result = await joinTeam(
+      {
+        uid: "user-2",
+        teamName: "Join Target",
+        teamPassword: "correct",
+      },
+      teamDb
+    );
+
+    expect(result.teamId).toBe("team-join");
+    expect(await isTeamMember("team-join", "user-2", teamDb)).toBe(true);
+    expect(syncUserTeamId).toHaveBeenCalledWith("user-2", "team-join");
   });
 
   it("throws 401 for wrong password on Turso team", async () => {
@@ -148,14 +121,6 @@ describe("team service", () => {
       },
       teamDb
     );
-
-    vi.mocked(adminDb.collection).mockReturnValue({
-      where: vi.fn().mockReturnValue({
-        limit: vi.fn().mockReturnValue({
-          get: vi.fn().mockResolvedValue({ empty: true }),
-        }),
-      }),
-    } as never);
 
     await expect(
       joinTeam(

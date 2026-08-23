@@ -1,43 +1,17 @@
 import type { Supply, SupplyHistory, Team } from "@/types";
 import type { DisasterBoardData } from "@/types/forms";
 import {
+  findDisasterBoardByTeamId,
+  findHandbookChecklistByTeamId,
+} from "@/lib/repositories/handbook";
+import {
   findSupplyById,
   listSuppliesByTeam,
   listSupplyHistoryByTeam,
 } from "@/lib/repositories/supply";
+import { buildTeamForApi } from "@/lib/services/team";
 import { toApiSupply } from "@/lib/services/supply";
-import { adminDb } from "@/utils/firebase/admin";
 
-/**
- * FirestoreのTimestampをDateに変換するヘルパー関数
- */
-function convertTimestampsToDates(obj: any): any {
-  if (obj === null || obj === undefined) {
-    return obj;
-  }
-
-  if (obj._seconds !== undefined && obj._nanoseconds !== undefined) {
-    return new Date(obj._seconds * 1000 + obj._nanoseconds / 1000000);
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map(convertTimestampsToDates);
-  }
-
-  if (typeof obj === "object") {
-    const converted: any = {};
-    for (const [key, value] of Object.entries(obj)) {
-      converted[key] = convertTimestampsToDates(value);
-    }
-    return converted;
-  }
-
-  return obj;
-}
-
-/**
- * サーバーサイドで備蓄品データを取得
- */
 export async function fetchSuppliesFromDB(
   teamId: string,
   isArchived: boolean = false
@@ -51,31 +25,15 @@ export async function fetchSuppliesFromDB(
   }
 }
 
-/**
- * サーバーサイドでチーム情報を取得
- */
 export async function fetchTeamFromDB(teamId: string): Promise<Team | null> {
   try {
-    const teamDoc = await adminDb.collection("teams").doc(teamId).get();
-
-    if (!teamDoc.exists) {
-      return null;
-    }
-
-    const data = teamDoc.data();
-    return convertTimestampsToDates({
-      id: teamDoc.id,
-      ...data,
-    }) as Team;
+    return await buildTeamForApi(teamId);
   } catch (error) {
     console.error("Error fetching team:", error);
     return null;
   }
 }
 
-/**
- * サーバーサイドで特定の備蓄品データを取得
- */
 export async function fetchSupplyByIdFromDB(
   teamId: string,
   supplyId: string
@@ -92,42 +50,17 @@ export async function fetchSupplyByIdFromDB(
   }
 }
 
-/**
- * サーバーサイドで災害用伝言板データを取得
- */
 export async function fetchDisasterBoardFromDB(
   teamId: string
 ): Promise<DisasterBoardData | null> {
   try {
-    const disasterBoardDoc = await adminDb
-      .collection("disaster-boards")
-      .doc(teamId)
-      .get();
-
-    if (!disasterBoardDoc.exists) {
-      return null;
-    }
-
-    const rawData = disasterBoardDoc.data();
-
-    const data: DisasterBoardData = {
-      ...rawData,
-      lastUpdated: rawData?.lastUpdated?.toDate
-        ? rawData.lastUpdated.toDate()
-        : rawData?.lastUpdated,
-      lastUpdatedBy: rawData?.lastUpdatedBy || undefined,
-    } as DisasterBoardData;
-
-    return convertTimestampsToDates(data);
+    return await findDisasterBoardByTeamId(teamId);
   } catch (error) {
     console.error("Error fetching disaster board:", error);
     return null;
   }
 }
 
-/**
- * サーバーサイドで備蓄履歴データを取得
- */
 export async function fetchHistoriesFromDB(
   teamId: string
 ): Promise<SupplyHistory[]> {
@@ -155,59 +88,18 @@ export async function fetchHistoriesFromDB(
   }
 }
 
-/**
- * サーバーサイドでハンドブックチェックリストデータを取得
- */
 export async function fetchHandbookChecklistFromDB(teamId: string): Promise<{
   checkedItemIds: string[];
   checkedPetItems: { [petType: string]: string[] };
 } | null> {
   try {
-    const checklistDoc = await adminDb
-      .collection("handbook-checklists")
-      .doc(teamId)
-      .get();
+    const record = await findHandbookChecklistByTeamId(teamId);
+    if (!record) return null;
 
-    if (!checklistDoc.exists) {
-      return null;
-    }
-
-    const rawData = checklistDoc.data();
-
-    // 新しい形式があればそのまま返す
-    if (rawData?.checkedItemIds) {
-      return convertTimestampsToDates({
-        checkedItemIds: rawData.checkedItemIds || [],
-        checkedPetItems: rawData.checkedPetItems || {},
-      });
-    }
-
-    // 後方互換性: 古い形式（ageGroups）があれば変換
-    if (rawData?.ageGroups) {
-      const checkedItemIds = new Set<string>();
-      rawData.ageGroups.forEach((group: any) => {
-        group.checkedItems?.forEach((itemId: string) => {
-          checkedItemIds.add(itemId);
-        });
-      });
-
-      const checkedPetItems: { [key: string]: string[] } = {};
-      rawData.pets?.forEach((pet: any) => {
-        if (pet.checkedItems && pet.checkedItems.length > 0) {
-          checkedPetItems[pet.petType] = pet.checkedItems;
-        }
-      });
-
-      return convertTimestampsToDates({
-        checkedItemIds: Array.from(checkedItemIds),
-        checkedPetItems,
-      });
-    }
-
-    return convertTimestampsToDates({
-      checkedItemIds: [],
-      checkedPetItems: {},
-    });
+    return {
+      checkedItemIds: record.checkedItemIds,
+      checkedPetItems: record.checkedPetItems,
+    };
   } catch (error) {
     console.error("Error fetching handbook checklist:", error);
     return null;

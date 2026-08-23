@@ -17,6 +17,11 @@ export const team = sqliteTable("team", {
     .references(() => user.id),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
   createdBy: text("created_by").notNull(),
+  /** JSON: TeamStockSettings */
+  stockSettings: text("stock_settings"),
+  lastWeeklyReportAt: integer("last_weekly_report_at", {
+    mode: "timestamp_ms",
+  }),
 });
 
 export const teamMember = sqliteTable(
@@ -114,6 +119,35 @@ export const supplyReview = sqliteTable("supply_review", {
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
 });
 
+export const disasterBoard = sqliteTable("disaster_board", {
+  teamId: text("team_id")
+    .primaryKey()
+    .references(() => team.id, { onDelete: "cascade" }),
+  /** JSON: DisasterBoardData (without lastUpdated/lastUpdatedBy) */
+  data: text("data").notNull(),
+  lastUpdated: integer("last_updated", { mode: "timestamp_ms" }).notNull(),
+  lastUpdatedBy: text("last_updated_by").notNull(),
+});
+
+export const handbookChecklist = sqliteTable("handbook_checklist", {
+  teamId: text("team_id")
+    .primaryKey()
+    .references(() => team.id, { onDelete: "cascade" }),
+  /** JSON: string[] */
+  checkedItemIds: text("checked_item_ids").notNull().default("[]"),
+  /** JSON: Record<string, string[]> */
+  checkedPetItems: text("checked_pet_items").notNull().default("{}"),
+  lastUpdated: integer("last_updated", { mode: "timestamp_ms" }).notNull(),
+  lastUpdatedBy: text("last_updated_by").notNull(),
+});
+
+export const lineAuthCode = sqliteTable("line_auth_code", {
+  lineUserId: text("line_user_id").primaryKey(),
+  code: text("code").notNull(),
+  expireAt: integer("expire_at", { mode: "timestamp_ms" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull(),
+});
+
 export const teamRelations = relations(team, ({ many, one }) => ({
   owner: one(user, {
     fields: [team.ownerId],
@@ -122,6 +156,14 @@ export const teamRelations = relations(team, ({ many, one }) => ({
   members: many(teamMember),
   invites: many(invite),
   supplies: many(supply),
+  disasterBoard: one(disasterBoard, {
+    fields: [team.id],
+    references: [disasterBoard.teamId],
+  }),
+  handbookChecklist: one(handbookChecklist, {
+    fields: [team.id],
+    references: [handbookChecklist.teamId],
+  }),
 }));
 
 export const teamMemberRelations = relations(teamMember, ({ one }) => ({

@@ -21,7 +21,6 @@ interface UseTeamReturn {
   addAdmin: (userId: string) => Promise<void>;
   removeAdmin: (userId: string) => Promise<void>;
   refreshTeam: () => Promise<void>;
-  migrateTeamData: () => Promise<void>;
 }
 
 export const useTeam = (user: AppUser | null): UseTeamReturn => {
@@ -62,31 +61,6 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
     } catch (_e) {
       setError(ERROR_MESSAGES.FAMILY_GROUP_FETCH_FAILED);
     }
-  };
-
-  const migrateTeamData = async () => {
-    if (!currentTeamId || !user) return;
-
-    try {
-      const response = await fetch(API_ENDPOINTS.MIGRATE_TEAM_DATA, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          teamId: currentTeamId,
-        }),
-      });
-
-      if (!response.ok) {
-        return;
-      }
-
-      const result = await response.json();
-      if (result.migrated) {
-        await fetchTeamInfo();
-      }
-    } catch (_e) {}
   };
 
   useEffect(() => {
@@ -221,6 +195,5 @@ export const useTeam = (user: AppUser | null): UseTeamReturn => {
     addAdmin,
     removeAdmin,
     refreshTeam,
-    migrateTeamData,
   };
 };

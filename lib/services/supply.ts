@@ -18,10 +18,8 @@ import {
   type SupplyRecord,
 } from "@/lib/repositories/supply";
 import { isTeamMember, type TeamDb } from "@/lib/repositories/team";
-import { ensureTursoTeamMembership } from "@/lib/services/team";
 import { TeamServiceError } from "@/lib/services/team-errors";
 import type { ExpiryInfo, Supply, SupplyHistory } from "@/types";
-import { adminDb } from "@/utils/firebase/admin";
 
 export type { SupplyRecord };
 
@@ -30,18 +28,9 @@ async function assertTeamMember(
   uid: string,
   database?: TeamDb
 ): Promise<void> {
-  const inTurso = await isTeamMember(teamId, uid, database);
-  if (inTurso) return;
-
-  const teamDoc = await adminDb.collection("teams").doc(teamId).get();
-  const members = (teamDoc.data()?.members as string[] | undefined) ?? [];
-  const inFirestore = members.includes(uid);
-  if (!inFirestore) {
+  if (!(await isTeamMember(teamId, uid, database))) {
     throw new TeamServiceError("You are not a member of this team", 403);
   }
-
-  // Firestore-only teams must be synced before Turso FK writes
-  await ensureTursoTeamMembership(teamId, uid, database);
 }
 
 function ensureLots(record: SupplyRecord): ExpiryInfo[] {
@@ -62,7 +51,7 @@ function nearestExpiry(lots: ExpiryInfo[], fallback: string): string {
   return [...lots].map((lot) => lot.date).sort()[0];
 }
 
-function toFirestoreTimestamp(date: Date) {
+function toApiTimestamp(date: Date) {
   return {
     seconds: Math.floor(date.getTime() / 1000),
     nanoseconds: (date.getTime() % 1000) * 1_000_000,
@@ -115,7 +104,7 @@ export function toApiSupply(record: SupplyRecord): Supply {
     purchaseLocation: record.purchaseLocation,
     label: record.label,
     storageLocation: record.storageLocation,
-    registeredAt: toFirestoreTimestamp(record.registeredAt),
+    registeredAt: toApiTimestamp(record.registeredAt),
     teamId: record.teamId,
     uid: record.uid,
     lastConsumedDate: record.lastConsumedDate ?? undefined,
@@ -590,7 +579,7 @@ export async function listSupplyReviews(
       content: r.content,
       userName: r.userName,
       userId: r.userId,
-      createdAt: toFirestoreTimestamp(r.createdAt),
+      createdAt: toApiTimestamp(r.createdAt),
     })),
   };
 }
