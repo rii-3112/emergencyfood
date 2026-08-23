@@ -1,7 +1,7 @@
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 
-import * as schema from "./auth-schema";
+import * as schema from "./schema";
 
 const url = process.env.TURSO_DATABASE_URL || "file:./data/auth.db";
 
@@ -11,3 +11,4 @@ const client = createClient({
 });
 
 export const db = drizzle(client, { schema });
+export type AppDb = typeof db;

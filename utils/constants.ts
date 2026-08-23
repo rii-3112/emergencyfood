@@ -128,7 +128,6 @@ export const API_ENDPOINTS = {
   JOIN_TEAM: "/api/actions/joinTeam",
   ADD_ADMIN: "/api/actions/add-admin",
   REMOVE_ADMIN: "/api/actions/remove-admin",
-  MIGRATE_TEAM_DATA: "/api/actions/migrate-team-data",
 
   LINK_LINE: "/api/actions/link-line-account",
   UNLINK_LINE: "/api/actions/unlink-line-account",

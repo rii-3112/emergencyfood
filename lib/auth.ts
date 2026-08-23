@@ -2,8 +2,6 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
 import { nextCookies } from "better-auth/next-js";
 
-import { ensureFirestoreUser } from "@/utils/auth/firestore-user";
-
 import * as schema from "./auth-schema";
 import { db } from "./db";
 
@@ -62,25 +60,17 @@ export const auth = betterAuth({
         defaultValue: null,
         input: false,
       },
+      gender: {
+        type: "string",
+        required: false,
+        defaultValue: null,
+        input: false,
+      },
     },
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7,
     updateAge: 60 * 60 * 24,
-  },
-  databaseHooks: {
-    user: {
-      create: {
-        after: async (createdUser) => {
-          await ensureFirestoreUser({
-            uid: createdUser.id,
-            email: createdUser.email,
-            displayName: createdUser.name,
-            teamId: (createdUser as { teamId?: string | null }).teamId ?? null,
-          });
-        },
-      },
-    },
   },
   plugins: [nextCookies()],
 });

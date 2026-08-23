@@ -1,7 +1,8 @@
 import { requireApiUser } from "@/utils/auth/server";
 import { NextResponse } from "next/server";
 
-import { adminDb } from "@/utils/firebase/admin";
+import { updateTeamNameForUser } from "@/lib/services/team";
+import { TeamServiceError } from "@/lib/services/team-errors";
 
 export async function POST(req: Request) {
   try {
@@ -10,7 +11,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const uid = user.uid;
     const { teamId, newTeamName } = await req.json();
 
     if (!teamId || !newTeamName) {
@@ -20,43 +20,25 @@ export async function POST(req: Request) {
       );
     }
 
-    const trimmedName = newTeamName.trim();
-    if (trimmedName.length < 1 || trimmedName.length > 50) {
-      return NextResponse.json(
-        { error: "Team name must be between 1 and 50 characters" },
-        { status: 400 }
-      );
-    }
-
-    const teamDoc = await adminDb.collection("teams").doc(teamId).get();
-    if (!teamDoc.exists) {
-      return NextResponse.json({ error: "Team not found" }, { status: 404 });
-    }
-
-    const teamData = teamDoc.data();
-
-    const isOwner = teamData?.ownerId === uid;
-    const isAdmin = teamData?.admins?.includes(uid);
-
-    if (!isOwner && !isAdmin) {
-      return NextResponse.json(
-        { error: "Only team owners or admins can change the team name" },
-        { status: 403 }
-      );
-    }
-
-    await adminDb.collection("teams").doc(teamId).update({
-      name: trimmedName,
-      updatedAt: new Date(),
+    const result = await updateTeamNameForUser({
+      uid: user.uid,
+      teamId,
+      newTeamName,
     });
 
     return NextResponse.json({
       message: "Team name updated successfully",
-      teamName: trimmedName,
+      teamName: result.teamName,
     });
-  } catch (_error: unknown) {
+  } catch (error: unknown) {
+    if (error instanceof TeamServiceError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
+    }
     const errorMessage =
-      _error instanceof Error ? _error.message : "Internal Server Error";
+      error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

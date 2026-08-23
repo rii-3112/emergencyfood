@@ -1,8 +1,12 @@
-import { requireApiUser } from "@/utils/auth/server";
-import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { adminDb } from "@/utils/firebase/admin";
+import {
+  createSupplyReview,
+  listSupplyReviews,
+  removeSupplyReview,
+} from "@/lib/services/supply";
+import { isTeamServiceError } from "@/lib/services/team-errors";
+import { requireApiUser } from "@/utils/auth/server";
 
 interface RouteParams {
   params: Promise<{
@@ -10,55 +14,28 @@ interface RouteParams {
   }>;
 }
 
-interface Review {
-  id: string;
-  supplyId: string;
-  teamId: string;
-  content: string;
-  userName: string;
-  createdAt: {
-    seconds: number;
-    nanoseconds: number;
-  };
-}
-
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { supplyId } = await params;
-
     const user = await requireApiUser(request);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const teamId = user.teamId as string;
-
-    if (!teamId) {
-      return NextResponse.json(
-        { error: "チームIDが必要です" },
-        { status: 400 }
-      );
-    }
-
-    const reviewsSnapshot = await adminDb
-      .collection("supplyReviews")
-      .where("supplyId", "==", supplyId)
-      .where("teamId", "==", teamId)
-      .get();
-
-    const reviews: Review[] = reviewsSnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Review[];
-
-    reviews.sort((a, b) => {
-      const dateA = a.createdAt?.seconds || 0;
-      const dateB = b.createdAt?.seconds || 0;
-      return dateB - dateA;
+    const result = await listSupplyReviews({
+      uid: user.uid,
+      supplyId,
+      teamId: user.teamId ?? "",
     });
 
-    return NextResponse.json({ reviews });
-  } catch (_error) {
+    return NextResponse.json(result);
+  } catch (error: unknown) {
+    if (isTeamServiceError(error)) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
+    }
     return NextResponse.json(
       { error: "レビューの取得に失敗しました" },
       { status: 500 }
@@ -77,70 +54,24 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const uid = user.uid;
-    const teamId = user.teamId as string;
+    const userName = user.displayName || user.email || "ユーザー";
 
-    if (!teamId) {
-      return NextResponse.json(
-        { error: "チームIDが必要です" },
-        { status: 400 }
-      );
-    }
-
-    if (!content) {
-      return NextResponse.json(
-        { error: "レビュー内容が必要です" },
-        { status: 400 }
-      );
-    }
-
-    const supplyDoc = await adminDb.collection("supplies").doc(supplyId).get();
-
-    if (!supplyDoc.exists) {
-      return NextResponse.json(
-        { error: "備蓄品が見つかりません" },
-        { status: 404 }
-      );
-    }
-
-    const suppliesData = supplyDoc.data();
-    if (suppliesData?.teamId !== teamId) {
-      return NextResponse.json(
-        { error: "アクセス権限がありません" },
-        { status: 403 }
-      );
-    }
-
-    let userName = "ユーザー";
-    try {
-      const userDoc = await adminDb.collection("users").doc(uid).get();
-      if (userDoc.exists) {
-        const userData = userDoc.data();
-        userName =
-          userData?.displayName || user.displayName || user.email || "ユーザー";
-      } else {
-        userName = user.displayName || user.email || "ユーザー";
-      }
-    } catch (error) {
-      console.error("Failed to get user info:", error);
-      userName = user.email || "ユーザー";
-    }
-
-    const reviewRef = await adminDb.collection("supplyReviews").add({
+    const result = await createSupplyReview({
+      uid: user.uid,
       supplyId,
-      teamId,
+      teamId: user.teamId ?? "",
       content,
       userName,
-      userId: uid,
-      createdAt: FieldValue.serverTimestamp(),
     });
 
-    return NextResponse.json({
-      success: true,
-      reviewId: reviewRef.id,
-      message: "レビューを投稿しました",
-    });
-  } catch (_error) {
+    return NextResponse.json(result);
+  } catch (error: unknown) {
+    if (isTeamServiceError(error)) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
+    }
     return NextResponse.json(
       { error: "レビューの投稿に失敗しました" },
       { status: 500 }
@@ -150,52 +81,28 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
-    const { supplyId: _supplyId } = await params;
+    await params;
     const { searchParams } = new URL(request.url);
-    const reviewId = searchParams.get("reviewId");
+    const reviewId = searchParams.get("reviewId") ?? "";
 
     const user = await requireApiUser(request);
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const uid = user.uid;
-
-    if (!reviewId) {
-      return NextResponse.json(
-        { error: "レビューIDが必要です" },
-        { status: 400 }
-      );
-    }
-
-    const reviewDoc = await adminDb
-      .collection("supplyReviews")
-      .doc(reviewId)
-      .get();
-
-    if (!reviewDoc.exists) {
-      return NextResponse.json(
-        { error: "レビューが見つかりません" },
-        { status: 404 }
-      );
-    }
-
-    const reviewData = reviewDoc.data();
-
-    if (reviewData?.userId !== uid) {
-      return NextResponse.json(
-        { error: "削除権限がありません" },
-        { status: 403 }
-      );
-    }
-
-    await adminDb.collection("supplyReviews").doc(reviewId).delete();
-
-    return NextResponse.json({
-      success: true,
-      message: "レビューを削除しました",
+    const result = await removeSupplyReview({
+      uid: user.uid,
+      reviewId,
     });
-  } catch (_error) {
+
+    return NextResponse.json(result);
+  } catch (error: unknown) {
+    if (isTeamServiceError(error)) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
+    }
     return NextResponse.json(
       { error: "レビューの削除に失敗しました" },
       { status: 500 }
