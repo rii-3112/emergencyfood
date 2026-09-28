@@ -31,6 +31,7 @@ export const useAuth = (requireAuth = false): UseAuthReturn => {
       teamId: (sessionUser as { teamId?: string | null }).teamId ?? null,
       lineUserId:
         (sessionUser as { lineUserId?: string | null }).lineUserId ?? null,
+      gender: (sessionUser as { gender?: string | null }).gender ?? null,
     };
   }, [
     sessionUser?.id,
@@ -38,6 +39,7 @@ export const useAuth = (requireAuth = false): UseAuthReturn => {
     sessionUser?.name,
     (sessionUser as { teamId?: string | null } | undefined)?.teamId,
     (sessionUser as { lineUserId?: string | null } | undefined)?.lineUserId,
+    (sessionUser as { gender?: string | null } | undefined)?.gender,
   ]);
 
   const error =

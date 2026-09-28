@@ -11,13 +11,11 @@ import {
   PET_TYPE_EMOJIS,
   PET_TYPE_LABELS,
 } from "@/types/handbook";
-import { doc, getDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { getSupplyDraftFromHandbookChecklistItem } from "@/utils/checklistSupplyDraft";
 import { DEFAULT_TEAM_STOCK_DAYS, UI_CONSTANTS } from "@/utils/constants";
-import { db } from "@/utils/firebase";
 import {
   compositionTotal,
   effectiveDetailedCompositionFlag,
@@ -247,22 +245,9 @@ export default function SuppliesChecklist({
   > | null>(null);
 
   const refreshLineLinkStatus = useCallback(async () => {
-    if (!user?.uid) {
-      setLineLinkStatus("unlinked");
-      return;
-    }
-    setLineLinkStatus("loading");
-    try {
-      const snap = await getDoc(doc(db, "users", user.uid));
-      const id =
-        snap.exists() && snap.data()?.lineUserId
-          ? String(snap.data().lineUserId)
-          : null;
-      setLineLinkStatus(id ? "linked" : "unlinked");
-    } catch {
-      setLineLinkStatus("unlinked");
-    }
-  }, [user?.uid]);
+    const linked = Boolean(user?.lineUserId);
+    setLineLinkStatus(linked ? "linked" : "unlinked");
+  }, [user?.lineUserId]);
 
   useEffect(() => {
     void refreshLineLinkStatus();
@@ -288,30 +273,14 @@ export default function SuppliesChecklist({
       return;
     }
     if (lineLinkStatus === "loading") {
-      void (async () => {
-        if (!user?.uid) {
-          setLineLinkStatus("unlinked");
-          setShowLineRequiredModal(true);
-          return;
-        }
-        try {
-          const snap = await getDoc(doc(db, "users", user.uid));
-          const id =
-            snap.exists() && snap.data()?.lineUserId
-              ? String(snap.data()?.lineUserId)
-              : null;
-          if (!id) {
-            setLineLinkStatus("unlinked");
-            setShowLineRequiredModal(true);
-          } else {
-            setLineLinkStatus("linked");
-            setNotificationsEnabled(true);
-          }
-        } catch {
-          setLineLinkStatus("unlinked");
-          setShowLineRequiredModal(true);
-        }
-      })();
+      const linked = Boolean(user?.lineUserId);
+      if (!linked) {
+        setLineLinkStatus("unlinked");
+        setShowLineRequiredModal(true);
+      } else {
+        setLineLinkStatus("linked");
+        setNotificationsEnabled(true);
+      }
       return;
     }
     setNotificationsEnabled(true);

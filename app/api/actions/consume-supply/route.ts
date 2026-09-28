@@ -1,7 +1,8 @@
-import { requireApiUser } from "@/utils/auth/server";
 import { NextResponse } from "next/server";
 
-import { adminDb } from "@/utils/firebase/admin";
+import { consumeSupply } from "@/lib/services/supply";
+import { isTeamServiceError } from "@/lib/services/team-errors";
+import { requireApiUser } from "@/utils/auth/server";
 
 export async function POST(req: Request) {
   try {
@@ -10,112 +11,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const uid = user.uid;
     const { supplyId, quantity = 1 } = await req.json();
-
-    if (!supplyId) {
-      return NextResponse.json(
-        { error: "Supply ID is required" },
-        { status: 400 }
-      );
-    }
-
-    const supplyRef = adminDb.collection("supplies").doc(supplyId);
-    const supplyDoc = await supplyRef.get();
-
-    if (!supplyDoc.exists) {
-      return NextResponse.json({ error: "Supply not found" }, { status: 404 });
-    }
-
-    const supply = supplyDoc.data();
-
-    const teamDoc = await adminDb.collection("teams").doc(supply?.teamId).get();
-    if (!teamDoc.exists) {
-      return NextResponse.json({ error: "Team not found" }, { status: 404 });
-    }
-
-    const teamData = teamDoc.data();
-    if (!teamData?.members?.includes(uid)) {
-      return NextResponse.json(
-        { error: "You are not a member of this team" },
-        { status: 403 }
-      );
-    }
-
-    let expiryDates = supply?.expiryDates || [];
-    if (expiryDates.length === 0) {
-      expiryDates = [
-        {
-          date: supply?.expiryDate || new Date().toISOString().split("T")[0],
-          quantity: supply?.quantity || 0,
-          addedAt:
-            supply?.registeredAt?.toDate?.()?.toISOString?.() ||
-            new Date().toISOString(),
-        },
-      ];
-    }
-
-    const sortedLots = [...expiryDates].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-
-    let remainingToConsume = quantity;
-    const consumedFrom: Array<{ date: string; quantity: number }> = [];
-
-    for (let i = 0; i < sortedLots.length && remainingToConsume > 0; i++) {
-      const lot = sortedLots[i];
-      const consumeFromThis = Math.min(lot.quantity, remainingToConsume);
-
-      consumedFrom.push({
-        date: lot.date,
-        quantity: consumeFromThis,
-      });
-
-      lot.quantity -= consumeFromThis;
-      remainingToConsume -= consumeFromThis;
-    }
-
-    const updatedExpiryDates = sortedLots.filter((lot) => lot.quantity > 0);
-
-    const newTotalQuantity = updatedExpiryDates.reduce(
-      (sum, lot) => sum + lot.quantity,
-      0
-    );
-
-    const nearestDate =
-      updatedExpiryDates.length > 0
-        ? updatedExpiryDates.map((e) => e.date).sort()[0]
-        : supply?.expiryDate;
-
-    const updateData: Record<string, unknown> = {
-      quantity: newTotalQuantity,
-      expiryDates: updatedExpiryDates,
-      expiryDate: nearestDate,
-      lastConsumedDate: new Date().toISOString(),
-      consumptionCount: (supply?.consumptionCount || 0) + quantity,
-    };
-
-    if (newTotalQuantity === 0 && !supply?.zeroStockSince) {
-      updateData.zeroStockSince = new Date().toISOString();
-    }
-    if (newTotalQuantity > 0 && supply?.zeroStockSince) {
-      updateData.zeroStockSince = null;
-    }
-
-    await supplyRef.update(updateData);
-
-    return NextResponse.json({
-      message: "Supply consumed successfully",
-      consumed: {
-        quantity,
-        from: consumedFrom,
-      },
-      remaining: newTotalQuantity,
+    const result = await consumeSupply({
+      uid: user.uid,
+      supplyId,
+      quantity,
     });
-  } catch (_error: unknown) {
-    console.error("Consume supply error:", _error);
+
+    return NextResponse.json(result);
+  } catch (error: unknown) {
+    console.error("Consume supply error:", error);
+    if (isTeamServiceError(error)) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
+    }
     const errorMessage =
-      _error instanceof Error ? _error.message : "Internal Server Error";
+      error instanceof Error ? error.message : "Internal Server Error";
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

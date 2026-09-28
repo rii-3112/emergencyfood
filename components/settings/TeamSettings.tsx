@@ -2,12 +2,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
 
 import CreateTeamForm from "@/components/teams/CreateTeamForm";
 import { useAuth, useTeam } from "@/hooks";
 import type { AppUser, Team } from "@/types";
-import { db } from "@/utils/firebase";
 import {
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
@@ -41,7 +39,7 @@ interface TeamInfo {
 
 export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
   const router = useRouter();
-  const { user: firebaseUser } = useAuth();
+  const { user: authUser } = useAuth();
   const {
     teamId: _teamId,
     currentTeamId: _currentTeamId,
@@ -51,8 +49,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
     removeAdmin,
     loading,
     error,
-    migrateTeamData,
-  } = useTeam(firebaseUser);
+  } = useTeam(authUser);
 
   const [team, setTeam] = useState<Team | null>(initialTeam || null);
 
@@ -115,22 +112,9 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
   const profileGender = user.gender ?? undefined;
 
   const refreshLineLinkStatus = useCallback(async () => {
-    if (!firebaseUser?.uid) {
-      setLineLinkStatus("unlinked");
-      return;
-    }
-    setLineLinkStatus("loading");
-    try {
-      const snap = await getDoc(doc(db, "users", firebaseUser.uid));
-      const id =
-        snap.exists() && snap.data()?.lineUserId
-          ? String(snap.data().lineUserId)
-          : null;
-      setLineLinkStatus(id ? "linked" : "unlinked");
-    } catch {
-      setLineLinkStatus("unlinked");
-    }
-  }, [firebaseUser?.uid]);
+    const linked = Boolean(user.lineUserId);
+    setLineLinkStatus(linked ? "linked" : "unlinked");
+  }, [user.lineUserId]);
 
   useEffect(() => {
     void refreshLineLinkStatus();
@@ -167,30 +151,14 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
       return;
     }
     if (lineLinkStatus === "loading") {
-      void (async () => {
-        if (!firebaseUser?.uid) {
-          setLineLinkStatus("unlinked");
-          setShowLineRequiredModal(true);
-          return;
-        }
-        try {
-          const snap = await getDoc(doc(db, "users", firebaseUser.uid));
-          const id =
-            snap.exists() && snap.data()?.lineUserId
-              ? String(snap.data()?.lineUserId)
-              : null;
-          if (!id) {
-            setLineLinkStatus("unlinked");
-            setShowLineRequiredModal(true);
-          } else {
-            setLineLinkStatus("linked");
-            setNotificationsEnabled(true);
-          }
-        } catch {
-          setLineLinkStatus("unlinked");
-          setShowLineRequiredModal(true);
-        }
-      })();
+      const linked = Boolean(user.lineUserId);
+      if (!linked) {
+        setLineLinkStatus("unlinked");
+        setShowLineRequiredModal(true);
+      } else {
+        setLineLinkStatus("linked");
+        setNotificationsEnabled(true);
+      }
       return;
     }
     setNotificationsEnabled(true);
@@ -227,7 +195,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
   // 所属チーム一覧を取得
   const fetchUserTeams = useCallback(async () => {
-    if (!firebaseUser) return;
+    if (!authUser) return;
 
     try {
       const response = await fetch("/api/team/my-teams");
@@ -248,11 +216,11 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
     } catch (error) {
       console.error("チーム一覧取得エラー:", error);
     }
-  }, [firebaseUser]);
+  }, [authUser]);
 
   useEffect(() => {
     fetchUserTeams();
-  }, [firebaseUser, fetchUserTeams]);
+  }, [authUser, fetchUserTeams]);
 
   // 自動生成パターンから外れた名前に変更したら案内を閉じる
   useEffect(() => {
@@ -307,10 +275,9 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
   const _handleMigration = async () => {
     setMigrating(true);
     try {
-      await migrateTeamData();
       setMessage({
         type: "success",
-        text: "チームデータを最新の形式に移行しました",
+        text: "チームデータは最新形式です",
       });
     } catch (_error) {
       setMessage({ type: "error", text: "チームデータの移行に失敗しました" });

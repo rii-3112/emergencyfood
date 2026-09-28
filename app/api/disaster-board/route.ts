@@ -1,8 +1,12 @@
 import { requireApiUser } from "@/utils/auth/server";
 import { NextResponse, type NextRequest } from "next/server";
 
+import {
+  findDisasterBoardByTeamId,
+  upsertDisasterBoard,
+} from "@/lib/repositories/handbook";
+import { isTeamMember } from "@/lib/repositories/team";
 import type { DisasterBoardData } from "@/types/forms";
-import { adminDb } from "@/utils/firebase/admin";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +16,6 @@ export async function GET(request: NextRequest) {
     }
 
     const teamId = user.teamId as string;
-
     if (!teamId) {
       return NextResponse.json(
         { error: "チームIDが必要です" },
@@ -20,16 +23,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const disasterBoardDoc = await adminDb
-      .collection("disaster-boards")
-      .doc(teamId)
-      .get();
-
-    if (!disasterBoardDoc.exists) {
-      return NextResponse.json({ data: null });
-    }
-
-    const data = disasterBoardDoc.data();
+    const data = await findDisasterBoardByTeamId(teamId);
     return NextResponse.json({ data });
   } catch (error) {
     console.error("Disaster board fetch error:", error);
@@ -48,12 +42,15 @@ export async function POST(request: NextRequest) {
     }
 
     const teamId = user.teamId as string;
-
     if (!teamId) {
       return NextResponse.json(
         { error: "チームIDが必要です" },
         { status: 400 }
       );
+    }
+
+    if (!(await isTeamMember(teamId, user.uid))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const body = await request.json();
@@ -67,10 +64,7 @@ export async function POST(request: NextRequest) {
       lastUpdatedBy: user.displayName || user.email || "ユーザー",
     };
 
-    await adminDb
-      .collection("disaster-boards")
-      .doc(teamId)
-      .set(disasterBoardData, { merge: true });
+    await upsertDisasterBoard(teamId, disasterBoardData);
 
     return NextResponse.json({
       success: true,

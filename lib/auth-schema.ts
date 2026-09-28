@@ -23,6 +23,8 @@ export const user = sqliteTable("user", {
     .notNull(),
   teamId: text("team_id"),
   lineUserId: text("line_user_id"),
+  /** male | female | prefer_not_to_say */
+  gender: text("gender"),
 });
 
 export const session = sqliteTable("session", {

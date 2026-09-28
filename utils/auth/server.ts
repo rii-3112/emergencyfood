@@ -1,11 +1,8 @@
 import { auth } from "@/lib/auth";
-import { adminDb } from "@/utils/firebase/admin";
 import { headers } from "next/headers";
 import { and, eq } from "drizzle-orm";
 import { account as accountTable, user as userTable } from "@/lib/auth-schema";
 import { db } from "@/lib/db";
-
-export { ensureFirestoreUser } from "@/utils/auth/firestore-user";
 
 export interface ServerUser {
   uid: string;
@@ -13,6 +10,7 @@ export interface ServerUser {
   displayName?: string;
   teamId?: string;
   lineUserId?: string | null;
+  gender?: string;
 }
 
 function mapSessionUser(sessionUser: {
@@ -21,6 +19,7 @@ function mapSessionUser(sessionUser: {
   name: string;
   teamId?: string | null;
   lineUserId?: string | null;
+  gender?: string | null;
 }): ServerUser {
   return {
     uid: sessionUser.id,
@@ -28,12 +27,10 @@ function mapSessionUser(sessionUser: {
     displayName: sessionUser.name || undefined,
     teamId: sessionUser.teamId ?? undefined,
     lineUserId: sessionUser.lineUserId ?? null,
+    gender: sessionUser.gender ?? undefined,
   };
 }
 
-/**
- * Server Components / Route Handlers: Better Auth セッションからユーザーを取得
- */
 export async function getServerUser(): Promise<ServerUser | null> {
   try {
     const session = await auth.api.getSession({
@@ -47,9 +44,6 @@ export async function getServerUser(): Promise<ServerUser | null> {
   }
 }
 
-/**
- * API Route: Request の Cookie からセッションユーザーを取得
- */
 export async function requireApiUser(req: Request): Promise<ServerUser | null> {
   try {
     const session = await auth.api.getSession({
@@ -71,17 +65,13 @@ export async function requireAuth(): Promise<ServerUser> {
   return user;
 }
 
-/** Better Auth + Firestore の teamId を同期 */
 export async function syncUserTeamId(uid: string, teamId: string | null) {
   await db
     .update(userTable)
     .set({ teamId, updatedAt: new Date() })
     .where(eq(userTable.id, uid));
-
-  await adminDb.collection("users").doc(uid).set({ teamId }, { merge: true });
 }
 
-/** Better Auth + Firestore の lineUserId を同期 */
 export async function userHasPasswordAccount(userId: string): Promise<boolean> {
   const credentialAccount = await db.query.account.findFirst({
     where: and(
@@ -101,9 +91,4 @@ export async function syncUserLineUserId(
     .update(userTable)
     .set({ lineUserId, updatedAt: new Date() })
     .where(eq(userTable.id, uid));
-
-  await adminDb
-    .collection("users")
-    .doc(uid)
-    .set({ lineUserId }, { merge: true });
 }

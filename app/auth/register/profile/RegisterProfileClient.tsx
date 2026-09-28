@@ -9,8 +9,6 @@ import {
   ERROR_MESSAGES,
   PROFILE_GENDER_OPTIONS,
 } from "@/utils/constants";
-import { db } from "@/utils/firebase";
-import { doc, getDoc } from "firebase/firestore";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useMemo, useState } from "react";
@@ -37,18 +35,12 @@ export default function RegisterProfileClient() {
       return;
     }
 
-    const uid = user.uid;
-
     let cancelled = false;
 
     async function ensureProfileGate() {
+      if (!user) return;
       try {
-        // Google OAuth はリダイレクト戻りのため、ここで Firestore ユーザーを確保
-        await fetch("/api/actions/ensure-user", { method: "POST" });
-
-        const snap = await getDoc(doc(db, "users", uid));
-        const data = snap.data();
-        if (!cancelled && data?.gender) {
+        if (!cancelled && user.gender) {
           router.replace(APP_ROUTES.HOME);
           return;
         }
