@@ -29,8 +29,8 @@ export default function ConfirmDialog({
 
   const variantClasses = {
     danger: "bg-red-500 hover:bg-red-600 focus:ring-red-400",
-    primary: "bg-blue-500 hover:bg-blue-600 focus:ring-blue-400",
-    secondary: "bg-gray-500 hover:bg-gray-600 focus:ring-gray-400",
+    primary: "bg-gray-900 hover:bg-gray-800 focus:ring-[#F39800]",
+    secondary: "bg-white0 hover:bg-gray-600 focus:ring-gray-400",
   };
 
   return (
@@ -40,7 +40,7 @@ export default function ConfirmDialog({
 
         <div className='flex justify-end space-x-3'>
           <button
-            className='px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-gray-500'
+            className='px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-[#F39800] rounded-md hover:bg-[#FFF6E4] focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-gray-500'
             onClick={onClose}
           >
             {cancelText}

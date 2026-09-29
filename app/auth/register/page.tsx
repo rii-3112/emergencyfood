@@ -7,7 +7,7 @@ export default function Register() {
   return (
     <div className='min-h-screen flex items-center justify-center'>
       <div className='max-w-md w-full'>
-        <div className='bg-white rounded-xl border border-gray-200 p-8 mb-4'>
+        <div className='bg-white rounded-xl border border-[#F39800] p-8 mb-4'>
           <Suspense
             fallback={
               <div className='text-center py-8'>

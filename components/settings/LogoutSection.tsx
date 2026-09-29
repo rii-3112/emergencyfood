@@ -74,7 +74,7 @@ export default function LogoutSection() {
               {loading ? UI_CONSTANTS.PROCESSING : "ログアウトする"}
             </button>
             <button
-              className='px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 disabled:opacity-50 transition-colors'
+              className='px-4 py-2 bg-white text-black border border-[#F39800] rounded-md hover:bg-[#FFF6E4] disabled:opacity-50 transition-colors'
               disabled={loading}
               onClick={() => setShowConfirm(false)}
             >

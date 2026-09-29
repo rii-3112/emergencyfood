@@ -4,12 +4,12 @@
 > の現行コードベースから逆引きした要件定義である。  
 > 実装済みの挙動・データ構造・制約を正とし、将来の改修や受入テストのたたき台とする。
 
-| 項目         | 内容                                    |
-| ------------ | --------------------------------------- |
-| プロダクト名 | SonaBase（リポジトリ名: emergencyfood） |
-| 種別         | 家族向け防災 Web アプリ                 |
-| 本番 URL     | https://www.sonabase.app                |
-| 最終更新     | 2026-08-23（Turso 一本化反映）          |
+| 項目         | 内容                                                                    |
+| ------------ | ----------------------------------------------------------------------- |
+| プロダクト名 | SonaBase（リポジトリ名: emergencyfood）                                 |
+| 種別         | 家族の防災情報をひとつの場所にまとめて管理するための Web アプリ         |
+| 本番 URL     | https://www.sonabase.app                                                |
+| 最終更新     | 2026-09-29（プロダクト定義の統一）                                      |
 
 ---
 
@@ -17,15 +17,15 @@
 
 ### 1.1 背景
 
-家族（世帯）単位で防災備蓄を管理する際、在庫・期限・非常時の確認事項が分散しやすい。複数メンバーで共有・更新する仕組みが必要。
+家族（世帯）の防災情報（在庫・期限・非常時の確認事項）が分散しやすい。複数メンバーで、ひとつの場所にまとめて管理する仕組みが必要。
 
 ### 1.2 目的
 
-備蓄品管理を中核に、以下を **チーム（家族グループ）単位** で一箇所に集約する。
+家族の防災情報をひとつの場所にまとめて管理するためのアプリとする。備蓄・期限・非常時の確認事項を **チーム（家族グループ）単位** で扱う。
 
 - 備蓄品の登録・消費・補充・履歴管理
 - 在庫不足・期限接近の把握と LINE 通知
-- 防災ハンドブック（チェックリスト・ハザードマップ・災害用伝言板）
+- 防災ハンドブック（チェックリスト・ハザードマップ・事前に決めておくこと）
 
 ### 1.3 想定ユーザー
 
@@ -340,7 +340,7 @@ SonaBase に登録済みのユーザーが、任意で LINE を連携したう�
 - 国交省ポータル、気象庁、内閣府防災等への外部リンク
 - **DB 永続化なし**（UI のみ）
 
-#### FR-HBK-03 災害用伝言板
+#### FR-HBK-03 事前に決めておくこと
 
 Turso `disaster_board` に保存（`data` JSON + `last_updated_by`）:
 
@@ -371,7 +371,7 @@ Turso `disaster_board` に保存（`data` JSON + `last_updated_by`）:
 | `/auth/login`            | 不要 | —      | ログイン                            |
 | `/auth/register`         | 不要 | —      | 新規登録                            |
 | `/auth/register/profile` | 要   | —      | プロフィール完成                    |
-| `/home`                  | 要   | 要     | 機能ハブ                            |
+| `/home`                  | 要   | 要     | 家族の防災情報の一覧                |
 | `/supplies/list`         | 要   | 要     | 備蓄一覧                            |
 | `/supplies/add`          | 要   | 要     | 備蓄登録                            |
 | `/supplies/history`      | 要   | 要     | 履歴一覧                            |
@@ -408,7 +408,7 @@ Turso `disaster_board` に保存（`data` JSON + `last_updated_by`）:
 | `supply_history`      | アーカイブ履歴                                                       |
 | `supply_review`       | 備蓄レビュー                                                         |
 | `handbook_checklist`  | 備蓄チェックリスト（checked_item_ids / checked_pet_items JSON）      |
-| `disaster_board`      | 災害用伝言板（data JSON）                                            |
+| `disaster_board`      | 事前に決めておくこと（data JSON）                                    |
 | `line_auth_code`      | LINE 連携用 6 桁コード（line_user_id, code, expire_at）            |
 
 ### 6.2 データ整合性ルール
@@ -478,7 +478,7 @@ Turso `disaster_board` に保存（`data` JSON + `last_updated_by`）:
 | メソッド | パス                      | 用途           |
 | -------- | ------------------------- | -------------- |
 | GET/POST | `/api/handbook/checklist` | チェックリスト |
-| GET/POST | `/api/disaster-board`     | 災害用伝言板   |
+| GET/POST | `/api/disaster-board`     | 事前に決めておくこと |
 | POST     | `/api/line/webhook`       | LINE Webhook   |
 | POST     | `/api/cron/check-expiry`  | 週次アラート   |
 
@@ -594,3 +594,5 @@ LINE_CHANNEL_SECRET
 | 2026-08-23 | 初版（コードベース逆引き）                                                                |
 | 2026-08-23 | Phase 2–4: invite / user.gender / supplies・history・reviews を Turso へ移行、Vitest 拡充 |
 | 2026-08-23 | Firebase / Firestore 依存を除去。Turso を SoT として全ドメインデータを統合               |
+| 2026-09-29 | プロダクト定義を「家族の防災情報をひとつの場所にまとめて管理するためのアプリ」に統一     |
+| 2026-09-29 | ホームを家族の防災情報の一覧にし、画面名を「事前に決めておくこと」に変更               |

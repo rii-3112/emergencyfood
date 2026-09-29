@@ -157,12 +157,12 @@ export default function SupplyHistoryView({
                     placeholder='商品名、カテゴリ、購入場所で検索...'
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-black'
+                    className='w-full px-4 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring focus:ring-black'
                   />
                 </div>
 
                 <select
-                  className='px-3 py-2 border border-gray-300 rounded-md text-sm'
+                  className='px-3 py-2 border border-[#F39800] rounded-md text-sm'
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   value={selectedCategory}
                 >
@@ -175,7 +175,7 @@ export default function SupplyHistoryView({
                 </select>
 
                 <select
-                  className='px-3 py-2 border border-gray-300 rounded-md text-sm'
+                  className='px-3 py-2 border border-[#F39800] rounded-md text-sm'
                   onChange={(e) =>
                     setSortBy(e.target.value as HistorySortOption)
                   }
@@ -202,7 +202,7 @@ export default function SupplyHistoryView({
               {sortedHistories.map((history: SupplyHistory) => (
                 <div
                   key={history.id}
-                  className='border border-gray-200 rounded-lg p-4 bg-white hover:shadow-md transition-shadow'
+                  className='border border-[#F39800] rounded-lg p-4 bg-white hover:shadow-md transition-shadow'
                 >
                   <div className='flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4'>
                     <div className='flex-1'>
@@ -232,7 +232,7 @@ export default function SupplyHistoryView({
                           )}
                         </p>
                         {history.hasReviews && (
-                          <p className='text-blue-400'>
+                          <p className='text-black'>
                             <Link
                               href={`/supplies/${history.id}/reviews`}
                               className='hover:underline'
@@ -256,7 +256,7 @@ export default function SupplyHistoryView({
               ))}
             </div>
           ) : histories.length > 0 ? (
-            <div className='text-center py-8 bg-gray-50 rounded-lg border border-gray-200'>
+            <div className='text-center py-8 bg-white rounded-lg border border-[#F39800]'>
               <p className='text-gray-600 mb-2'>
                 検索結果が見つかりませんでした
               </p>
@@ -286,11 +286,11 @@ export default function SupplyHistoryView({
       {/* モーダル */}
       {showRestockModal && selectedHistory && (
         <div
-          className='fixed inset-0 bg-white flex items-center justify-center z-50'
+          className='fixed inset-0 bg-[#FFF0D6] flex items-center justify-center z-50'
           onClick={() => setShowRestockModal(false)}
         >
           <div
-            className='bg-white rounded-lg p-6 max-w-md w-full relative border border-gray-200'
+            className='bg-white rounded-lg p-6 max-w-md w-full relative border border-[#F39800]'
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className='text-xl font-bold mb-4'>
@@ -306,7 +306,7 @@ export default function SupplyHistoryView({
                 </label>
                 <input
                   required
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                   id='quantity'
                   min='1'
                   onChange={(e) =>
@@ -325,7 +325,7 @@ export default function SupplyHistoryView({
                 </label>
                 <select
                   required
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                   id='unit'
                   onChange={(e) => setRestockUnit(e.target.value)}
                   value={restockUnit}
@@ -361,7 +361,7 @@ export default function SupplyHistoryView({
                         "noExpiry"
                       : true
                   }
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                   id='expiryDate'
                   onChange={(e) => setRestockExpiryDate(e.target.value)}
                   type='date'
@@ -376,7 +376,7 @@ export default function SupplyHistoryView({
                   金額（任意）
                 </label>
                 <input
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                   id='amount'
                   onChange={(e) => setRestockAmount(e.target.value)}
                   placeholder='例: 500'
@@ -392,7 +392,7 @@ export default function SupplyHistoryView({
                   購入場所（任意）
                 </label>
                 <input
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                   id='location'
                   onChange={(e) => setRestockLocation(e.target.value)}
                   placeholder='例: スーパーマーケット'
@@ -408,7 +408,7 @@ export default function SupplyHistoryView({
                   ラベル・メモ（任意）
                 </label>
                 <input
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                   id='label'
                   onChange={(e) => setRestockLabel(e.target.value)}
                   placeholder='例: 非常用、日常用'
@@ -424,7 +424,7 @@ export default function SupplyHistoryView({
                   保管場所（任意）
                 </label>
                 <input
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                   id='storageLocation'
                   onChange={(e) => setRestockStorageLocation(e.target.value)}
                   placeholder='例: キッチン、倉庫'
@@ -434,7 +434,7 @@ export default function SupplyHistoryView({
               </div>
               <div className='flex justify-end gap-3'>
                 <button
-                  className='px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors'
+                  className='px-4 py-2 bg-white text-black border border-[#F39800] rounded-md hover:bg-[#FFF6E4] transition-colors'
                   onClick={() => setShowRestockModal(false)}
                   type='button'
                 >

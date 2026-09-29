@@ -5,11 +5,40 @@ import {
   fetchTeamFromDB,
 } from "@/utils/data/server";
 import { redirect } from "next/navigation";
-import HandbookClient from "./_components/HandbookClient";
+import type { PlanSection } from "@/components/handbook/DisasterBoardCheckpoint";
+import HandbookClient, {
+  type HandbookCheckpoint,
+} from "./_components/HandbookClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function HandbookPage() {
+function parseCheckpoint(value: string | undefined): HandbookCheckpoint {
+  if (value === "hazardmap" || value === "plans") return value;
+  return "supplies";
+}
+
+function parsePlanSection(value: string | undefined): PlanSection | undefined {
+  if (
+    value === "sites" ||
+    value === "routes" ||
+    value === "safety" ||
+    value === "agreements"
+  ) {
+    return value;
+  }
+  return undefined;
+}
+
+export default async function HandbookPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    checkpoint?: string;
+    section?: string;
+    add?: string;
+  }>;
+}) {
+  const { checkpoint, section, add } = await searchParams;
   const user = await getServerUser();
   if (!user) {
     redirect("/auth/login");
@@ -28,7 +57,7 @@ export default async function HandbookPage() {
 
   return (
     <div className='container mx-auto py-8 min-h-screen'>
-      <header className='mb-8 border-gray-300 border-b pb-4'>
+      <header className='mb-8 border-[#F39800] border-b pb-4'>
         <h1 className='text-3xl font-bold text-gray-900 mb-2'>
           防災ハンドブック
         </h1>
@@ -38,6 +67,9 @@ export default async function HandbookPage() {
         initialDisasterBoardData={disasterBoardData}
         initialTeamData={teamData}
         initialChecklistData={initialChecklistData}
+        initialCheckpoint={parseCheckpoint(checkpoint)}
+        initialPlanSection={parsePlanSection(section)}
+        openPlanAdd={add === "1"}
         user={user}
       />
     </div>

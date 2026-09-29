@@ -107,7 +107,7 @@ export function MissingCategoriesAlert({
   return (
     <div className='mb-6'>
       {/* 統合された推奨カテゴリアラート */}
-      <div className='p-4 bg-gray-50 border border-gray-300 rounded-lg'>
+      <div className='p-4 bg-white border border-[#F39800] rounded-lg'>
         <div
           className='flex items-center justify-between cursor-pointer'
           onClick={() => setIsExpanded(!isExpanded)}
@@ -188,7 +188,7 @@ export function MissingCategoriesAlert({
                               {getRecommendedItems(rec.category).map((item) => (
                                 <span
                                   key={item}
-                                  className='text-xs bg-gray-100 px-2 py-1 rounded'
+                                  className='text-xs bg-white px-2 py-1 rounded'
                                 >
                                   {item}
                                 </span>
@@ -240,7 +240,7 @@ export function MissingCategoriesAlert({
                               {getRecommendedItems(rec.category).map((item) => (
                                 <span
                                   key={item}
-                                  className='text-xs bg-gray-100 px-2 py-1 rounded'
+                                  className='text-xs bg-white px-2 py-1 rounded'
                                 >
                                   {item}
                                 </span>
@@ -270,7 +270,7 @@ export function MissingCategoriesAlert({
                   {missing.recommended.map((rec) => (
                     <div
                       key={rec.category}
-                      className='p-3 bg-white border border-gray-200 rounded-md'
+                      className='p-3 bg-white border border-[#F39800] rounded-md'
                     >
                       <div className='flex items-start justify-between'>
                         <div className='flex-1'>
@@ -292,7 +292,7 @@ export function MissingCategoriesAlert({
                               {getRecommendedItems(rec.category).map((item) => (
                                 <span
                                   key={item}
-                                  className='text-xs bg-gray-100 px-2 py-1 rounded'
+                                  className='text-xs bg-white px-2 py-1 rounded'
                                 >
                                   {item}
                                 </span>

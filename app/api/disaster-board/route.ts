@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Disaster board fetch error:", error);
     return NextResponse.json(
-      { error: "災害用伝言板の取得に失敗しました" },
+      { error: "事前に決めておくことの取得に失敗しました" },
       { status: 500 }
     );
   }
@@ -68,12 +68,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "災害用伝言板の情報を保存しました",
+      message: "事前に決めておくことを保存しました",
     });
   } catch (error) {
     console.error("Disaster board save error:", error);
     return NextResponse.json(
-      { error: "災害用伝言板の保存に失敗しました" },
+      { error: "事前に決めておくことの保存に失敗しました" },
       { status: 500 }
     );
   }

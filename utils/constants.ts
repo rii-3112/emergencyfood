@@ -113,7 +113,7 @@ export const PROFILE_GENDER_OPTIONS = [
   { value: "prefer_not_to_say", label: "回答しない" },
 ] as const;
 
-/** ログイン後のハブ（備蓄・ハンドブックへの入口） */
+/** ログイン後の家族の防災情報一覧 */
 export const APP_ROUTES = {
   HOME: "/home",
 } as const;

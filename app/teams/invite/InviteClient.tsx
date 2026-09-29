@@ -139,7 +139,7 @@ export default function InviteClient() {
         <p className='text-gray-600 text-sm'>以下のチームに招待されています</p>
       </div>
 
-      <div className='bg-blue-50 border border-blue-200 rounded-lg p-6 text-center'>
+      <div className='bg-white border border-[#F39800] rounded-lg p-6 text-center'>
         <div className='text-sm text-gray-600 mb-1'>チーム名</div>
         <div className='text-xl font-bold text-gray-900'>
           {teamInfo.teamName}
@@ -157,7 +157,7 @@ export default function InviteClient() {
       <button
         onClick={handleJoinTeam}
         disabled={joining}
-        className='w-full bg-blue-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
+        className='w-full bg-gray-900 text-white font-semibold py-3 px-6 rounded-md hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-[#F39800] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
       >
         {joining
           ? "参加中..."
@@ -168,7 +168,7 @@ export default function InviteClient() {
 
       <button
         onClick={() => router.push("/")}
-        className='w-full bg-gray-200 text-gray-800 py-2 px-6 rounded-md hover:bg-gray-300 transition-colors'
+        className='w-full bg-white text-black border border-[#F39800] py-2 px-6 rounded-md hover:bg-[#FFF6E4] transition-colors'
       >
         キャンセル
       </button>

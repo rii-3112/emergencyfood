@@ -102,10 +102,6 @@ export default function Header({
 
   const defaultNavLinks = [
     { href: getUrlWithTeamId(APP_ROUTES.HOME), label: "ホーム" },
-    { href: getUrlWithTeamId("/supplies/list"), label: "備蓄品リスト" },
-    { href: getUrlWithTeamId("/supplies/add"), label: "備蓄品登録" },
-    { href: getUrlWithTeamId("/supplies/history"), label: "備蓄履歴" },
-    { href: getUrlWithTeamId("/handbook"), label: "ハンドブック" },
     { href: getUrlWithTeamId("/settings"), label: "設定" },
   ];
 
@@ -113,7 +109,7 @@ export default function Header({
   const title = customTitle || "SonaBase";
 
   return (
-    <header className='bg-white shadow-sm border-b border-gray-300 py-4 z-50 sticky top-0 w-full'>
+    <header className='bg-[#FFF0D6] border-b border-[#F39800] py-4 z-50 sticky top-0 w-full'>
       <div className='container mx-auto px-4 flex justify-between items-center'>
         <div className='flex items-center space-x-4'>
           <button
@@ -127,7 +123,7 @@ export default function Header({
             <div className='relative'>
               <button
                 onClick={() => setIsTeamMenuOpen(!isTeamMenuOpen)}
-                className='flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors'
+                className='flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-2 rounded-md text-xs sm:text-sm font-medium text-gray-700 hover:bg-[#FFF6E4] transition-colors'
               >
                 <div className='max-w-[80px] sm:max-w-none truncate'>
                   {currentTeam?.name || "チーム選択"}
@@ -148,14 +144,14 @@ export default function Header({
               </button>
 
               {isTeamMenuOpen && (
-                <div className='absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50'>
+                <div className='absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-[#F39800] py-2 z-50'>
                   {teams.map((team) => (
                     <button
                       key={team.id}
                       onClick={() => switchTeam(team.id)}
-                      className={`w-full text-left px-4 py-2 hover:bg-gray-100 transition-colors flex items-center justify-between ${
+                      className={`w-full text-left px-4 py-2 hover:bg-[#FFF6E4] transition-colors flex items-center justify-between ${
                         team.isActive
-                          ? "bg-blue-50 text-blue-700"
+                          ? "bg-[#FFF0D6] text-black"
                           : "text-gray-700"
                       }`}
                     >
@@ -185,7 +181,7 @@ export default function Header({
 
             <button
               aria-label='メニューを開く'
-              className='md:hidden p-2 rounded-md text-gray-700 hover:text-black hover:bg-gray-100 transition-colors'
+              className='md:hidden p-2 rounded-md text-gray-700 hover:text-black hover:bg-[#FFF6E4] transition-colors'
               onClick={toggleMenu}
             >
               <svg
@@ -216,12 +212,12 @@ export default function Header({
       </div>
 
       {shouldShowNavLinks && isMenuOpen && (
-        <div className='md:hidden absolute top-full left-0 right-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-lg'>
+        <div className='md:hidden absolute top-full left-0 right-0 bg-[#FFF0D6] border-b border-[#F39800] shadow-lg'>
           <nav className='container mx-auto px-4 py-4 space-y-2'>
             {navLinks.map((link) => (
               <Link
                 key={link.href}
-                className='block py-3 px-4 text-gray-700 hover:text-black hover:bg-gray-50/80 rounded-lg transition-all duration-200 font-medium'
+                className='block py-3 px-4 text-gray-700 hover:text-black hover:bg-[#FFF6E4] rounded-lg transition-all duration-200 font-medium'
                 href={link.href}
                 onClick={closeMenu}
               >

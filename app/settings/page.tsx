@@ -17,12 +17,12 @@ export default async function SettingsPage() {
 
   return (
     <div className='container mx-auto py-8 min-h-screen'>
-      <h1 className='text-3xl font-bold mb-6 text-black border-b border-gray-300 pb-4'>
+      <h1 className='text-3xl font-bold mb-6 text-black border-b border-[#F39800] pb-4'>
         設定
       </h1>
       <Suspense
         fallback={
-          <div className='bg-white rounded-lg shadow-md border border-gray-300 p-6 text-gray-600 text-sm'>
+          <div className='bg-white rounded-lg shadow-md border border-[#F39800] p-6 text-gray-600 text-sm'>
             読み込み中...
           </div>
         }

@@ -58,7 +58,7 @@ export default function HazardMapCheckpoint() {
 
   return (
     <div className='space-y-6'>
-      <div className='bg-gray-300 p-4 rounded-lg'>
+      <div className='bg-white border border-[#F39800] p-4 rounded-lg'>
         <h3 className='text-lg font-semibold text-gray-900 mb-2'>
           チェックポイント2: ハザードマップ
         </h3>
@@ -81,7 +81,7 @@ export default function HazardMapCheckpoint() {
             <select
               value={selectedPrefecture}
               onChange={(e) => setSelectedPrefecture(e.target.value)}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500'
+              className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500'
             >
               <option value=''>都道府県を選択</option>
               {prefectures.map((pref) => (
@@ -103,7 +103,7 @@ export default function HazardMapCheckpoint() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder='市町村名を入力'
-                className='flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500'
+                className='flex-1 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500'
               />
               <button
                 onClick={() => {
@@ -130,7 +130,7 @@ export default function HazardMapCheckpoint() {
         </h4>
 
         <div className='space-y-3'>
-          <div className='p-3 border rounded-lg hover:bg-gray-50'>
+          <div className='p-3 border rounded-lg hover:bg-[#FFF6E4]'>
             <h5 className='font-medium text-gray-900'>
               国土交通省 ハザードマップポータルサイト
             </h5>
@@ -141,13 +141,13 @@ export default function HazardMapCheckpoint() {
               href='https://disaportal.gsi.go.jp/'
               target='_blank'
               rel='noopener noreferrer'
-              className='text-blue-600 hover:underline text-sm'
+              className='text-black hover:underline text-sm'
             >
               https://disaportal.gsi.go.jp/
             </a>
           </div>
 
-          <div className='p-3 border rounded-lg hover:bg-gray-50'>
+          <div className='p-3 border rounded-lg hover:bg-[#FFF6E4]'>
             <h5 className='font-medium text-gray-900'>気象庁 防災情報</h5>
             <p className='text-sm text-gray-600 mb-2'>
               気象警報・注意報、土砂災害警戒情報など
@@ -156,13 +156,13 @@ export default function HazardMapCheckpoint() {
               href='https://www.jma.go.jp/bosai/'
               target='_blank'
               rel='noopener noreferrer'
-              className='text-blue-600 hover:underline text-sm'
+              className='text-black hover:underline text-sm'
             >
               https://www.jma.go.jp/bosai/
             </a>
           </div>
 
-          <div className='p-3 border rounded-lg hover:bg-gray-50'>
+          <div className='p-3 border rounded-lg hover:bg-[#FFF6E4]'>
             <h5 className='font-medium text-gray-900'>
               内閣府 防災情報のページ
             </h5>
@@ -173,7 +173,7 @@ export default function HazardMapCheckpoint() {
               href='https://www.bousai.go.jp/'
               target='_blank'
               rel='noopener noreferrer'
-              className='text-blue-600 hover:underline text-sm'
+              className='text-black hover:underline text-sm'
             >
               https://www.bousai.go.jp/
             </a>
@@ -182,7 +182,7 @@ export default function HazardMapCheckpoint() {
       </div>
 
       {/* 使い方ガイド */}
-      <div className='bg-gray-50 border border-gray-200 rounded-lg p-4'>
+      <div className='bg-white border border-[#F39800] rounded-lg p-4'>
         <h4 className='text-lg font-medium text-gray-900 mb-2'>
           ハザードマップの使い方
         </h4>

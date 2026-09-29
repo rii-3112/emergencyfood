@@ -99,7 +99,7 @@ export default function LoginForm() {
         type='button'
         onClick={handleGoogleLogin}
         disabled={isLoading}
-        className='w-full bg-white text-gray-700 font-semibold p-3 rounded-md border-2 border-gray-300 hover:bg-gray-50 hover:border-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-base flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed'
+        className='w-full bg-white text-gray-700 font-semibold p-3 rounded-md border-2 border-[#F39800] hover:bg-[#FFF6E4] hover:border-[#F39800] transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 text-base flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed'
       >
         <svg className='w-5 h-5' viewBox='0 0 24 24'>
           <path
@@ -124,7 +124,7 @@ export default function LoginForm() {
 
       <div className='relative'>
         <div className='absolute inset-0 flex items-center'>
-          <div className='w-full border-t border-gray-300' />
+          <div className='w-full border-t border-[#F39800]' />
         </div>
         <div className='relative flex justify-center text-sm'>
           <div className='px-2 bg-white text-gray-500'>または</div>
@@ -142,7 +142,7 @@ export default function LoginForm() {
           <input
             required
             disabled={isLoading}
-            className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 text-base disabled:opacity-50'
+            className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 text-base disabled:opacity-50'
             id='email'
             placeholder='example@email.com'
             type='email'
@@ -161,7 +161,7 @@ export default function LoginForm() {
           <input
             required
             disabled={isLoading}
-            className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 text-base disabled:opacity-50'
+            className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 text-base disabled:opacity-50'
             id='password'
             placeholder='パスワードを入力'
             type='password'

@@ -13,7 +13,7 @@ export function Card({
   padding = "md",
   shadow = "md",
 }: CardProps) {
-  const baseStyles = "bg-white rounded-lg border border-gray-200";
+  const baseStyles = "bg-white rounded-lg border border-[#F39800]";
 
   const paddings = {
     none: "",

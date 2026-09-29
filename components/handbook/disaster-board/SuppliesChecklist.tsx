@@ -924,7 +924,7 @@ export default function SuppliesChecklist({
 
   return (
     <div className='space-y-6'>
-      <div className='bg-gray-50 p-4 rounded-lg'>
+      <div className='bg-white p-4 rounded-lg'>
         <h3 className='text-lg font-semibold text-gray-900 mb-2'>
           チェックポイント1: 年齢別備蓄品チェックリスト
         </h3>
@@ -933,14 +933,14 @@ export default function SuppliesChecklist({
         </p>
       </div>
       {!bannerStock ? (
-        <div className='bg-gray-50 p-4 text-gray-800 rounded-md'>
+        <div className='bg-white p-4 text-gray-800 rounded-md'>
           <p className='font-medium'>家族構成がまだ設定されていません。</p>
           <p className='text-sm mt-2'>
             グループ設定または下の備蓄管理で年齢別の人数を登録すると、家族に合わせたチェックリストが表示されます。
           </p>
         </div>
       ) : (
-        <div className='bg-gray-300 p-4 text-gray-800 rounded-md'>
+        <div className='bg-white border border-[#F39800] p-4 text-black rounded-md'>
           <p className='font-medium'>家族構成が設定されています。</p>
           <p className='text-sm mt-2'>
             家族人数: {bannerTotal}人
@@ -962,10 +962,10 @@ export default function SuppliesChecklist({
         </div>
       )}{" "}
       {/* 備蓄管理設定 */}
-      <div className='mt-4 sm:mt-6 bg-gray-50 rounded-lg overflow-hidden border border-gray-200'>
+      <div className='mt-4 sm:mt-6 bg-white rounded-lg overflow-hidden border border-[#F39800]'>
         <button
           onClick={() => setIsSettingsExpanded(!isSettingsExpanded)}
-          className='w-full p-3 sm:p-4 flex items-center justify-between hover:bg-gray-100 transition-colors'
+          className='w-full p-3 sm:p-4 flex items-center justify-between transition-colors'
         >
           <h4 className='text-sm font-medium text-gray-900'>備蓄管理の設定</h4>
           <svg
@@ -1013,7 +1013,7 @@ export default function SuppliesChecklist({
               <select
                 value={stockDays}
                 onChange={(e) => setStockDays(parseInt(e.target.value))}
-                className='px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                className='px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
               >
                 <option value='3'>3日分</option>
                 <option value='7'>7日分（推奨）</option>
@@ -1053,7 +1053,7 @@ export default function SuppliesChecklist({
                         onChange={(e) =>
                           setDogCount(parseInt(e.target.value) || 0)
                         }
-                        className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500'
+                        className='w-20 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500'
                       />
                       <span className='text-gray-600'>匹</span>
                     </div>
@@ -1072,7 +1072,7 @@ export default function SuppliesChecklist({
                         onChange={(e) =>
                           setCatCount(parseInt(e.target.value) || 0)
                         }
-                        className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500'
+                        className='w-20 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500'
                       />
                       <span className='text-gray-600'>匹</span>
                     </div>
@@ -1111,7 +1111,7 @@ export default function SuppliesChecklist({
                 年齢層ごとに必要な備蓄量が異なります。人数はいつでも変更できます。
               </p>
 
-              <div className='space-y-3 bg-white p-3 rounded border border-gray-200'>
+              <div className='space-y-3 bg-white p-3 rounded border border-[#F39800]'>
                 <div>
                   <label className='block text-sm text-gray-600 mb-1'>
                     大人（18-64歳）
@@ -1125,7 +1125,7 @@ export default function SuppliesChecklist({
                       onChange={(e) =>
                         setAdultCount(parseInt(e.target.value) || 0)
                       }
-                      className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-20 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                     />
                     <span className='text-gray-600'>人</span>
                   </div>
@@ -1144,7 +1144,7 @@ export default function SuppliesChecklist({
                       onChange={(e) =>
                         setChildCount(parseInt(e.target.value) || 0)
                       }
-                      className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-20 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                     />
                     <span className='text-gray-600'>人</span>
                   </div>
@@ -1163,7 +1163,7 @@ export default function SuppliesChecklist({
                       onChange={(e) =>
                         setInfantCount(parseInt(e.target.value) || 0)
                       }
-                      className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-20 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                     />
                     <span className='text-gray-600'>人</span>
                   </div>
@@ -1182,7 +1182,7 @@ export default function SuppliesChecklist({
                       onChange={(e) =>
                         setElderlyCount(parseInt(e.target.value) || 0)
                       }
-                      className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-20 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                     />
                     <span className='text-gray-600'>人</span>
                   </div>
@@ -1276,7 +1276,7 @@ export default function SuppliesChecklist({
         </div>
       )}
       {/* チェックリスト保存ボタン */}
-      <div className='bg-white p-4'>
+      <div>
         <button
           onClick={handleSaveChecklist}
           disabled={savingChecklist}
@@ -1312,7 +1312,7 @@ export default function SuppliesChecklist({
                 return (
                   <div
                     key={item.id}
-                    className='flex flex-wrap items-start gap-2 p-2 rounded border border-transparent hover:bg-gray-50 hover:border-gray-100'
+                    className='flex flex-wrap items-start gap-2 p-2 rounded border border-transparent hover:bg-[#FFF6E4] hover:border-gray-100'
                   >
                     <label className='flex flex-1 min-w-0 cursor-pointer gap-2 items-start'>
                       <input
@@ -1335,7 +1335,7 @@ export default function SuppliesChecklist({
                         type='button'
                         disabled={!canRegister || registering}
                         title='チェックとは別に、備蓄リストへ登録します（数量・期限は後から編集できます）'
-                        className='shrink-0 text-xs px-2 py-1 rounded border border-gray-400 bg-white text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed'
+                        className='shrink-0 text-xs px-2 py-1 rounded border border-[#F39800] bg-white text-gray-800 hover:bg-[#FFF6E4] disabled:opacity-50 disabled:cursor-not-allowed'
                         onClick={(e) => {
                           e.preventDefault();
                           void registerChecklistItemToSuppliesList(
@@ -1376,7 +1376,7 @@ export default function SuppliesChecklist({
               return (
                 <div
                   key={item.id}
-                  className='flex flex-wrap items-start gap-2 p-2 rounded border border-transparent hover:bg-gray-50 hover:border-gray-100'
+                  className='flex flex-wrap items-start gap-2 p-2 rounded border border-transparent hover:bg-[#FFF6E4] hover:border-gray-100'
                 >
                   <label className='flex flex-1 min-w-0 cursor-pointer gap-2 items-start'>
                     <input
@@ -1399,7 +1399,7 @@ export default function SuppliesChecklist({
                       type='button'
                       disabled={!canRegister || registering}
                       title='チェックとは別に、備蓄リストへ登録します（数量・期限は後から編集できます）'
-                      className='shrink-0 text-xs px-2 py-1 rounded border border-gray-400 bg-white text-gray-800 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed'
+                      className='shrink-0 text-xs px-2 py-1 rounded border border-[#F39800] bg-white text-gray-800 hover:bg-[#FFF6E4] disabled:opacity-50 disabled:cursor-not-allowed'
                       onClick={(e) => {
                         e.preventDefault();
                         void registerChecklistItemToSuppliesList(
@@ -1438,7 +1438,7 @@ export default function SuppliesChecklist({
               <button
                 type='button'
                 onClick={() => setShowLineRequiredModal(false)}
-                className='w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors'
+                className='w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-md hover:bg-gray-200 transition-colors'
               >
                 閉じる
               </button>

@@ -6,6 +6,7 @@ import { Button, Card, Toast } from "@/components/ui";
 import { useToast } from "@/hooks";
 import type { Supply, Team } from "@/types";
 import { FOOD_CATEGORIES, FOOD_UNITS } from "@/utils/constants";
+import { supplyMatchesFocus, type SupplyFocus } from "@/utils/homeOverview";
 import { sortSupplies } from "@/utils/sortSupplies";
 import Link from "next/link";
 import { useState } from "react";
@@ -18,16 +19,25 @@ interface ServerUser {
   gender?: string;
 }
 
+const FOCUS_LABELS: Record<SupplyFocus, string> = {
+  out: "在庫が切れている",
+  short: "用意したい量に足りない",
+  near: "期限が近づいている",
+  expired: "期限が切れている",
+};
+
 interface SupplyListViewProps {
   initialSupplies: Supply[];
   initialTeam: Team | null;
   user: ServerUser;
+  focus?: SupplyFocus | null;
 }
 
 export default function SupplyListView({
   initialSupplies,
   initialTeam,
   user,
+  focus = null,
 }: SupplyListViewProps) {
   const { toast, showToast } = useToast();
   const [sortBy, setSortBy] = useState<SortOption>("registeredAt");
@@ -49,6 +59,10 @@ export default function SupplyListView({
   };
 
   const filteredSupplies = supplies.filter((supply) => {
+    if (focus && !supplyMatchesFocus(supply, focus, team?.stockSettings)) {
+      return false;
+    }
+
     if (selectedCategory !== "all" && supply.category !== selectedCategory) {
       return false;
     }
@@ -179,7 +193,7 @@ export default function SupplyListView({
     );
   }
 
-  if (sortedSupplies.length === 0) {
+  if (supplies.length === 0) {
     return (
       <Card className='text-center py-8 space-y-4'>
         <h2 className='text-xl font-semibold text-gray-900'>
@@ -197,6 +211,24 @@ export default function SupplyListView({
 
   return (
     <>
+      {focus && (
+        <div className='mb-4 flex flex-wrap items-baseline justify-between gap-3'>
+          <p className='text-sm text-black'>
+            {FOCUS_LABELS[focus]}備蓄だけを表示しています
+          </p>
+          <div className='flex gap-4 text-sm'>
+            <Link className='underline underline-offset-2' href='/home'>
+              ホームに戻る
+            </Link>
+            <Link
+              className='underline underline-offset-2'
+              href='/supplies/list'
+            >
+              すべて表示
+            </Link>
+          </div>
+        </div>
+      )}
       {/* 検索とソート */}
       <div className='mb-3 space-y-3'>
         <div className='flex flex-col sm:flex-row gap-4'>
@@ -206,12 +238,12 @@ export default function SupplyListView({
               placeholder='商品名、カテゴリ、購入場所で検索...'
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className='w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+              className='w-full px-4 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
             />
           </div>
 
           <select
-            className='px-3 py-2 border border-gray-300 rounded-md text-sm'
+            className='px-3 py-2 border border-[#F39800] rounded-md text-sm'
             onChange={(e) => setSelectedCategory(e.target.value)}
             value={selectedCategory}
           >
@@ -224,7 +256,7 @@ export default function SupplyListView({
           </select>
 
           <select
-            className='px-3 py-2 border border-gray-300 rounded-md text-sm'
+            className='px-3 py-2 border border-[#F39800] rounded-md text-sm'
             onChange={(e) => {
               const selectedOption = e.target.value as SortOption;
               handleSortChange(selectedOption, sortOrder);
@@ -245,21 +277,31 @@ export default function SupplyListView({
               ? `${filteredSupplies.length}件の検索結果（全${supplies.length}件）`
               : `${supplies.length}件の備蓄品`}
           </p>
-          <Button asChild>
-            <Link href='/supplies/add'>備蓄品を追加</Link>
-          </Button>
+          <div className='flex gap-2'>
+            <Button asChild variant='outline'>
+              <Link href='/supplies/history'>備蓄履歴</Link>
+            </Button>
+            <Button asChild>
+              <Link href='/supplies/add'>備蓄品を追加</Link>
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* 不足カテゴリ */}
-      <MissingCategoriesAlert
-        supplies={sortedSupplies}
-        teamId={user.teamId}
-        teamStockSettings={team?.stockSettings}
-        viewerGender={user.gender}
-      />
+      {!focus && (
+        <MissingCategoriesAlert
+          supplies={supplies}
+          teamId={user.teamId}
+          teamStockSettings={team?.stockSettings}
+          viewerGender={user.gender}
+        />
+      )}
       {/* 備蓄品 */}
       <div className='space-y-4'>
+        {sortedSupplies.length === 0 && (
+          <p className='text-sm text-black'>この条件の備蓄はありません。</p>
+        )}
         {sortedSupplies.map((supply: Supply) => (
           <SupplyItem
             key={supply.id}
@@ -279,11 +321,11 @@ export default function SupplyListView({
       {/* 編集モーダル */}
       {showEditModal && selectedSupply && (
         <div
-          className='fixed inset-0 bg-white flex items-center justify-center z-50'
+          className='fixed inset-0 bg-[#FFF0D6] flex items-center justify-center z-50'
           onClick={() => setShowEditModal(false)}
         >
           <div
-            className='bg-white rounded-lg p-6 max-w-md w-full relative border border-gray-200'
+            className='bg-white rounded-lg p-6 max-w-md w-full relative border border-[#F39800]'
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className='text-xl font-bold mb-4'>
@@ -299,7 +341,7 @@ export default function SupplyListView({
                 </label>
                 <input
                   required
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                   id='name'
                   type='text'
                   defaultValue={selectedSupply.name}
@@ -315,7 +357,7 @@ export default function SupplyListView({
                   </label>
                   <input
                     required
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
+                    className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                     id='quantity'
                     type='number'
                     min={1}
@@ -331,7 +373,7 @@ export default function SupplyListView({
                   </label>
                   <select
                     required
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
+                    className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                     id='unit'
                     defaultValue={selectedSupply.unit}
                   >
@@ -352,7 +394,7 @@ export default function SupplyListView({
                 </label>
                 <select
                   required
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                   id='category'
                   name='category'
                   defaultValue={selectedSupply.category}
@@ -373,7 +415,7 @@ export default function SupplyListView({
                 </label>
                 <input
                   required
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                   id='expiryDate'
                   type='date'
                   defaultValue={selectedSupply.expiryDate}
@@ -387,7 +429,7 @@ export default function SupplyListView({
                   金額（任意）
                 </label>
                 <input
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                   id='amount'
                   type='number'
                   defaultValue={selectedSupply.amount || ""}
@@ -401,7 +443,7 @@ export default function SupplyListView({
                   購入場所（任意）
                 </label>
                 <input
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                   id='purchaseLocation'
                   type='text'
                   defaultValue={selectedSupply.purchaseLocation || ""}
@@ -415,7 +457,7 @@ export default function SupplyListView({
                   ラベル・メモ（任意）
                 </label>
                 <input
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                   id='label'
                   type='text'
                   defaultValue={selectedSupply.label || ""}
@@ -429,7 +471,7 @@ export default function SupplyListView({
                   保管場所（任意）
                 </label>
                 <input
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black'
+                  className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black'
                   id='storageLocation'
                   type='text'
                   defaultValue={selectedSupply.storageLocation || ""}
@@ -437,7 +479,7 @@ export default function SupplyListView({
               </div>
               <div className='flex justify-end gap-3 pt-4'>
                 <button
-                  className='px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors'
+                  className='px-4 py-2 bg-white text-black border border-[#F39800] rounded-md hover:bg-[#FFF6E4] transition-colors'
                   onClick={(e) => {
                     e.preventDefault();
                     setShowEditModal(false);

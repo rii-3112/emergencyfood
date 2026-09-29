@@ -1,5 +1,7 @@
 "use client";
-import DisasterBoardCheckpoint from "@/components/handbook/DisasterBoardCheckpoint";
+import DisasterBoardCheckpoint, {
+  type PlanSection,
+} from "@/components/handbook/DisasterBoardCheckpoint";
 import HazardMapCheckpoint from "@/components/handbook/HazardMapCheckpoint";
 import SuppliesChecklist from "@/components/handbook/disaster-board/SuppliesChecklist";
 import type { DisasterBoardData, Team } from "@/types";
@@ -12,6 +14,8 @@ interface ServerUser {
   teamId?: string;
 }
 
+export type HandbookCheckpoint = "supplies" | "hazardmap" | "plans";
+
 interface HandbookClientProps {
   initialDisasterBoardData: DisasterBoardData | null;
   initialTeamData: Team | null;
@@ -20,6 +24,9 @@ interface HandbookClientProps {
     checkedPetItems: { [petType: string]: string[] };
   } | null;
   user: ServerUser;
+  initialCheckpoint?: HandbookCheckpoint;
+  initialPlanSection?: PlanSection;
+  openPlanAdd?: boolean;
 }
 
 export default function HandbookClient({
@@ -27,15 +34,17 @@ export default function HandbookClient({
   initialTeamData,
   initialChecklistData,
   user,
+  initialCheckpoint = "supplies",
+  initialPlanSection,
+  openPlanAdd = false,
 }: HandbookClientProps) {
-  const [activeCheckpoint, setActiveCheckpoint] = useState<
-    "supplies" | "hazardmap" | "disasterboard"
-  >("supplies");
+  const [activeCheckpoint, setActiveCheckpoint] =
+    useState<HandbookCheckpoint>(initialCheckpoint);
 
   const checkpoints = [
     { id: "supplies" as const, label: "備蓄品チェック" },
     { id: "hazardmap" as const, label: "ハザードマップ" },
-    { id: "disasterboard" as const, label: "災害用伝言板" },
+    { id: "plans" as const, label: "事前に決めておくこと" },
   ];
 
   const renderCheckpoint = () => {
@@ -50,11 +59,13 @@ export default function HandbookClient({
         );
       case "hazardmap":
         return <HazardMapCheckpoint />;
-      case "disasterboard":
+      case "plans":
         return (
           <DisasterBoardCheckpoint
             initialData={initialDisasterBoardData}
+            initialSection={initialPlanSection}
             initialTeamData={initialTeamData}
+            openAdd={openPlanAdd}
             user={user}
           />
         );
@@ -78,8 +89,8 @@ export default function HandbookClient({
             onClick={() => setActiveCheckpoint(checkpoint.id)}
             className={`px-3 py-2 rounded-lg font-medium transition-colors ${
               activeCheckpoint === checkpoint.id
-                ? "bg-gray-800 text-white"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-[#F39800] text-black"
+                : "bg-white text-black border border-[#F39800] hover:bg-[#FFF6E4]"
             }`}
           >
             {checkpoint.label}
