@@ -160,7 +160,7 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
         {isEditingName ? (
           <div className='flex gap-2'>
             <input
-              className='flex-1 px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
+              className='flex-1 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
               placeholder='アカウント名を入力'
               type='text'
               value={displayName}
@@ -174,7 +174,7 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
               {loading ? UI_CONSTANTS.PROCESSING : UI_CONSTANTS.SAVE}
             </button>
             <button
-              className='px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors'
+              className='px-4 py-2 bg-white text-black border border-[#F39800] rounded-md hover:bg-[#FFF6E4] transition-colors'
               onClick={() => {
                 setIsEditingName(false);
                 setDisplayName(getEditDisplayName());
@@ -184,7 +184,7 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
             </button>
           </div>
         ) : (
-          <div className='flex items-center justify-between p-3 bg-gray-100 rounded-md border border-gray-300'>
+          <div className='flex items-center justify-between p-3 bg-white rounded-md border border-[#F39800]'>
             <span className='text-gray-900'>{getDisplayName()}</span>
             <button
               className='text-black hover:text-gray-600 text-sm font-medium transition-colors'
@@ -200,7 +200,7 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
         <label className='block text-sm font-medium text-gray-900'>
           {UI_CONSTANTS.EMAIL_ADDRESS}
         </label>
-        <div className='p-3 bg-gray-100 rounded-md border border-gray-300'>
+        <div className='p-3 bg-white rounded-md border border-[#F39800]'>
           <span className='text-gray-900'>{user.email}</span>
         </div>
       </div>
@@ -217,7 +217,7 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
         <div className='flex flex-col sm:flex-row gap-2'>
           <select
             disabled={loading}
-            className='flex-1 px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black bg-white disabled:opacity-50'
+            className='flex-1 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black bg-white disabled:opacity-50'
             id='settings-gender'
             value={gender}
             onChange={(e) => setGender(e.target.value)}
@@ -247,14 +247,14 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
           {isChangingPassword ? (
             <div className='space-y-3'>
               <input
-                className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
+                className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
                 placeholder='新しいパスワード（6文字以上）'
                 type='password'
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
               />
               <input
-                className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
+                className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
                 placeholder='新しいパスワード（確認）'
                 type='password'
                 value={confirmPassword}
@@ -269,7 +269,7 @@ export default function AccountSettings({ user }: AccountSettingsProps) {
                   {loading ? UI_CONSTANTS.PROCESSING : UI_CONSTANTS.SAVE}
                 </button>
                 <button
-                  className='px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors'
+                  className='px-4 py-2 bg-white text-black border border-[#F39800] rounded-md hover:bg-[#FFF6E4] transition-colors'
                   onClick={() => {
                     setIsChangingPassword(false);
                     setNewPassword("");

@@ -19,7 +19,7 @@ export default async function SupplyAddPage() {
 
   return (
     <div className='container mx-auto py-8 min-h-screen'>
-      <header className='mb-8 border-gray-300 border-b pb-4'>
+      <header className='mb-8 border-[#F39800] border-b pb-4'>
         <h1 className='text-3xl font-bold text-gray-900 mb-2'>
           新しい備蓄品を登録
         </h1>

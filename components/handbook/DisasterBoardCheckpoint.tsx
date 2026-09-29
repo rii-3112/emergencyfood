@@ -9,7 +9,7 @@ import {
 } from "@/components/ui";
 import { useAuth } from "@/hooks";
 import type { DisasterBoardData, Team } from "@/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BasicInfoTab } from "./disaster-board/BasicInfoTab";
 import { CommunicationTab } from "./disaster-board/CommunicationTab";
 import { EvacuationTab } from "./disaster-board/EvacuationTab";
@@ -21,10 +21,14 @@ interface ServerUser {
   teamId?: string;
 }
 
+export type PlanSection = "sites" | "routes" | "safety" | "agreements";
+
 interface DisasterBoardCheckpointProps {
   initialData: DisasterBoardData | null;
   initialTeamData: Team | null;
   user: ServerUser;
+  initialSection?: PlanSection;
+  openAdd?: boolean;
 }
 
 const defaultData: DisasterBoardData = {
@@ -39,6 +43,8 @@ export default function DisasterBoardCheckpoint({
   initialData,
   initialTeamData,
   user: _serverUser,
+  initialSection,
+  openAdd = false,
 }: DisasterBoardCheckpointProps) {
   const { user: sessionUser } = useAuth();
   const [data, setData] = useState<DisasterBoardData>(
@@ -47,6 +53,13 @@ export default function DisasterBoardCheckpoint({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!initialSection) return;
+    document.getElementById(`plan-${initialSection}`)?.scrollIntoView({
+      block: "start",
+    });
+  }, [initialSection]);
 
   const handleSave = async () => {
     if (!sessionUser || !initialTeamData) return;
@@ -71,7 +84,7 @@ export default function DisasterBoardCheckpoint({
         throw new Error("保存に失敗しました");
       }
 
-      setSuccess("災害用伝言板の情報を保存しました");
+      setSuccess("事前に決めておくことを保存しました");
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "保存に失敗しました");
@@ -82,10 +95,10 @@ export default function DisasterBoardCheckpoint({
 
   if (!initialTeamData) {
     return (
-      <div className='bg-gray-50 p-4 text-gray-800 rounded-md'>
+      <div className='bg-white p-4 text-gray-800 rounded-md'>
         <p className='font-medium'>チームへの参加が必要です</p>
         <p className='text-sm mt-2'>
-          災害用伝言板を使用するにはチームに参加する必要があります。
+          事前に決めておくことを使うにはチームに参加する必要があります。
         </p>
       </div>
     );
@@ -99,6 +112,8 @@ export default function DisasterBoardCheckpoint({
         <EvacuationTab
           sites={data.evacuationSites}
           routes={data.evacuationRoutes}
+          startAddingSites={openAdd && initialSection === "sites"}
+          startAddingRoutes={openAdd && initialSection === "routes"}
           onSitesUpdate={(sites) =>
             setData((prev) => ({ ...prev, evacuationSites: sites }))
           }
@@ -115,6 +130,8 @@ export default function DisasterBoardCheckpoint({
         <CommunicationTab
           methods={data.safetyMethods}
           agreements={data.familyAgreements}
+          startAddingMethods={openAdd && initialSection === "safety"}
+          startAddingAgreements={openAdd && initialSection === "agreements"}
           onMethodsUpdate={(methods) =>
             setData((prev) => ({ ...prev, safetyMethods: methods }))
           }
@@ -140,9 +157,9 @@ export default function DisasterBoardCheckpoint({
 
   return (
     <div className='space-y-6'>
-      <div className='bg-gray-300 p-4 rounded-lg'>
+      <div className='bg-white border border-[#F39800] p-4 rounded-lg'>
         <h3 className='text-lg font-semibold text-gray-900 mb-2'>
-          チェックポイント3: 災害用伝言板
+          事前に決めておくこと
         </h3>
         <p className='text-sm text-gray-700'>
           家族で事前に共有すべき情報を管理しましょう
@@ -158,7 +175,14 @@ export default function DisasterBoardCheckpoint({
         </Button>
       </div>
 
-      <Tabs items={tabItems} defaultTab='evacuation' />
+      <Tabs
+        items={tabItems}
+        defaultTab={
+          initialSection === "safety" || initialSection === "agreements"
+            ? "communication"
+            : "evacuation"
+        }
+      />
 
       {data.lastUpdated && (
         <Card>
@@ -196,10 +220,8 @@ export default function DisasterBoardCheckpoint({
       </div>
 
       {/* 使い方ガイド */}
-      <div className='bg-gray-50 border border-gray-200 rounded-lg p-4'>
-        <h4 className='text-lg font-medium text-gray-900 mb-2'>
-          災害用伝言板の使い方
-        </h4>
+      <div className='bg-white border border-[#F39800] rounded-lg p-4'>
+        <h4 className='text-lg font-medium text-gray-900 mb-2'>使い方</h4>
         <div className='text-sm text-gray-800 space-y-2'>
           <p>
             <strong>避難関連</strong>: 避難場所と避難経路を事前に決めておく
@@ -214,7 +236,7 @@ export default function DisasterBoardCheckpoint({
       </div>
 
       {/* 注意事項 */}
-      <div className='bg-gray-50 border border-gray-200 rounded-lg p-4'>
+      <div className='bg-white border border-[#F39800] rounded-lg p-4'>
         <h4 className='text-lg font-medium text-gray-900 mb-2'>注意事項</h4>
         <div className='text-sm text-gray-800 space-y-2'>
           <p>• 災害時に備えて、定期的に情報を更新してください</p>

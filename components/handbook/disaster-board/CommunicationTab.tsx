@@ -10,6 +10,8 @@ interface CommunicationTabProps {
   agreements: FamilyAgreement[];
   onMethodsUpdate: (methods: SafetyConfirmationMethod[]) => void;
   onAgreementsUpdate: (agreements: FamilyAgreement[]) => void;
+  startAddingMethods?: boolean;
+  startAddingAgreements?: boolean;
 }
 
 export function CommunicationTab({
@@ -17,13 +19,20 @@ export function CommunicationTab({
   agreements,
   onMethodsUpdate,
   onAgreementsUpdate,
+  startAddingMethods = false,
+  startAddingAgreements = false,
 }: CommunicationTabProps) {
   return (
     <div className='space-y-8'>
-      <SafetyMethodsForm methods={methods} onUpdate={onMethodsUpdate} />
+      <SafetyMethodsForm
+        methods={methods}
+        startAdding={startAddingMethods}
+        onUpdate={onMethodsUpdate}
+      />
 
       <FamilyAgreementsForm
         agreements={agreements}
+        startAdding={startAddingAgreements}
         onUpdate={onAgreementsUpdate}
       />
     </div>

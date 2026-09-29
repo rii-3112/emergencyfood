@@ -5,14 +5,14 @@ import { UI_CONSTANTS } from "@/utils/constants";
 export default function Home() {
   return (
     <>
-      <div className='min-h-screen bg-white flex items-center justify-center'>
+      <div className='min-h-screen flex items-center justify-center'>
         <div className='max-w-md w-full'>
           <h1 className='text-center mb-12 text-5xl font-bold text-gray-900'>
             SonaBase
           </h1>
 
           <div>
-            <div className='bg-gray-50 rounded-lg p-6 border border-gray-200 mb-8'>
+            <div className='bg-white rounded-lg p-6 border border-[#F39800] mb-8'>
               <h2 className='text-xl font-semibold mb-3 text-gray-900'>
                 ログイン
               </h2>
@@ -27,7 +27,7 @@ export default function Home() {
               </Link>
             </div>
 
-            <div className='bg-gray-50 rounded-lg p-6 border border-gray-200'>
+            <div className='bg-white rounded-lg p-6 border border-[#F39800]'>
               <h2 className='text-xl font-semibold mb-3 text-gray-900'>
                 新規登録
               </h2>
@@ -44,13 +44,13 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <footer className='py-2 sm:py-4 text-center text-black border-t border-gray-300/50 mt-auto'>
+      <footer className='py-2 sm:py-4 text-center text-black border-t border-[#F39800]/50 mt-auto'>
         <div className='max-w-6xl mx-auto'>
           <div className='flex flex-col items-center'>
             <div className='flex items-center mb-2 sm:mb-3'>
               <Link
                 aria-label='Follow us on X'
-                className='group relative p-2 sm:p-3 bg-gray-200/60 backdrop-blur-sm rounded-xl hover:bg-gray-300/80 transition-all duration-300 hover:scale-110 hover:shadow-lg'
+                className='group relative p-2 sm:p-3 bg-white border border-[#F39800] rounded-xl hover:bg-[#FFF6E4] transition-all duration-300 hover:scale-110 hover:shadow-lg'
                 href='https://x.com/rii_3112'
                 rel='noopener noreferrer'
                 target='_blank'

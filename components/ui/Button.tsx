@@ -30,10 +30,10 @@ export function Button({
   const variants = {
     primary: "bg-gray-800 text-white hover:bg-gray-700 focus:ring-gray-500",
     secondary:
-      "bg-gray-100 text-gray-900 hover:bg-gray-200 focus:ring-gray-500",
+      "bg-white text-black border border-[#F39800] hover:bg-[#FFF6E4] focus:ring-[#F39800]",
     danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
     outline:
-      "border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500",
+      "border border-[#F39800] text-gray-700 hover:bg-[#FFF6E4] focus:ring-gray-500",
   };
 
   const sizes = {

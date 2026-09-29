@@ -161,7 +161,7 @@ export default function LineAccountLinker({
         </div>
       ) : (
         <div className='space-y-6'>
-          <div className='p-6 bg-gray-100 border border-gray-300 rounded-lg'>
+          <div className='p-6 bg-white border border-[#F39800] rounded-lg'>
             <div className='flex items-start space-x-3'>
               <div className='flex-shrink-0'>
                 <svg
@@ -204,7 +204,7 @@ export default function LineAccountLinker({
               </label>
               <input
                 required
-                className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
+                className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
                 id='lineAuthCode'
                 placeholder='認証コードを入力してください'
                 type='text'

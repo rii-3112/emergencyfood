@@ -87,8 +87,8 @@ export default function SettingsClient({
             key={tab.id}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
               activeTab === tab.id
-                ? "bg-black text-white border-b-2 border-black"
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-[#F39800] text-black"
+                : "bg-white text-black border border-[#F39800] hover:bg-[#FFF6E4]"
             }`}
             onClick={() => selectTab(tab.id)}
           >
@@ -97,7 +97,7 @@ export default function SettingsClient({
         ))}
       </div>
 
-      <div className='bg-white rounded-lg shadow-md border border-gray-300 p-6'>
+      <div className='bg-white rounded-lg shadow-md border border-[#F39800] p-6'>
         {renderTabContent()}
       </div>
     </div>

@@ -165,12 +165,12 @@ export default function ReviewsClient({
   return (
     <div className='max-w-4xl mx-auto px-4 py-8'>
       {error && (
-        <div className='mb-6 bg-gray-100 border border-gray-300 rounded-lg p-4'>
+        <div className='mb-6 bg-white border border-[#F39800] rounded-lg p-4'>
           <p className='text-sm text-gray-800'>{error}</p>
         </div>
       )}
 
-      <div className='bg-gray-50 border border-gray-200 rounded-xl p-6 mb-8 shadow-lg'>
+      <div className='bg-white border border-[#F39800] rounded-xl p-6 mb-8 shadow-lg'>
         <div className='mb-4'>
           <h3 className='text-lg font-semibold text-gray-900'>
             感想を投稿する
@@ -218,7 +218,7 @@ export default function ReviewsClient({
             {reviews.map((review, index) => (
               <div
                 key={review.id}
-                className='bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-1'
+                className='bg-white border border-[#F39800] rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-1'
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className='flex items-start justify-between mb-4'>
@@ -240,7 +240,7 @@ export default function ReviewsClient({
                     </button>
                   )}
                 </div>
-                <div className='bg-gray-50 rounded-lg p-4'>
+                <div className='bg-white rounded-lg p-4'>
                   <p className='text-gray-700 leading-relaxed whitespace-pre-wrap'>
                     {review.content || review.text}
                   </p>
@@ -249,7 +249,7 @@ export default function ReviewsClient({
             ))}
           </div>
         ) : (
-          <div className='text-center py-12 bg-gray-50 rounded-xl border border-gray-300'>
+          <div className='text-center py-12 bg-white rounded-xl border border-[#F39800]'>
             <h3 className='text-lg font-medium text-gray-900 mb-2'>
               感想がありません
             </h3>

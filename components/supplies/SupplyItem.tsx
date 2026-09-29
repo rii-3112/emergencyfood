@@ -262,7 +262,7 @@ export default function SupplyItem({
 
   const getExpiryStyle = () => {
     if (supply.quantity === 0) {
-      return "border-gray-200 bg-white";
+      return "border-[#F39800] bg-white";
     }
 
     if (isOverExpiry) {
@@ -270,7 +270,7 @@ export default function SupplyItem({
     } else if (isNearExpiry) {
       return "border-yellow-500 bg-yellow-50";
     }
-    return "border-gray-200 bg-white";
+    return "border-[#F39800] bg-white";
   };
 
   return (
@@ -296,12 +296,12 @@ export default function SupplyItem({
             </button>
 
             {showMenu && (
-              <div className='absolute right-0 mt-1 w-28 sm:w-32 bg-white border border-gray-200 rounded shadow-lg z-10'>
+              <div className='absolute right-0 mt-1 w-28 sm:w-32 bg-white border border-[#F39800] rounded shadow-lg z-10'>
                 {supply.isArchived ? (
                   <>
                     {onRestoreSupply && (
                       <button
-                        className='block w-full text-left px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100 transition-colors'
+                        className='block w-full text-left px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-[#FFF6E4] transition-colors'
                         onClick={handleRestoreClick}
                       >
                         リストに戻す
@@ -319,13 +319,13 @@ export default function SupplyItem({
                 ) : (
                   <>
                     <button
-                      className='block w-full text-left px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100 transition-colors'
+                      className='block w-full text-left px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-[#FFF6E4] transition-colors'
                       onClick={handleArchiveClick}
                     >
                       履歴に移動
                     </button>
                     <button
-                      className='block w-full text-left px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-gray-100 transition-colors'
+                      className='block w-full text-left px-3 py-2 text-xs sm:text-sm text-gray-700 hover:bg-[#FFF6E4] transition-colors'
                       onClick={handleUpdateClick}
                     >
                       編集
@@ -376,14 +376,14 @@ export default function SupplyItem({
               </p>
               {hasMultipleExpiries && (
                 <button
-                  className='text-xs text-blue-600 hover:text-blue-800 mt-1'
+                  className='text-xs text-black hover:text-black mt-1'
                   onClick={() => setShowExpiryDetails(!showExpiryDetails)}
                 >
                   {showExpiryDetails ? "▼ 詳細を隠す" : "▶ 詳細を表示"}
                 </button>
               )}
               {showExpiryDetails && migratedSupply.expiryDates && (
-                <div className='mt-2 pl-4 border-l-2 border-gray-300 space-y-1'>
+                <div className='mt-2 pl-4 border-l-2 border-[#F39800] space-y-1'>
                   {sortExpiryDates(migratedSupply.expiryDates).map(
                     (expiry, index) => {
                       const lotExpiryDate = new Date(expiry.date);

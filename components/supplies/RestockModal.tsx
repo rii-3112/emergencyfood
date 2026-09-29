@@ -50,8 +50,8 @@ export function RestockModal({
   };
 
   return (
-    <div className='fixed inset-0 bg-white flex items-center justify-center z-50'>
-      <div className='bg-white rounded-lg p-6 max-w-md w-full border border-gray-200'>
+    <div className='fixed inset-0 bg-[#FFF0D6] flex items-center justify-center z-50'>
+      <div className='bg-white rounded-lg p-6 max-w-md w-full border border-[#F39800]'>
         <h2 className='text-xl font-semibold text-gray-900 mb-4'>
           {supplyName}を買い足す
         </h2>
@@ -69,7 +69,7 @@ export function RestockModal({
             <div className='flex items-center space-x-2'>
               <input
                 required
-                className='flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                className='flex-1 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800] focus:border-transparent'
                 id='quantity'
                 min={1}
                 type='number'
@@ -93,7 +93,7 @@ export function RestockModal({
             </label>
             <input
               required={isExpiryRequired}
-              className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+              className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800] focus:border-transparent'
               id='expiryDate'
               min={
                 isExpiryRequired
@@ -118,7 +118,7 @@ export function RestockModal({
             </label>
             <div className='flex items-center space-x-2'>
               <input
-                className='flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+                className='flex-1 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800] focus:border-transparent'
                 id='purchasePrice'
                 min={0}
                 placeholder='例: 300'
@@ -132,7 +132,7 @@ export function RestockModal({
 
           <div className='flex space-x-3 mt-6'>
             <button
-              className='flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors'
+              className='flex-1 px-4 py-2 bg-white text-black border border-[#F39800] rounded-md hover:bg-[#FFF6E4] transition-colors'
               type='button'
               onClick={onClose}
             >

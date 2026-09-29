@@ -45,7 +45,7 @@ export default function SupplySort({
   return (
     <div className='relative'>
       <button
-        className='flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
+        className='flex items-center space-x-2 px-3 py-2 border border-[#F39800] rounded-md bg-white hover:bg-[#FFF6E4] focus:outline-none focus:ring-2 focus:ring-black focus:border-black'
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className='text-sm text-gray-700'>
@@ -72,13 +72,13 @@ export default function SupplySort({
       </button>
 
       {isOpen && (
-        <div className='absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10'>
+        <div className='absolute right-0 mt-1 w-48 bg-white border border-[#F39800] rounded-md shadow-lg z-10'>
           {sortOptions.map((option) => (
             <button
               key={option.value}
-              className={`block w-full text-left px-4 py-2 text-sm hover:bg-gray-100 ${
+              className={`block w-full text-left px-4 py-2 text-sm hover:bg-[#FFF6E4] ${
                 currentSort === option.value
-                  ? "bg-gray-100 text-black font-medium"
+                  ? "bg-white text-black font-medium"
                   : "text-gray-700"
               }`}
               onClick={() => handleSortChange(option.value)}

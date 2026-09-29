@@ -16,7 +16,7 @@ export default function LoadingSpinner({
   return (
     <div
       aria-label='読み込み中'
-      className={`animate-spin rounded-full border-2 border-gray-300 border-t-gray-900 ${sizeClasses[size]} ${className}`}
+      className={`animate-spin rounded-full border-2 border-[#F39800] border-t-gray-900 ${sizeClasses[size]} ${className}`}
       role='status'
     >
       <span className='sr-only'>読み込み中...</span>

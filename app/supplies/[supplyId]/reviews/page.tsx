@@ -31,7 +31,7 @@ export default async function SupplyReviewsPage({
   return (
     <div>
       <div className='container mx-auto py-8 min-h-screen'>
-        <header className='mb-8 border-gray-300 border-b pb-4'>
+        <header className='mb-8 border-[#F39800] border-b pb-4'>
           <h1 className='text-3xl font-bold text-gray-900 mb-2'>感想を共有</h1>
           <p className='text-gray-600'>共有して次回に備える。</p>
         </header>

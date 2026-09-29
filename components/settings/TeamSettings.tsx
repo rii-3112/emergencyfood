@@ -59,6 +59,11 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
     }
   }, [clientTeam, loading]);
 
+  useEffect(() => {
+    if (window.location.hash !== "#invite") return;
+    document.getElementById("invite")?.scrollIntoView({ block: "start" });
+  }, []);
+
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
@@ -492,7 +497,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
           {isEditingTeamName ? (
             <div className='flex flex-col sm:flex-row gap-2'>
               <input
-                className='flex-1 px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black text-gray-900'
+                className='flex-1 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-black text-gray-900'
                 maxLength={50}
                 placeholder='新しいグループ名を入力'
                 type='text'
@@ -508,7 +513,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                   {updatingTeamName ? "保存中..." : "保存"}
                 </button>
                 <button
-                  className='px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors text-sm sm:text-base'
+                  className='px-4 py-2 bg-white text-black border border-[#F39800] rounded-md hover:bg-[#FFF6E4] transition-colors text-sm sm:text-base'
                   onClick={() => {
                     setIsEditingTeamName(false);
                     setNewTeamName(team.name);
@@ -520,14 +525,14 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
             </div>
           ) : (
             <div className='flex items-center gap-2'>
-              <div className='flex-1 p-3 bg-gray-100 rounded-md border border-gray-300'>
+              <div className='flex-1 p-3 bg-white rounded-md border border-[#F39800]'>
                 <span className='text-gray-900 text-sm sm:text-base'>
                   {team.name}
                 </span>
               </div>
               {canManageAdmins && (
                 <button
-                  className='px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-100 transition-colors text-sm sm:text-base whitespace-nowrap'
+                  className='px-4 py-2 bg-white border border-[#F39800] text-gray-700 rounded-md hover:bg-[#FFF6E4] transition-colors text-sm sm:text-base whitespace-nowrap'
                   onClick={() => {
                     setNewTeamName(team.name);
                     setIsEditingTeamName(true);
@@ -544,7 +549,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
           <label className='block text-sm font-medium text-gray-900'>
             {UI_CONSTANTS.FAMILY_GROUP_OWNER}
           </label>
-          <div className='p-3 bg-gray-100 rounded-md border border-gray-300'>
+          <div className='p-3 bg-white rounded-md border border-[#F39800]'>
             <span className='text-gray-900 text-sm sm:text-base'>
               {(() => {
                 const ownerMember = teamMembers.find(
@@ -562,7 +567,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
       {/* デフォルトチーム名の場合のガイド（操作ボタンは下の共通セクションに集約） */}
       {showGuide && (
-        <div className='bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-lg p-6'>
+        <div className='bg-white border border-[#F39800] rounded-lg p-6'>
           <div>
             <h3 className='font-bold text-lg text-gray-900 mb-2'>
               グループ名をカスタマイズしましょう
@@ -575,7 +580,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
       )}
 
       {/* 招待・グループ作成 */}
-      <div className='space-y-3'>
+      <div className='space-y-3 scroll-mt-24' id='invite'>
         <button
           onClick={generateInviteLink}
           disabled={generatingInvite}
@@ -586,7 +591,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className='w-full bg-white border-2 border-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-md hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2'
+          className='w-full bg-white border-2 border-[#F39800] text-gray-700 font-semibold py-3 px-6 rounded-md hover:bg-[#FFF6E4] transition-colors focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2'
         >
           新しいグループを作成
         </button>
@@ -610,7 +615,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
               このリンクを家族に共有してチームに招待しましょう
             </p>
 
-            <div className='bg-gray-100 p-3 rounded-md border border-gray-300 break-all text-sm'>
+            <div className='bg-white p-3 rounded-md border border-[#F39800] break-all text-sm'>
               {inviteLink}
             </div>
 
@@ -637,7 +642,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
           {teamMembers.map((member) => (
             <div
               key={member.uid}
-              className='flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-white border border-gray-300 rounded-lg shadow-sm space-y-2 sm:space-y-0'
+              className='flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-white border border-[#F39800] rounded-lg shadow-sm space-y-2 sm:space-y-0'
             >
               <div className='flex items-center space-x-3'>
                 <div className='flex-1 min-w-0'>
@@ -664,7 +669,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                       className={`px-2 sm:px-3 py-1 text-xs font-medium rounded-md transition-colors ${
                         team.admins.includes(member.uid)
                           ? "bg-red-100 text-red-800 hover:bg-red-200"
-                          : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                          : "bg-white text-black border border-[#F39800] hover:bg-[#FFF6E4]"
                       }`}
                       onClick={() =>
                         handleAdminToggle(
@@ -696,7 +701,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
       </div>
 
       {/* 備蓄管理設定 */}
-      <div className='mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 rounded-lg'>
+      <div className='mt-4 sm:mt-6 p-3 sm:p-4 bg-[#FFF6E4] rounded-lg'>
         <h4 className='text-sm font-medium text-gray-900 mb-3 border-b pb-2'>
           備蓄管理の設定
         </h4>
@@ -727,7 +732,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
             <select
               value={stockDays}
               onChange={(e) => setStockDays(parseInt(e.target.value))}
-              className='px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+              className='px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
             >
               <option value='3'>3日分</option>
               <option value='7'>7日分（推奨）</option>
@@ -767,7 +772,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                       onChange={(e) =>
                         setDogCount(parseInt(e.target.value) || 0)
                       }
-                      className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-20 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                     />
                     <span className='text-gray-600'>匹</span>
                   </div>
@@ -786,7 +791,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                       onChange={(e) =>
                         setCatCount(parseInt(e.target.value) || 0)
                       }
-                      className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                      className='w-20 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                     />
                     <span className='text-gray-600'>匹</span>
                   </div>
@@ -823,7 +828,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
               年齢層ごとに必要な備蓄量が異なります。人数はいつでも変更できます。
             </p>
 
-            <div className='space-y-3 bg-white p-3 rounded border border-gray-200'>
+            <div className='space-y-3 bg-white p-3 rounded border border-[#F39800]'>
               <div>
                 <label className='block text-sm text-gray-600 mb-1'>
                   大人（18-64歳）
@@ -837,7 +842,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                     onChange={(e) =>
                       setAdultCount(parseInt(e.target.value) || 0)
                     }
-                    className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    className='w-20 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                   />
                   <span className='text-gray-600'>人</span>
                 </div>
@@ -856,7 +861,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                     onChange={(e) =>
                       setChildCount(parseInt(e.target.value) || 0)
                     }
-                    className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    className='w-20 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                   />
                   <span className='text-gray-600'>人</span>
                 </div>
@@ -875,7 +880,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                     onChange={(e) =>
                       setInfantCount(parseInt(e.target.value) || 0)
                     }
-                    className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    className='w-20 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                   />
                   <span className='text-gray-600'>人</span>
                 </div>
@@ -894,13 +899,13 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                     onChange={(e) =>
                       setElderlyCount(parseInt(e.target.value) || 0)
                     }
-                    className='w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                    className='w-20 px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-[#F39800]'
                   />
                   <span className='text-gray-600'>人</span>
                 </div>
               </div>
 
-              <p className='text-xs text-blue-700 mt-2 font-medium'>
+              <p className='text-xs text-black mt-2 font-medium'>
                 合計: {householdSize}人
               </p>
             </div>
@@ -950,7 +955,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                     LINEで受け取るには、
                     <Link
                       href='/settings?tab=line'
-                      className='text-blue-600 hover:underline font-medium mx-0.5'
+                      className='text-black hover:underline font-medium mx-0.5'
                     >
                       {UI_CONSTANTS.LINE_NOTIFICATION_SETTINGS}
                     </Link>
@@ -964,7 +969,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
           <button
             onClick={handleUpdateStockSettings}
             disabled={updatingStockSettings || !canManageAdmins}
-            className='w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'
+            className='w-full px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors text-sm'
           >
             {updatingStockSettings ? "保存中..." : "設定を保存"}
           </button>
@@ -1024,7 +1029,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
               <button
                 type='button'
                 onClick={() => setShowLineRequiredModal(false)}
-                className='w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors'
+                className='w-full sm:w-auto px-4 py-2 text-sm font-medium text-gray-700 bg-white rounded-md hover:bg-gray-200 transition-colors'
               >
                 閉じる
               </button>

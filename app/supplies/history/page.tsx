@@ -18,7 +18,7 @@ export default async function SupplyHistoryPage() {
 
   return (
     <div className='container mx-auto py-8 min-h-screen'>
-      <header className='mb-8 border-gray-300 border-b pb-4'>
+      <header className='mb-8 border-[#F39800] border-b pb-4'>
         <h1 className='text-3xl font-bold text-gray-900 mb-2'>備蓄履歴</h1>
         <p className='text-gray-600'>過去に備蓄していたものを確認</p>
       </header>

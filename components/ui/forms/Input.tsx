@@ -29,7 +29,7 @@ export function Input({
   `;
 
   const variants = {
-    default: "border-gray-300 focus:ring-gray-500",
+    default: "border-[#F39800] focus:ring-gray-500",
     error: "border-red-300 focus:ring-red-500",
   };
 

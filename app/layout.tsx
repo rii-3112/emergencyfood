@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "SonaBase",
-  description: "家族で非常時の備えを管理するためのアプリケーション",
+  description: "家族の防災情報をひとつの場所にまとめて管理するためのアプリ",
   keywords: ["備蓄品", "防災", "家族", "管理", "非常時"],
 };
 

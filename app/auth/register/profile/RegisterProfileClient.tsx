@@ -175,7 +175,7 @@ export default function RegisterProfileClient() {
           <input
             required
             disabled={isSubmitting}
-            className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 text-base disabled:opacity-50'
+            className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 text-base disabled:opacity-50'
             id='profile-name'
             placeholder='表示名'
             type='text'
@@ -194,7 +194,7 @@ export default function RegisterProfileClient() {
           <select
             required
             disabled={isSubmitting}
-            className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 text-base bg-white disabled:opacity-50'
+            className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 text-base bg-white disabled:opacity-50'
             id='profile-gender'
             value={gender}
             onChange={(e) => setGender(e.target.value)}

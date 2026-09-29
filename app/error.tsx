@@ -30,7 +30,7 @@ export default function Error({ error, reset }: ErrorProps) {
             再試行
           </button>
           <button
-            className='w-full px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium'
+            className='w-full px-6 py-3 bg-white text-black border border-[#F39800] rounded-lg hover:bg-[#FFF6E4] transition-colors font-medium'
             onClick={() => (window.location.href = "/")}
           >
             ホームに戻る

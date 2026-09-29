@@ -88,7 +88,7 @@ export default function CreateTeamForm({ onClose }: CreateTeamFormProps) {
           </label>
           <input
             required
-            className='w-full px-3 py-2 border border-gray-400 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 text-base'
+            className='w-full px-3 py-2 border border-[#F39800] rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent text-gray-900 text-base'
             disabled={loading}
             id='teamName'
             placeholder='家族グループ名を決めてください'
