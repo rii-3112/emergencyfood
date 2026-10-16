@@ -102,10 +102,17 @@ export default function Header({
 
   const defaultNavLinks = [
     { href: getUrlWithTeamId(APP_ROUTES.HOME), label: "ホーム" },
+    { href: getUrlWithTeamId("/supplies/list"), label: "備蓄" },
+    { href: getUrlWithTeamId("/handbook"), label: "ハンドブック" },
     { href: getUrlWithTeamId("/settings"), label: "設定" },
   ];
 
   const navLinks = customNavLinks || defaultNavLinks;
+
+  const isActive = (href: string) => {
+    if (href === "/supplies/list") return pathname.startsWith("/supplies");
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
   const title = customTitle || "SonaBase";
 
   return (
@@ -168,15 +175,23 @@ export default function Header({
         {shouldShowNavLinks && (
           <>
             <nav className='hidden md:flex items-center space-x-6'>
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  className='text-gray-700 hover:text-black transition-colors font-medium'
-                  href={link.href}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const active = isActive(link.href);
+                return (
+                  <Link
+                    key={link.href}
+                    aria-current={active ? "page" : undefined}
+                    className={`transition-colors font-medium ${
+                      active
+                        ? "text-black underline underline-offset-4"
+                        : "text-gray-700 hover:text-black"
+                    }`}
+                    href={link.href}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
             </nav>
 
             <button
@@ -214,16 +229,24 @@ export default function Header({
       {shouldShowNavLinks && isMenuOpen && (
         <div className='md:hidden absolute top-full left-0 right-0 bg-[#FFF0D6] border-b border-[#F39800] shadow-lg'>
           <nav className='container mx-auto px-4 py-4 space-y-2'>
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                className='block py-3 px-4 text-gray-700 hover:text-black hover:bg-[#FFF6E4] rounded-lg transition-all duration-200 font-medium'
-                href={link.href}
-                onClick={closeMenu}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const active = isActive(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  aria-current={active ? "page" : undefined}
+                  className={`block py-3 px-4 rounded-lg transition-all duration-200 font-medium ${
+                    active
+                      ? "bg-white text-black"
+                      : "text-gray-700 hover:text-black hover:bg-[#FFF6E4]"
+                  }`}
+                  href={link.href}
+                  onClick={closeMenu}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
       )}
