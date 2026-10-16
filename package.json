@@ -25,7 +25,7 @@
     "better-auth": "^1.7.1",
     "date-fns": "^4.1.0",
     "drizzle-orm": "^0.45.2",
-    "next": "^15.5.22",
+    "next": "^15.5.28",
     "react": "^19.1.6",
     "react-dom": "^19.1.6"
   },
@@ -40,7 +40,7 @@
     "better-sqlite3": "^12.11.1",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.0.0",
-    "eslint-config-next": "^15.5.22",
+    "eslint-config-next": "^15.5.28",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsx-a11y": "^6.8.0",
@@ -51,11 +51,12 @@
     "tailwindcss": "^4",
     "typescript": "^5",
     "tsx": "^4.20.4",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.12"
   },
   "overrides": {
     "@tootallnate/once": "^3.0.2",
     "http-proxy-agent": "^7.0.2",
-    "postcss": "^8.5.10"
+    "postcss": "^8.5.10",
+    "sharp": "^0.35.5"
   }
 }
