@@ -119,7 +119,9 @@ export function collectWeeklyDigestIssues(
   }
 
   issues.near.sort(
-    (a, b) => (a.remainingDays ?? Number.MAX_SAFE_INTEGER) - (b.remainingDays ?? Number.MAX_SAFE_INTEGER)
+    (a, b) =>
+      (a.remainingDays ?? Number.MAX_SAFE_INTEGER) -
+      (b.remainingDays ?? Number.MAX_SAFE_INTEGER)
   );
 
   return issues;
@@ -135,12 +137,7 @@ export function hasWeeklyDigestIssues(issues: WeeklyDigestIssues): boolean {
 }
 
 function actionItems(issues: WeeklyDigestIssues): DigestIssue[] {
-  return [
-    ...issues.out,
-    ...issues.critical,
-    ...issues.expired,
-    ...issues.near,
-  ];
+  return [...issues.out, ...issues.critical, ...issues.expired, ...issues.near];
 }
 
 export function buildWeeklyDigestMessage({

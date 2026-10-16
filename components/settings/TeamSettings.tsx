@@ -950,9 +950,7 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                 </label>
 
                 <div className='text-xs text-gray-500 mt-2 space-y-1'>
-                  <p>
-                    ※ 要対応がある週のみ、LINEで週次の備えメモを送ります
-                  </p>
+                  <p>※ 要対応がある週のみ、LINEで週次の備えメモを送ります</p>
                   <p>
                     LINEで受け取るには、
                     <Link

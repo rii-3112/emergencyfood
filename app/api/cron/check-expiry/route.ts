@@ -56,7 +56,8 @@ export async function POST(req: Request) {
       const lastNotifiedAt = teamRecord.lastWeeklyReportAt;
       if (
         lastNotifiedAt &&
-        now.getTime() - lastNotifiedAt.getTime() < LINE_WEEKLY_DIGEST_COOLDOWN_MS
+        now.getTime() - lastNotifiedAt.getTime() <
+          LINE_WEEKLY_DIGEST_COOLDOWN_MS
       ) {
         continue;
       }
