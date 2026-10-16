@@ -1220,7 +1220,7 @@ export default function SuppliesChecklist({
                       className='rounded'
                     />
                     <span className='text-sm text-gray-600'>
-                      在庫切れの通知
+                      在庫切れ・緊急警告
                     </span>
                   </label>
 
@@ -1232,9 +1232,13 @@ export default function SuppliesChecklist({
                       className='rounded'
                     />
                     <span className='text-sm text-gray-600'>
-                      賞味期限が近い通知
+                      期限切れ・接近の通知
                     </span>
                   </label>
+
+                  <p className='text-xs text-gray-500 pt-1'>
+                    ※ 要対応がある週のみ、LINEで週次の備えメモを送ります
+                  </p>
                 </div>
               )}
             </div>

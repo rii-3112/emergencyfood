@@ -946,11 +946,13 @@ export default function TeamSettings({ user, initialTeam }: TeamSettingsProps) {
                     onChange={(e) => setNotifyExpiryNear(e.target.checked)}
                     className='rounded'
                   />
-                  <span className='text-gray-700'>賞味期限接近の通知</span>
+                  <span className='text-gray-700'>期限切れ・接近の通知</span>
                 </label>
 
                 <div className='text-xs text-gray-500 mt-2 space-y-1'>
-                  <p>※ 通知はLINEアプリの通知機能を使用します</p>
+                  <p>
+                    ※ 要対応がある週のみ、LINEで週次の備えメモを送ります
+                  </p>
                   <p>
                     LINEで受け取るには、
                     <Link
