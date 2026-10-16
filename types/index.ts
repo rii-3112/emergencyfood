@@ -57,8 +57,8 @@ export interface HouseholdComposition {
 
 export interface NotificationSettings {
   enabled: boolean; // 通知機能の有効化
-  criticalStock: boolean; // 在庫切れ・緊急警告
-  expiryNear: boolean; // 賞味期限接近警告
+  criticalStock: boolean; // 在庫切れ・緊急警告（out / critical）
+  expiryNear: boolean; // 期限切れ・接近警告
 }
 
 export interface TeamStockSettings {

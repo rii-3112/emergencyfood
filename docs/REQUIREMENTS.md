@@ -277,7 +277,8 @@ Web でアカウントを持ち、設定画面から連携したメンバーに�
 | daily / other            | 使用期限 | 90               |
 | noExpiry（「その他」等） | —        | 通知なし         |
 
-cron の在庫切れ判定: `status === "out"` のみ（critical / low は LINE 対象外）
+cron の在庫判定: `status === "out"` および `"critical"`（`low` / `below-recommended` は LINE 対象外）  
+cron の期限判定: 期限切れ済み + 種別ごとの通知開始日以内の接近（数量 0 は在庫側に任せる）
 
 ---
 
@@ -305,16 +306,17 @@ SonaBase に登録済みのユーザーが、任意で LINE を連携したう�
 解除: `unlink-line-account`（SonaBase アカウントは残る）  
 再送: LINE で「コード再送」メッセージ
 
-#### FR-LINE-02 週次アラート（cron）
+#### FR-LINE-02 週次備えメモ（cron）
 
 - トリガー: GitHub Actions 毎週月曜 7:00 UTC（JST 16:00）、手動実行可
 - エンドポイント: `POST /api/cron/check-expiry`（`x-cron-secret` 必須）
 - 送信条件:
   - チームの `notifications.enabled === true`
-  - サブ条件: `criticalStock` / `expiryNear`（各デフォルト ON）
+  - サブ条件: `criticalStock`（在庫切れ / 緊急） / `expiryNear`（期限切れ / 接近）（各デフォルト ON）
+  - **要対応が 1 件以上ある週のみ送信**（問題ゼロの週は送らない）
   - 送信先: チーム `team_member` のうち **`line_user_id` が紐づいている SonaBase ユーザー**
-  - **同一チーム 24 時間クールダウン**（`team.last_weekly_report_at`）
-- メッセージ内容: 在庫切れ全件 + 期限接近上位 3 件（残日数昇順）
+  - **同一チーム 6 日クールダウン**（`team.last_weekly_report_at`）
+- メッセージ内容: 「今週の備えメモ」形式。件数サマリ + 要対応上位数件（優先度: 在庫切れ → 緊急 → 期限切れ → 接近）+ 備蓄リストへのリンク
 
 ※ LINE 未連携のメンバーには通知は届かない（Web 上での確認のみ）。
 
