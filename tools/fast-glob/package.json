@@ -1,0 +1,6 @@
+{
+  "name": "fast-glob",
+  "version": "3.3.3",
+  "private": true,
+  "main": "index.js"
+}

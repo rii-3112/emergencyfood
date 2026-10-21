@@ -16,7 +16,7 @@
 
 | 領域           | 技術                                                              |
 | -------------- | ----------------------------------------------------------------- |
-| フロント / API | Next.js 15（App Router）、React 19、TypeScript                    |
+| フロント / API | Next.js 16（App Router）、React 19、TypeScript                    |
 | スタイル       | Tailwind CSS 4                                                    |
 | 認証           | Better Auth（メール / Google）                                    |
 | DB             | Turso（libSQL）+ Drizzle ORM ※ローカルは `file:./data/auth.db` 可 |
@@ -28,7 +28,7 @@
 
 ### 前提
 
-- Node.js 18 以上
+- Node.js 24 以上
 - [Turso](https://turso.tech/) 無料 DB、またはローカル SQLite ファイル
 - （任意）Google OAuth クライアント（Google ログイン用）
 - （任意）LINE Messaging API チャネル

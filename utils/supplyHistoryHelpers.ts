@@ -103,11 +103,7 @@ export function mergeSupplyHistory(
 }
 
 export type HistorySortOption =
-  | "archivedAt"
-  | "name"
-  | "category"
-  | "totalConsumed"
-  | "reviewCount";
+  "archivedAt" | "name" | "category" | "totalConsumed" | "reviewCount";
 
 export function sortSupplyHistory(
   histories: SupplyHistory[],

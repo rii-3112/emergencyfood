@@ -42,11 +42,7 @@ export interface TeamMember {
 
 // 備蓄管理設定
 export type AgeGroup =
-  | "household_shared"
-  | "adult"
-  | "child"
-  | "infant"
-  | "elderly";
+  "household_shared" | "adult" | "child" | "infant" | "elderly";
 
 export interface HouseholdComposition {
   adult: number; // 大人（18-64歳）

@@ -1,9 +1,5 @@
 export type AgeGroup =
-  | "household_shared"
-  | "adult"
-  | "child"
-  | "infant"
-  | "elderly";
+  "household_shared" | "adult" | "child" | "infant" | "elderly";
 
 export type PetType = "dog" | "cat" | "small_animal" | "bird";
 

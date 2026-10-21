@@ -2,11 +2,7 @@
 import { useState } from "react";
 
 export type SortOption =
-  | "name"
-  | "expiryDate"
-  | "registeredAt"
-  | "category"
-  | "reviewCount";
+  "name" | "expiryDate" | "registeredAt" | "category" | "reviewCount";
 export type SortOrder = "asc" | "desc";
 
 interface SupplySortProps {
